@@ -23,6 +23,7 @@ public class Pistol extends Weapon {
 		shotSound = Resources.getSound("w_p_s.wav");
 		img = Resources.getImage("pistol.png");
 		flippedImg = Resources.getImage("pistol.png", true);
+		type = WeaponType.pistol;
 	}
 
 	@Override
@@ -38,6 +39,7 @@ public class Pistol extends Weapon {
 		WeaponStatsCard s = new WeaponStatsCard();
 		int bullet = Weapon.AmmoType.bullet.ordinal();
 		s.clipSize[bullet] = 8;
+		s.reloadCount[bullet] = s.clipSize[bullet];
 		s.reloadTimes[bullet] = 1200;
 		s.ammoPerShot[bullet] = 1;
 		s.shotsPerBurst = 1;

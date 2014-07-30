@@ -8,10 +8,13 @@ package hfk.items;
 import hfk.PointF;
 import hfk.Shot;
 import hfk.game.GameController;
-import hfk.game.slickstates.GameplayState;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
+import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
+import hfk.stats.StatsModifier;
+import hfk.stats.WeaponStatsCard;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -19,8 +22,7 @@ import java.util.ListIterator;
  *
  * @author LostMekka
  */
-public final class Inventory {
-	
+public final class Inventory implements StatsModifier {
 	
 	private final int[] ammo = new int[Weapon.AMMO_TYPE_COUNT];
 	private final LinkedList<InventoryItem> weapons = new LinkedList<>();
@@ -34,7 +36,7 @@ public final class Inventory {
 
 	public Inventory(Mob m) {
 		parent = m;
-		updateMSC(m.stats);
+		updateMSC(m.totalStats);
 	}
 	
 	public int size(){
@@ -94,6 +96,13 @@ public final class Inventory {
 		if(quickSlots != null) System.arraycopy(quickSlots, 0, nqs, 0, quickSlots.length);
 		quickSlots = nqs;
 		generateList();
+	}
+	
+	public LinkedList<InventoryItem> getEquippedItems(){
+		LinkedList<InventoryItem> ans = new LinkedList<>();
+		for(Weapon w : quickSlots) if(w != null) ans.add(w);
+		// TODO: add armor as well once it is implemented
+		return ans;
 	}
 	
 	public LinkedList<InventoryItem> getList(){
@@ -213,6 +222,7 @@ public final class Inventory {
 		w.shotTeam = Shot.Team.hostile;
 		if(parent == GameController.get().player) w.shotTeam = Shot.Team.friendly;
 		generateList();
+		parent.recalculateCards();
 		return true;
 	}
 	
@@ -223,6 +233,7 @@ public final class Inventory {
 		w.angle = parent.getLookAngle();
 		w.shotTeam = Shot.Team.hostile;
 		if(parent == GameController.get().player) w.shotTeam = Shot.Team.friendly;
+		parent.recalculateCards();
 		return true;
 	}
 	
@@ -233,6 +244,7 @@ public final class Inventory {
 		quickSlots[activeQuickSlot] = null;
 		insertSorted(w, weapons);
 		generateList();
+		parent.recalculateCards();
 		return true;
 	}
 	
@@ -243,6 +255,7 @@ public final class Inventory {
 		quickSlots[index] = null;
 		insertSorted(w, weapons);
 		generateList();
+		parent.recalculateCards();
 		return true;
 	}
 	
@@ -250,6 +263,7 @@ public final class Inventory {
 		Weapon w = quickSlots[activeQuickSlot];
 		if(!w.isReady()) return null;
 		quickSlots[activeQuickSlot] = null;
+		parent.recalculateCards();
 		return w;
 	}
 	
@@ -267,6 +281,37 @@ public final class Inventory {
 		return w.pullTrigger();
 	}
 	
+	public void recalculateStats(){
+		if(parent == null) return;
+		for(InventoryItem i : getEquippedItems()){
+			if(i instanceof Weapon){
+				Weapon w = (Weapon)i;
+				w.recalculateStats();
+			}
+		}
+	}
+	
+	@Override
+	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
+		for(InventoryItem i : getEquippedItems()){
+			i.addDamageCardEffects(card, w, m);
+		}
+	}
+
+	@Override
+	public void addWeaponStatsCardEffects(WeaponStatsCard card, Weapon w, Mob m) {
+		for(InventoryItem i : getEquippedItems()){
+			i.addWeaponStatsCardEffects(card, w, m);
+		}
+	}
+
+	@Override
+	public void addMobStatsCardEffects(MobStatsCard card, Mob m) {
+		for(InventoryItem i : getEquippedItems()){
+			i.addMobStatsCardEffects(card, m);
+		}
+	}
+
 	private void generateList(){
 		list = new LinkedList<>();
 		list.addAll(weapons);
@@ -300,5 +345,5 @@ public final class Inventory {
 		}
 		l.add(i);
 	}
-	
+
 }

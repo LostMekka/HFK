@@ -29,9 +29,14 @@ public class Shot {
 	public float angle, size;
 	public Damage dmg;
 	public Team team;
+	public boolean isGrenade = false;
+	// skill based extra stuff
+	public int bounceCount = 0;
+	public float overDamageSplashRadius = 0f;
+	public int smartGrenadeLevel = 0, manualGrenadeLevel = 0;
 	
 	public Shot(Weapon w, Image img, Sound hit, float size){
-		this(w.pos, img, hit, w.getScatteredAngle(), w.stats.shotVel, size, w.lengthOffset + w.weaponLength);
+		this(w.pos, img, hit, w.getScatteredAngle(), w.totalStats.shotVel, size, w.lengthOffset + w.weaponLength);
 	}
 
 	public Shot(PointF pos, Image img, Sound hit, float angle, float vel, float size, float startDiff) {

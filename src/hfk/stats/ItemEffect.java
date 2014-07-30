@@ -5,11 +5,15 @@
  */
 package hfk.stats;
 
+import hfk.items.weapons.Weapon;
+
 /**
  *
  * @author LostMekka
  */
 public abstract class ItemEffect {
+	
+	public Weapon.WeaponType weaponType = null;
 	
 	public MobStatsCard msc = new MobStatsCard();
 	public WeaponStatsCard wsc = new WeaponStatsCard();

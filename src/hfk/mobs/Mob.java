@@ -12,7 +12,11 @@ import hfk.game.GameController;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
+import hfk.skills.SkillSet;
+import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
+import hfk.stats.StatsModifier;
+import hfk.stats.WeaponStatsCard;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -25,12 +29,15 @@ import org.newdawn.slick.Sound;
  *
  * @author LostMekka
  */
-public abstract class Mob {
+public abstract class Mob implements StatsModifier {
 
 	//stuff that can be set by extending classes
 	public PointF pos;
 	public boolean showCollisionDebug = false;
 	public boolean showPathDebug = false;
+	
+	public int xp = 0;
+	public SkillSet skills = new SkillSet(this);
 	
 	public boolean allowPlayerPosNotify = true;
 	public boolean autoSetPath = true;
@@ -52,10 +59,9 @@ public abstract class Mob {
 	public float size = 0.8f;
 	public Animation animation = null;
 	public Sound hitSound = null, deathSound = null, alertSound = null;
-	public Weapon bionicWeapon = null;
 	public LinkedList<PointF> path = new LinkedList<>();
 	// stuff that normally will not be set by extending classes
-	public MobStatsCard stats;
+	public MobStatsCard basicStats, totalStats;
 	public int hp;
 	public Inventory inventory;
 	private PointF lastPlayerPos = null;
@@ -66,15 +72,8 @@ public abstract class Mob {
 	private int stateTextTimer = 0;
 	private String stateText = "";
 	private boolean playerVisible = false;
-	
-	public Mob(PointF pos){
-		this.pos = pos.clone();
-		stats = getDefaultMobStatsCard();
-		// init inventory after msc, because inventory needs the msc!!!
-		inventory = new Inventory(this);
-		hp = stats.getMaxHP();
-	}
-	
+	private Weapon bionicWeapon = null;
+		
 	public static Mob createMob(PointF pos, int maxDifficulty, int level){
 		// TODO: think of a less wasteful way to do this!!!
 		LinkedList<Mob> l = new LinkedList<>();
@@ -100,6 +99,16 @@ public abstract class Mob {
 		return l.getLast();
 	}
 	
+	public Mob(PointF pos){
+		this.pos = pos.clone();
+		basicStats = getDefaultMobStatsCard();
+		totalStats = basicStats.clone();
+		// init inventory after msc, because inventory needs the msc!!!
+		inventory = new Inventory(this);
+		recalculateCards();
+		hp = totalStats.getMaxHP();
+	}
+	
 	public abstract MobStatsCard getDefaultMobStatsCard();
 	public abstract int getDifficultyScore();
 	
@@ -111,13 +120,23 @@ public abstract class Mob {
 	public void mobOnDeath(Shot s){}
 	public void mobOnHit(int dmg, Shot s){}
 
+	public Weapon getBionicWeapon() {
+		return bionicWeapon;
+	}
+
+	public void setBionicWeapon(Weapon w) {
+		if(bionicWeapon != null) bionicWeapon.bionicParent = null;
+		this.bionicWeapon = w;
+		bionicWeapon.bionicParent = this;
+	}
+
 	public boolean isAlive(){
 		return hp > 0;
 	}
 	
 	public boolean heal(int amount){
-		if(hp >= stats.getMaxHP()) return false;
-		hp = Math.min(hp + amount, stats.getMaxHP());
+		if(hp >= totalStats.getMaxHP()) return false;
+		hp = Math.min(hp + amount, totalStats.getMaxHP());
 		return true;
 	}
 	
@@ -210,7 +229,7 @@ public abstract class Mob {
 		}
 		if(this == ctrl.player) return;
 		boolean playerWasVisible = playerVisible;
-		playerVisible = ctrl.playerIsAlive() && ctrl.level.isVisibleFrom(this, ctrl.player, stats.getSightRange());
+		playerVisible = ctrl.playerIsAlive() && ctrl.level.isVisibleFrom(this, ctrl.player, totalStats.getSightRange());
 		if(playerVisible){
 			lastPlayerPos = ctrl.player.pos.clone();
 			if(!playerWasVisible){
@@ -247,7 +266,7 @@ public abstract class Mob {
 			}
 			if(lastPlayerTime >= 0){
 				lastPlayerTime += time;
-				if(lastPlayerTime > stats.getMemoryTime()){
+				if(lastPlayerTime > totalStats.getMemoryTime()){
 					lastPlayerPos = null;
 					lastPlayerTime = -1;
 					mobOnLostMemoryOfPlayer();
@@ -269,7 +288,7 @@ public abstract class Mob {
 		lookInDirection(pos.angleTo(target));
 		PointF vel = new PointF(getLookAngle());
 		float dd = pos.squaredDistanceTo(target);
-		float speed = stats.getMaxSpeed();
+		float speed = totalStats.getMaxSpeed();
 		float reach = speed * time / 1000f;
 		boolean arrived = false;
 		if(dd < reach*reach){
@@ -349,6 +368,36 @@ public abstract class Mob {
 		if(autoFollowPlayerOnHit && s.team == Shot.Team.friendly) lastPlayerTime = 0;
 		startBarrage(null, barrageTimeOnHit);
 		mobOnHit(dmg, s);
+	}
+	
+	public final void recalculateCards(){
+		totalStats = basicStats.clone();
+		MobStatsCard c = new MobStatsCard(true);
+		addMobStatsCardEffects(c, this);
+		totalStats.add(c);
+		inventory.recalculateStats();
+		hp = Math.min(hp, totalStats.getMaxHP());
+	}
+
+	@Override
+	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
+		if(m != this) return;
+		skills.addDamageCardEffects(card, w, m);
+		inventory.addDamageCardEffects(card, w, m);
+	}
+
+	@Override
+	public void addWeaponStatsCardEffects(WeaponStatsCard card, Weapon w, Mob m) {
+		if(m != this) return;
+		skills.addWeaponStatsCardEffects(card, w, m);
+		inventory.addWeaponStatsCardEffects(card, w, m);
+	}
+
+	@Override
+	public void addMobStatsCardEffects(MobStatsCard card, Mob m) {
+		if(m != this) return;
+		skills.addMobStatsCardEffects(card, m);
+		inventory.addMobStatsCardEffects(card, m);
 	}
 	
 }

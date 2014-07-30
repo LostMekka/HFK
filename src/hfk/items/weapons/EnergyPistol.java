@@ -23,6 +23,7 @@ public class EnergyPistol extends Weapon {
 		shotSound = Resources.getSound("w_p_s.wav");
 		img = Resources.getImage("energy_pistol.png");
 		flippedImg = Resources.getImage("energy_pistol.png", true);
+		type = WeaponType.pistol;
 	}
 
 	@Override
@@ -39,6 +40,7 @@ public class EnergyPistol extends Weapon {
 		int bullet = Weapon.AmmoType.bullet.ordinal();
 		int energy = Weapon.AmmoType.energy.ordinal();
 		s.clipSize[bullet] = 8;
+		s.reloadCount[bullet] = s.clipSize[bullet];
 		s.reloadTimes[bullet] = 1500;
 		s.ammoPerShot[bullet] = 1;
 		s.clipSize[energy] = 50;

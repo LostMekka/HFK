@@ -16,6 +16,7 @@ import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
 import hfk.stats.DamageItemEffect;
+import hfk.stats.StatsModifier;
 import hfk.stats.WeaponStatsCard;
 import java.util.LinkedList;
 import org.newdawn.slick.Color;
@@ -28,6 +29,27 @@ import org.newdawn.slick.Sound;
  */
 public abstract class Weapon extends InventoryItem {
 
+	public static enum WeaponType{
+		pistol,
+		machinegun,
+		shotgun,
+		plasmaWeapon{
+			@Override
+			public String toString() {
+				return "plasma weapon";
+			}},
+		rocketLauncher{
+			@Override
+			public String toString() {
+				return "rocket launcher";
+			}},
+		grenadeLauncher{
+			@Override
+			public String toString() {
+				return "grenade launcher";
+			}},
+	}
+	
 	public static enum AmmoType {
 		bullet {
 			@Override public String getShortID(){ return "b"; }
@@ -49,13 +71,14 @@ public abstract class Weapon extends InventoryItem {
 	
 	public enum WeaponState { ready, cooldownShot, cooldownBurst, cooldownReload }
 	
+	public WeaponType type;
 	public Mob bionicParent = null;
 	public float currentScatter;
 	public float weaponLength = 0.5f, lengthOffset = 0.3f;
 	public Image img, flippedImg;
 	public Sound shotSound = null, burstSound = null;
-	public WeaponStatsCard stats;
-	public DamageCard staticDamageCard, totalDamageCard;
+	public WeaponStatsCard basicStats, totalStats;
+	public DamageCard basicDamageCard, totalDamageCard;
 	public LinkedList<DamageItemEffect> staticEffects = new LinkedList<>();
 	public LinkedList<DamageItemEffect> dynamicEffects = new LinkedList<>();
 	public Shot.Team shotTeam = Shot.Team.dontcare;
@@ -80,11 +103,12 @@ public abstract class Weapon extends InventoryItem {
 	public Weapon(float angle, PointF position) {
 		super(position);
 		this.angle = angle;
-		stats = getDefaultWeaponStats();
-		currentScatter = stats.minScatter;
-		System.arraycopy(stats.clipSize, 0, clips, 0, AMMO_TYPE_COUNT);
-		staticDamageCard = getDefaultDamageCard();
-		totalDamageCard = staticDamageCard.cloneUnique();
+		basicStats = getDefaultWeaponStats();
+		totalStats = basicStats.clone();
+		currentScatter = totalStats.minScatter;
+		System.arraycopy(totalStats.clipSize, 0, clips, 0, AMMO_TYPE_COUNT);
+		basicDamageCard = getDefaultDamageCard();
+		totalDamageCard = basicDamageCard.cloneUnique();
 		reloadStartSound[AmmoType.plasmaround.ordinal()] = Resources.getSound("reload_s_pr.wav");
 		reloadEndSound[AmmoType.plasmaround.ordinal()] = Resources.getSound("reload_e_pr.wav");
 		destroyWhenUsed = false;
@@ -120,7 +144,7 @@ public abstract class Weapon extends InventoryItem {
 		String s = "";
 		boolean first = true;
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
-			if(stats.clipSize[i] > 0){
+			if(totalStats.clipSize[i] > 0){
 				if(first){
 					first = false;
 				} else {
@@ -133,9 +157,9 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public String getShortAmmoString(int ammoType, boolean includeInventory){
-		if(stats.clipSize[ammoType] > 0){
+		if(totalStats.clipSize[ammoType] > 0){
 			String ans = AmmoType.values()[ammoType].getShortID() + "(" + 
-					clips[ammoType] + "/" + stats.clipSize[ammoType];
+					clips[ammoType] + "/" + totalStats.clipSize[ammoType];
 			if(includeInventory && parentInventory != null && ammoType != AmmoType.energy.ordinal()){
 				ans += "/" + parentInventory.getAmmoCount(AmmoType.values()[ammoType]);
 			}
@@ -147,9 +171,9 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public String getAmmoString(int ammoType, boolean includeInventory){
-		if(stats.clipSize[ammoType] > 0){
+		if(totalStats.clipSize[ammoType] > 0){
 			String ans = AmmoType.values()[ammoType].toString() + ": (" + 
-					clips[ammoType] + "/" + stats.clipSize[ammoType];
+					clips[ammoType] + "/" + totalStats.clipSize[ammoType];
 			if(includeInventory && parentInventory != null && ammoType != AmmoType.energy.ordinal()){
 				ans += "/" + parentInventory.getAmmoCount(AmmoType.values()[ammoType]);
 			}
@@ -204,7 +228,7 @@ public abstract class Weapon extends InventoryItem {
 	
 	public boolean canFire(){
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
-			int a = stats.ammoPerBurst[i] + stats.shotsPerBurst * stats.ammoPerShot[i];
+			int a = Math.round(totalStats.ammoPerBurst[i]) + totalStats.shotsPerBurst * Math.round(totalStats.ammoPerShot[i]);
 			if(clips[i] < a) return false;
 		}
 		return isReady();
@@ -236,23 +260,22 @@ public abstract class Weapon extends InventoryItem {
 		return false;
 	}
 	
-	public void reloadInternal(int i){
+	private void reloadInternal(int i){
 		reloadInternalBOTHVALUES(i, AmmoType.values()[i]);
 	}
 	
-	public void reloadInternal(AmmoType t){
+	private void reloadInternal(AmmoType t){
 		reloadInternalBOTHVALUES(t.ordinal(), t);
 	}
 	
-	public void reloadInternalBOTHVALUES(int i, AmmoType t){
+	private void reloadInternalBOTHVALUES(int i, AmmoType t){
 		clipToReload = i;
-		reloadAmount = stats.clipSize[i] - clips[i];
+		reloadAmount = Math.round(Math.min(totalStats.clipSize[i], totalStats.reloadCount[i])) - clips[i];
 		if(parentInventory != null){
-			int max = parentInventory.getAmmoCount(t);
-			if(max < reloadAmount) reloadAmount = max;
+			reloadAmount = Math.min(reloadAmount, parentInventory.getAmmoCount(t));
 			parentInventory.removeAmmo(AmmoType.values()[i], reloadAmount);
 		}
-		addTimer(stats.reloadTimes[i], WeaponState.cooldownReload);
+		addTimer(Math.round(totalStats.reloadTimes[i]), WeaponState.cooldownReload);
 		Sound sound = reloadStartSound[i];
 		if(sound != null) GameController.get().playSoundAt(sound, pos);
 	}
@@ -263,9 +286,9 @@ public abstract class Weapon extends InventoryItem {
 	
 	public boolean mustReload(boolean ignoreRegenerating, boolean ignoreUnreloadable){
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
-			if(ignoreRegenerating && stats.ammoRegenerationRates[i] > 0) continue;
-			if(ignoreUnreloadable && stats.reloadTimes[i] < 0) continue;
-			if(clips[i] < stats.ammoPerBurst[i] + stats.shotsPerBurst * stats.ammoPerShot[i]) return true;
+			if(ignoreRegenerating && totalStats.ammoRegenerationRates[i] > 0) continue;
+			if(ignoreUnreloadable && totalStats.reloadCount[i] <= 0) continue;
+			if(clips[i] < totalStats.ammoPerBurst[i] + totalStats.shotsPerBurst * totalStats.ammoPerShot[i]) return true;
 		}
 		return false;
 	}
@@ -288,14 +311,14 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	private boolean canReloadInternalBOTHVALUES(int i, AmmoType t){
-		return (stats.reloadTimes[i] >= 0 && clips[i] < stats.clipSize[i]
+		return (totalStats.reloadCount[i] > 0 && clips[i] < totalStats.clipSize[i]
 				&& (parentInventory == null || parentInventory.hasAmmo(t)));
 	}
 	
 	public boolean pullTrigger(){
 		if(canFire()){
-			burstShotCount = stats.shotsPerBurst;
-			for(int i=0; i<AMMO_TYPE_COUNT; i++) clips[i] -= stats.ammoPerBurst[i];
+			burstShotCount = totalStats.shotsPerBurst;
+			for(int i=0; i<AMMO_TYPE_COUNT; i++) clips[i] -= totalStats.ammoPerBurst[i];
 			if(burstSound != null) burstSound.play();
 			shootInternal();
 			return true;
@@ -309,22 +332,24 @@ public abstract class Weapon extends InventoryItem {
 	
 	private void shootInternal(){
 		burstShotCount--;
-		for(int i=0; i<AMMO_TYPE_COUNT; i++) clips[i] -= stats.ammoPerShot[i];
+		for(int i=0; i<AMMO_TYPE_COUNT; i++) clips[i] -= totalStats.ammoPerShot[i];
 		if(shotSound != null) GameController.get().playSoundAt(shotSound, pos);
-		for(int i=0; i<stats.projectilesPerShot; i++){
+		for(int i=0; i<totalStats.projectilesPerShot; i++){
 			Shot s = new Shot(this, null, null, 0.1f);
 			s = initShot(s);
 			s.dmg = totalDamageCard.createDamage();
 			s.team = shotTeam;
+			Mob m = getParentMob();
+			if(m != null) s = m.skills.modifyShot(s, this, m);
 			GameController.get().shots.add(s);
 		}
 		if(burstShotCount > 0){
-			addTimer(mustReload() ? 0 : stats.shotInterval, WeaponState.cooldownShot);
+			addTimer(mustReload() ? 0 : totalStats.shotInterval, WeaponState.cooldownShot);
 		} else {
-			addTimer(mustReload() ? 0 : stats.burstInterval, WeaponState.cooldownBurst);
+			addTimer(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst);
 		}
-		currentScatter += stats.scatterPerShot;
-		if(currentScatter > stats.maxScatter) currentScatter = stats.maxScatter;
+		currentScatter += totalStats.scatterPerShot;
+		if(currentScatter > totalStats.maxScatter) currentScatter = totalStats.maxScatter;
 	}
 	
 	public Mob getParentMob(){
@@ -342,18 +367,18 @@ public abstract class Weapon extends InventoryItem {
 			super.update(time);
 			return;
 		}
-		currentScatter -= time / 1000f * stats.scatterCoolRate;
-		if(currentScatter < stats.minScatter) currentScatter = stats.minScatter;
-		if(currentScatter > stats.maxScatter) currentScatter = stats.maxScatter;
+		currentScatter -= time / 1000f * totalStats.scatterCoolRate;
+		if(currentScatter < totalStats.minScatter) currentScatter = totalStats.minScatter;
+		if(currentScatter > totalStats.maxScatter) currentScatter = totalStats.maxScatter;
 		// regenerate ammo
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
-			float rate = stats.ammoRegenerationRates[i];
+			float rate = totalStats.ammoRegenerationRates[i];
 			if(rate != 0f && (state != WeaponState.cooldownReload || clipToReload != i)){
 				ammoRegenCounter[i] += rate * time / 1000f;
 				int a = (int)ammoRegenCounter[i];
 				ammoRegenCounter[i] -= a;
 				clips[i] += a;
-				if(clips[i] > stats.clipSize[i]) clips[i] = stats.clipSize[i];
+				if(clips[i] > totalStats.clipSize[i]) clips[i] = Math.round(totalStats.clipSize[i]);
 			}
 		}
 		// from here on: cooldown stuff, only when not ready!
@@ -416,7 +441,7 @@ public abstract class Weapon extends InventoryItem {
 		for(int i=0; i<Damage.DAMAGE_TYPE_COUNT; i++){
 			if(colored) c = totalDamageCard.doesDamage(i) ? Color.white : Color.darkGray;
 			String s = dc.getLongDamageString(i, true);
-			int projectiles = stats.projectilesPerShot;
+			int projectiles = totalStats.projectilesPerShot;
 			if(projectiles > 1) s = "" + projectiles + " x " + s;
 			l = Math.max(l, r.getStringWidth(s));
 			r.drawStringOnScreen(s, x, y+i*GameRenderer.MIN_TEXT_HEIGHT, c, 1f);
@@ -440,20 +465,23 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public float getScatter(){
-		return (currentScatter - stats.minScatter) / (stats.maxScatter - stats.minScatter);
+		return (currentScatter - totalStats.minScatter) / (totalStats.maxScatter - totalStats.minScatter);
 	}
 	
 	public void addStaticEffect(DamageItemEffect die){
 		staticEffects.add(die);
-		staticDamageCard.add(die.dc);
-		recalculateTotalDamageCard();
+		basicDamageCard.add(die.dc);
+		Mob m = getParentMob();
+		if(m != null) m.recalculateCards();
 	}
 	
-	public void recalculateTotalDamageCard(){
-		totalDamageCard = staticDamageCard.cloneUnique();
-		for(DamageItemEffect die : staticEffects){
-			totalDamageCard.add(die.dc);
-		}
+	public void recalculateStats(){
+		Mob p = getParentMob();
+		if(p == null) return;
+		totalDamageCard = basicDamageCard.cloneUnique();
+		DamageCard damageEffect = new DamageCard();
+		p.addDamageCardEffects(damageEffect, this, p);
+		totalDamageCard.add(damageEffect);
 	}
 	
 }

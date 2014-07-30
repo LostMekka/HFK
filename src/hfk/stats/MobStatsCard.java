@@ -16,8 +16,24 @@ public class MobStatsCard {
 	
 	private final int[] resistances = new int[Damage.DAMAGE_TYPE_COUNT];
 	private final int[] ammoSlotSizes = new int[Weapon.AMMO_TYPE_COUNT];
-	private float maxSpeed = 1f, maxPickupRange = 1f, sightRange = 4f, hearRange = 4f;
-	private int maxHP = 100, inventorySize = 10, quickSlotCount = 2, memoryTime = 5000;
+	private float maxSpeed, maxPickupRange, sightRange, hearRange;
+	private int maxHP, inventorySize, quickSlotCount, memoryTime;
+
+	public MobStatsCard() {
+		this(false);
+	}
+
+	public MobStatsCard(boolean empty) {
+		if(empty) return;
+		maxSpeed = 1f;
+		maxPickupRange = 1f;
+		sightRange = 4f;
+		hearRange = 4f;
+		maxHP = 100;
+		inventorySize = 10;
+		quickSlotCount = 2;
+		memoryTime = 5000;
+	}
 
 	public float getHearRange() {
 		return hearRange;
@@ -110,4 +126,20 @@ public class MobStatsCard {
 		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
 		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
 	}
+	
+	@Override
+	public MobStatsCard clone(){
+		MobStatsCard ans = new MobStatsCard(true);
+		ans.maxHP = maxHP;
+		ans.maxSpeed = maxSpeed;
+		ans.inventorySize = inventorySize;
+		ans.quickSlotCount = quickSlotCount;
+		ans.maxPickupRange = maxPickupRange;
+		ans.memoryTime = memoryTime;
+		ans.sightRange = sightRange;
+		System.arraycopy(resistances, 0, ans.resistances, 0, Damage.DAMAGE_TYPE_COUNT);
+		System.arraycopy(ammoSlotSizes, 0, ans.ammoSlotSizes, 0, Weapon.AMMO_TYPE_COUNT);
+		return ans;
+	}
+	
 }

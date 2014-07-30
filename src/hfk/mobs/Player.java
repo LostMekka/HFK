@@ -10,6 +10,7 @@ import hfk.Shot;
 import hfk.game.GameController;
 import hfk.items.weapons.Weapon;
 import hfk.game.Resources;
+import hfk.skills.SkillSet;
 import hfk.stats.MobStatsCard;
 import org.newdawn.slick.Animation;
 
@@ -19,8 +20,6 @@ import org.newdawn.slick.Animation;
  */
 public class Player extends Mob {
 
-	public int xp = 0;
-	
 	public Player(PointF pos) {
 		super(pos);
 		animation = new Animation(Resources.getSpriteSheet("player.png"), 350);

@@ -54,7 +54,7 @@ public class Star extends Mob {
 			inventory.addAmmo(Weapon.AmmoType.bullet, 2 + GameController.random.nextInt(14));
 		}
 		final Mob thizz = this;
-		bionicWeapon = new Weapon(getLookAngle(), pos) {
+		Weapon w = new Weapon(getLookAngle(), pos) {
 			{bionicParent = thizz; shotTeam = Shot.Team.hostile;}
 			@Override
 			public Shot initShot(Shot s) {
@@ -87,7 +87,8 @@ public class Star extends Mob {
 				return 1;
 			}
 		};
-		bionicWeapon.shotSound = shootSound;
+		w.shotSound = shootSound;
+		setBionicWeapon(w);
 	}
 
 	@Override

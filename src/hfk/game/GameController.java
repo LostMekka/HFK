@@ -151,7 +151,7 @@ public class GameController {
 	}
 	
 	public void playSoundAt(Sound s, PointF pos){
-		float hr = player.stats.getHearRange();
+		float hr = player.totalStats.getHearRange();
 		float v = 1f - pos.squaredDistanceTo(player.pos) / (hr*hr);
 		if(v > 1f) v = 1f;
 		if(v <= 0f) return;
@@ -257,7 +257,7 @@ public class GameController {
 	
 	public InventoryItem getNearestItem(Mob m){
 		InventoryItem i = null;
-		float d = m.stats.getMaxPickupRange();
+		float d = m.totalStats.getMaxPickupRange();
 		for(InventoryItem i2 : items){
 			float d2 = i2.pos.squaredDistanceTo(m.pos);
 			if(d2 < d){
@@ -304,7 +304,7 @@ public class GameController {
 	
 	public LinkedList<Mob> getMobsInRange(Mob m){
 		LinkedList<Mob> ans = new LinkedList<>();
-		float d = m.stats.getSightRange();
+		float d = m.totalStats.getSightRange();
 		d *= d;
 		for(Mob m2 : mobs) if(m2.pos.squaredDistanceTo(m.pos) <= d) ans.add(m2);
 		return ans;

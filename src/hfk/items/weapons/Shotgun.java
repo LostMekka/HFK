@@ -25,6 +25,7 @@ public class Shotgun extends Weapon {
 		shotSound = Resources.getSound("w_sg_s.wav");
 		img = Resources.getImage("shotgun.png");
 		flippedImg = Resources.getImage("shotgun.png", true);
+		type = WeaponType.shotgun;
 	}
 
 	@Override

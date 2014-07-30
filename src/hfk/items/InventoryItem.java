@@ -14,6 +14,11 @@ import hfk.items.weapons.PlasmaMachinegun;
 import hfk.items.weapons.Shotgun;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
+import hfk.stats.DamageCard;
+import hfk.stats.ItemEffect;
+import hfk.stats.MobStatsCard;
+import hfk.stats.StatsModifier;
+import hfk.stats.WeaponStatsCard;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Random;
@@ -24,7 +29,7 @@ import org.newdawn.slick.Image;
  *
  * @author LostMekka
  */
-public abstract class InventoryItem {
+public abstract class InventoryItem implements StatsModifier {
 	
 	private static final double POS_FRICTION = 0.01d;
 	private static final double ANGLE_FRICTION = 0.1d;
@@ -32,6 +37,7 @@ public abstract class InventoryItem {
 	private static final PointF LABEL_OFFSET = new PointF(0f, -0.4f);
 	private static final float LABEL_BORDER = 4f;
 	
+	public LinkedList<ItemEffect> effects =  new LinkedList<>();
 	public PointF pos, vel = new PointF(0f, 0f);
 	public float angle = 0f, vAngle = 0f;
 	public Image image = null;
@@ -144,5 +150,26 @@ public abstract class InventoryItem {
 		labelPos.x += LABEL_VEL * t * (pos.x + LABEL_OFFSET.x - labelPos.x);
 		labelPos.y += LABEL_VEL * t * (pos.y + LABEL_OFFSET.y - labelPos.y);
 	}
-	
+
+	@Override
+	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
+		for(ItemEffect e : effects){
+			if(e.dc != null && (e.weaponType == null || e.weaponType == w.type)) card.add(e.dc);
+		}
+	}
+
+	@Override
+	public void addWeaponStatsCardEffects(WeaponStatsCard card, Weapon w, Mob m) {
+		for(ItemEffect e : effects){
+			if(e.wsc != null && (e.weaponType == null || e.weaponType == w.type)) card.add(e.wsc);
+		}
+	}
+
+	@Override
+	public void addMobStatsCardEffects(MobStatsCard card, Mob m) {
+		for(ItemEffect e : effects){
+			if(e.msc != null) card.add(e.msc);
+		}
+	}
+
 }

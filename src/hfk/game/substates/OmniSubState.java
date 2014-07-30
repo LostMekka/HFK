@@ -99,7 +99,7 @@ public class OmniSubState extends GameSubState {
 							float d = m2.pos.squaredDistanceTo(s.pos) - m2.size / 2f;
 							if(d < 0f) d = 0f;
 							if(d < r){
-								int dmg = Math.round((1f - d/r) * s.dmg.calcFinalDamage(m2.stats));
+								int dmg = Math.round((1f - d/r) * s.dmg.calcFinalDamage(m2.totalStats));
 								ctrl.addFallingText(""+dmg, s.pos.clone(), m2 == ctrl.player ? Color.red : Color.green, null);
 								m2.hp -= dmg;
 								if(m2.hp <= 0){
@@ -111,7 +111,7 @@ public class OmniSubState extends GameSubState {
 							}
 						}
 					} else {
-						int dmg = s.dmg.calcFinalDamage(m.stats);
+						int dmg = s.dmg.calcFinalDamage(m.totalStats);
 						ctrl.addFallingText(""+dmg, s.pos.clone(), m == ctrl.player ? Color.red : Color.green, null);
 						m.hp -= dmg;
 						if(m.hp <= 0){

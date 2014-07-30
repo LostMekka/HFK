@@ -23,6 +23,7 @@ public class PlasmaMachinegun extends Weapon {
 		shotSound = Resources.getSound("shot1.wav");
 		img = Resources.getImage("plasmamachinegun.png");
 		flippedImg = Resources.getImage("plasmamachinegun.png", true);
+		type = WeaponType.plasmaWeapon;
 	}
 
 	@Override

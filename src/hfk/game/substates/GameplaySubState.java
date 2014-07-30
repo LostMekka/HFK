@@ -73,14 +73,14 @@ public class GameplaySubState extends GameSubState{
 		if(in.isKeyDown(InputMap.A_MOVE_LEFT)) vx--;
 		if(in.isKeyDown(InputMap.A_MOVE_DOWN)) vy++;
 		if(in.isKeyDown(InputMap.A_MOVE_UP)) vy--;
-		float s = player.stats.getMaxSpeed();
+		float s = player.totalStats.getMaxSpeed();
 		if(vx != 0 && vy != 0) s /= GameController.SQRT2;
 		ctrl.moveMob(player, vx * s, vy * s, time);
 		// camera
 		ctrl.screenPosOriginal.x = player.pos.x - ctrl.transformScreenToTiles(gc.getWidth()) / 2f;
 		ctrl.screenPosOriginal.y = player.pos.y - ctrl.transformScreenToTiles(gc.getHeight()) / 2f;
 		if(ctrl.player.getActiveWeapon() != null){
-			float z = player.getActiveWeapon().stats.weaponZoom;
+			float z = player.getActiveWeapon().totalStats.weaponZoom;
 			ctrl.screenPosOriginal.x += z * (ctrl.mousePosInPixels.x * 2f / gc.getWidth() - 1f);
 			ctrl.screenPosOriginal.y += z * (ctrl.mousePosInPixels.y * 2f / gc.getHeight() - 1f);
 		}
@@ -100,7 +100,7 @@ public class GameplaySubState extends GameSubState{
 		if(lootMode){
 			selectedLevelItem = null;
 			Iterator<InventoryItem> iter = ctrl.items.iterator();
-			float r = player.stats.getMaxPickupRange();
+			float r = player.totalStats.getMaxPickupRange();
 			r *= r;
 			selectedLoot = null;
 			while(iter.hasNext()){
@@ -130,7 +130,7 @@ public class GameplaySubState extends GameSubState{
 			selectedLevelItem = ctrl.level.getUsableLevelItem(ctrl.mousePosInTiles);
 			if(selectedLevelItem != null){
 				float dd = selectedLevelItem.pos.toFloat().squaredDistanceTo(player.pos) - selectedLevelItem.size;
-				if(dd > player.stats.getMaxPickupRange()) selectedLevelItem = null;
+				if(dd > player.totalStats.getMaxPickupRange()) selectedLevelItem = null;
 			}
 			if(selectedLevelItem != null && in.isKeyPressed(InputMap.A_USE_LEVITEM)) selectedLevelItem.use(player);
 			selectedLoot = null;
@@ -138,7 +138,7 @@ public class GameplaySubState extends GameSubState{
 			if(w != null){
 				boolean pr = in.isMousePressed(InputMap.A_SHOOT);
 				boolean dn = input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON);
-				boolean a = w.stats.isAutomatic;
+				boolean a = w.totalStats.isAutomatic;
 				if((a && dn) || (!a && pr)){
 					if(w.pullTrigger()){
 						ctrl.cameraShake(w.getScreenShakeAmount());
@@ -161,12 +161,12 @@ public class GameplaySubState extends GameSubState{
 		// draw text boxes for loot and level items
 		if(lootMode){
 			PointF pp = ctrl.transformTilesToScreen(ctrl.player.pos);
-			float rad = ctrl.transformTilesToScreen(ctrl.player.stats.getMaxPickupRange());
+			float rad = ctrl.transformTilesToScreen(ctrl.player.totalStats.getMaxPickupRange());
 			r.getGraphics().setColor(new Color(1f, 1f, 1f, 0.4f));
 			r.getGraphics().drawOval(pp.x-rad, pp.y-rad, 2*rad, 2*rad);
 			for(InventoryItem i : ctrl.items){
 				int hl = 0;
-				if(i.pos.squaredDistanceTo(ctrl.player.pos) <= ctrl.player.stats.getMaxPickupRange()) hl++;
+				if(i.pos.squaredDistanceTo(ctrl.player.pos) <= ctrl.player.totalStats.getMaxPickupRange()) hl++;
 				if(i == selectedLoot) hl++;
 				i.drawItemTextBox(hl);
 			}
