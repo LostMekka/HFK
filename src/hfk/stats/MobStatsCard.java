@@ -122,7 +122,7 @@ public class MobStatsCard {
 		quickSlotCount += c.quickSlotCount;
 		maxPickupRange += c.maxPickupRange;
 		memoryTime += c.memoryTime;
-		sightRange = c.sightRange;
+		sightRange += c.sightRange;
 		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
 		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
 	}

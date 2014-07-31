@@ -13,6 +13,9 @@ import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
 import hfk.stats.StatsModifier;
 import hfk.stats.WeaponStatsCard;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  *
@@ -24,7 +27,8 @@ public class Skill implements StatsModifier {
 	public boolean isSuperSkill = false;
 	public String name, description;
 	public int level = 0;
-	public Skill[] needs, blocks;
+	public ArrayList<HashMap<Skill, Integer>> requirements;
+	public LinkedList<Skill> blocks = new LinkedList<>();
 	public DamageCard[] damageCards;
 	public WeaponStatsCard[] weaponStatsCards;
 	public MobStatsCard[] mobStatsCards;
@@ -34,20 +38,50 @@ public class Skill implements StatsModifier {
 	private int maxLevel;
 	private Mob parent;
 	
-	public Skill(Mob parent, String name, String description, Skill[] needs, Skill[] blocks, int maxLevel) {
+	public Skill(Mob parent, int maxLevel, String name, String description) {
 		this.parent = parent;
 		this.name = name;
 		this.description = description;
-		this.needs = needs;
-		this.blocks = blocks;
 		this.maxLevel = maxLevel;
 		damageCards = new DamageCard[maxLevel];
 		weaponStatsCards = new WeaponStatsCard[maxLevel];
 		mobStatsCards = new MobStatsCard[maxLevel];
 		costs = new int[maxLevel];
 		customValues = new float[maxLevel];
+		requirements = new ArrayList<>(maxLevel);
+		for(int i=0; i<maxLevel; i++) requirements.add(i, new HashMap<Skill, Integer>());
 	}
 
+	public int getMaxLevel() {
+		return maxLevel;
+	}
+
+	public String getDisplayName(){
+		return isSuperSkill ? "(S) " + name + " (" + level + ")" : name + " (" + level + ")";
+	}
+	
+	public void addRequirement(int ownLevel, Skill req, int reqLevel){
+		HashMap<Skill, Integer> map = requirements.get(ownLevel-1);
+		if(map.containsKey(req)) level = Math.max(reqLevel, map.get(req));
+		map.put(req, reqLevel);
+	}
+	
+	public boolean requirementsMet(){
+		return requirementsMet(false);
+	}
+	
+	public boolean requirementsMet(boolean ignoreCosts){
+		if(maxLevel <= level || (!ignoreCosts && parent.xp < getCost())) return false;
+		HashMap<Skill, Integer> map = requirements.get(level);
+		for(Skill s : map.keySet()){
+			if(s.level < map.get(s)) return false;
+		}
+		for(Skill s : blocks){
+			if(s.level > 0) return false;
+		}
+		return true;
+	}
+	
 	public void setDamageCard(int i, DamageCard c) {
 		damageCards[i] = c;
 	}
@@ -76,6 +110,11 @@ public class Skill implements StatsModifier {
 		parent.skills.skillsChanged(this);
 		parent.recalculateCards();
 		return true;
+	}
+	
+	public HashMap<Skill, Integer> getRequrirements(){
+		if(level < 0 || level >= maxLevel) return new HashMap<>();
+		return requirements.get(level);
 	}
 	
 	public float getCustomValue(){

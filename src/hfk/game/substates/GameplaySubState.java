@@ -35,7 +35,8 @@ public class GameplaySubState extends GameSubState{
 	public GameplaySubState(InputMap inputMap) {
 		super(inputMap);
 		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_PAUSE);
-		inputMap.addKey(Input.KEY_I, InputMap.A_INVENTORY);
+		inputMap.addKey(Input.KEY_I, InputMap.A_OPEN_INVENTORY);
+		inputMap.addKey(Input.KEY_K, InputMap.A_OPEN_SKILLS);
 		inputMap.addKey(Input.KEY_LCONTROL, InputMap.A_LOOT);
 		inputMap.addKey(Input.KEY_W, InputMap.A_MOVE_UP);
 		inputMap.addKey(Input.KEY_S, InputMap.A_MOVE_DOWN);
@@ -59,8 +60,13 @@ public class GameplaySubState extends GameSubState{
 			ctrl.setCurrSubState(ctrl.pauseSubState);
 			return;
 		}
-		if(in.isKeyPressed(InputMap.A_INVENTORY)){
+		if(in.isKeyPressed(InputMap.A_OPEN_INVENTORY)){
 			ctrl.viewInventory(ctrl.player.inventory);
+			lootMode = false;
+			return;
+		}
+		if(in.isKeyPressed(InputMap.A_OPEN_SKILLS)){
+			ctrl.viewSkills(ctrl.player.skills);
 			lootMode = false;
 			return;
 		}
@@ -180,6 +186,7 @@ public class GameplaySubState extends GameSubState{
 		int y = 20;
 		int x = 20;
 		r.drawStringOnScreen("hp : " + ctrl.player.hp, x, y, Color.white, 1f); y += sh;
+		r.drawStringOnScreen("xp : " + ctrl.player.xp, x, y, Color.white, 1f); y += sh;
 		r.drawStringOnScreen("level : " + ctrl.getLevelCount(), x, y, Color.white, 1f); y += sh;
 		r.drawStringOnScreen("enemies left : " + (ctrl.mobs.size()-1), x, y, Color.white, 1f); y += sh;
 		Weapon wpn = ctrl.player.getActiveWeapon();

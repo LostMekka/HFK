@@ -43,8 +43,8 @@ public class InventorySubState extends GameSubState{
 	
 	public InventorySubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_CLOSE_WINDOW);
-		inputMap.addKey(Input.KEY_I, InputMap.A_CLOSE_WINDOW);
+		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_CLOSE_INVENTORY);
+		inputMap.addKey(Input.KEY_I, InputMap.A_CLOSE_INVENTORY);
 		inputMap.addKey(Input.KEY_UP, InputMap.A_INV_UP);
 		inputMap.addKey(Input.KEY_DOWN, InputMap.A_INV_DOWN);
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_INV_USE);
@@ -80,7 +80,11 @@ public class InventorySubState extends GameSubState{
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
-		if(in.isKeyPressed(InputMap.A_CLOSE_WINDOW)){
+		if(in.isKeyPressed(InputMap.A_OPEN_SKILLS)){
+			ctrl.viewSkills(ctrl.player.skills);
+			return;
+		}
+		if(in.isKeyPressed(InputMap.A_CLOSE_INVENTORY)){
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
@@ -181,14 +185,21 @@ public class InventorySubState extends GameSubState{
 		Iterator<InventoryItem> iter = inventory.getList().iterator();
 		int n = 0, max = getVisibleItemCount();
 		for(int i=0; i<inventoryOffset; i++) iter.next();
-		while(iter.hasNext()){
-			if(n >= max) break;
+		while(iter.hasNext() && n < max){
 			InventoryItem i = iter.next();
 			r.drawStringOnScreen(i.getDisplayName(), 
 					8 + mbInv.getInsideX(), 
 					7 + mbInv.getInsideY() + n*INV_LINE_HEIGHT, 
 					i.getDisplayColor(), 1f);
 			n++;
+		}
+		// render scroll bar if necessary
+		float size = inventory.size();
+		if(max < size){
+			float start = inventoryOffset / size * mbInv.getInsideHeight();
+			float ratio = max / size * mbInv.getInsideHeight();
+			r.getGraphics().setColor(GameRenderer.COLOR_MENU_LINE);
+			r.getGraphics().fillRect(mbInv.getBoxX() + 4, mbInv.getInsideY() + start, 2, ratio);
 		}
 	}
 	

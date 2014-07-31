@@ -7,6 +7,7 @@
 package hfk.game;
 
 import hfk.PointF;
+import java.util.Iterator;
 import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
@@ -104,6 +105,49 @@ public class GameRenderer {
 
 	public int getStringHeight(String string) {
 		return font.getHeight(string)-1;
+	}
+	
+	public String wordWrapString(String s, int maxWidth){
+		if(s.contains("\n")){
+			String[] parts = s.split("\n");
+			int n = parts.length;
+			String ans = "";
+			for(int i=0; i<n; i++){
+				ans += wordWrapString(parts[i], maxWidth);
+				if(i<n-1) ans += "\n";
+			}
+			return ans;
+		}
+		String[] words = s.split(" ");
+		LinkedList<String> lines = new LinkedList<>();
+		String currLine = words[0];
+		int c = 0;
+		for(int i=0; i<words.length; i++){
+			String line;
+			if(c == 0){
+				line = words[i];
+			} else {
+				line = currLine + " " + words[i];
+			}
+			int w = getStringWidth(line);
+			if(w > maxWidth){
+				if(c == 0) throw new RuntimeException("maxWidth is too small, the word \"" + line + "\" does not fit in!");
+				lines.add(currLine);
+				c = 0;
+				i--;
+			} else {
+				currLine = line;
+				c++;
+			}
+		}
+		lines.add(currLine);
+		String ans = "";
+		Iterator<String> iter = lines.iterator();
+		while(iter.hasNext()){
+			ans += iter.next();
+			if(iter.hasNext()) ans += "\n";
+		}
+		return ans;
 	}
 	
 	public void drawImage(Image i, PointF pos){

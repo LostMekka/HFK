@@ -24,6 +24,7 @@ import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
+import hfk.skills.SkillSet;
 import java.util.LinkedList;
 import java.util.Random;
 import org.newdawn.slick.Color;
@@ -221,9 +222,19 @@ public class GameController {
 		texts.clear();
 		levelCount++;
 		int s = 20 + levelCount * 2;
-		int d = (int)Math.pow(levelCount+5, 1.5);
-		int r = (int)(Math.pow((levelCount)*100, 1.5) * (1f + 5f*random.nextFloat()*random.nextFloat()*random.nextFloat()));
+		int d = getLevelDifficultyLimit(levelCount, 1);
+		int r = getLevelRarityLimit(levelCount, 1);
 		level = Level.Factory.createTestArena(s, s, d, r);
+	}
+	
+	public int getLevelDifficultyLimit(int level, int difficultyLevel){
+		// TODO: use difficultyLevel
+		return (int)Math.pow(levelCount+5, 1.5);
+	}
+	
+	public int getLevelRarityLimit(int level, int difficultyLevel){
+		// TODO: use difficultyLevel
+		return (int)(Math.pow((levelCount)*100, 1.5) * (1f + 5f*random.nextFloat()*random.nextFloat()*random.nextFloat()));
 	}
 	
 	public int getLevelCount(){
@@ -241,6 +252,12 @@ public class GameController {
 		if(wasDifferentState || i != inventorySubState.getInventory()) inventorySubState.init(i);
 	}
 	
+	public void viewSkills(SkillSet s){
+		boolean wasDifferentState = currSubState != skillsSubState;
+		currSubState = skillsSubState;
+		if(wasDifferentState || s != skillsSubState.getSkillSet()) skillsSubState.init(s);
+	}
+	
 	public void cameraShake(float amount){
 		screenShake = Math.max(amount, screenShake);
 	}
@@ -251,8 +268,11 @@ public class GameController {
 	}
 	
 	public boolean shouldDrawReloadBar(Mob m){
-		// TODO: base answer on skills
-		return true;
+		return m == player || player.skills.shouldRenderReloadBar(m);
+	}
+	
+	public boolean shouldDrawHealthBar(Mob m){
+		return m != player && player.skills.shouldRenderHealthBar(m);
 	}
 	
 	public InventoryItem getNearestItem(Mob m){

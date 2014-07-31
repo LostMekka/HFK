@@ -48,6 +48,7 @@ public class Shotgun extends Weapon {
 		WeaponStatsCard s = new WeaponStatsCard();
 		int shells = Weapon.AmmoType.shell.ordinal();
 		s.clipSize[shells] = 2;
+		s.reloadCount[shells] = 2;
 		s.reloadTimes[shells] = 1800;
 		s.ammoPerShot[shells] = 1;
 		s.shotsPerBurst = 1;

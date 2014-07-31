@@ -7,10 +7,8 @@
 package hfk.skills;
 
 import hfk.Shot;
-import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
-import hfk.stats.Damage;
 import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
 import hfk.stats.StatsModifier;
@@ -39,9 +37,34 @@ public class SkillSet implements StatsModifier {
 	public SkillSet(Mob parent) {
 		this.parent = parent;
 		// TODO: init skills
-		grenadeSmart = new Skill(parent, "grenSmart", "descr", new Skill[0], new Skill[0], 2);
-		grenadeManual = new Skill(parent, "grenMan", "descr", new Skill[0], new Skill[0], 2);
-		spiderSenses = new Skill(parent, "spider", "descr", new Skill[0], new Skill[0], 2);
+		grenadeSmart = new Skill(parent, 2, "smart grenade", "grenade instantly explode when they touch any living thing. level 2 grenades even avoid friendly fire!");
+		grenadeSmart.costs = new int[] { 10, 20 };
+		grenadeManual = new Skill(parent, 2, "grenade trigger", "grenades are detonated manually! dat skill, many control, much kapow.");
+		grenadeManual.costs = new int[] { 10, 20 };
+		spiderSenses = new Skill(parent, 2, "spider senses", "sense information about enemies. level 1 shows reload status, level 2 shows health bars.");
+		spiderSenses.costs = new int[] { 10, 20 };
+		skills.add(grenadeSmart);
+		skills.add(grenadeManual);
+		skills.add(spiderSenses);
+		grenadeManual.blocks.add(grenadeSmart);
+		grenadeSmart.blocks.add(grenadeManual);
+		grenadeSmart.addRequirement(1, spiderSenses, 2);
+	}
+
+	public Mob getParent() {
+		return parent;
+	}
+	
+	public int size(){
+		return skills.size();
+	}
+	
+	public boolean canLevelUp(Skill s){
+		return canLevelUp(s, false);
+	}
+	
+	public boolean canLevelUp(Skill s, boolean ignoreCost){
+		return (s.level != 0 || !s.isSuperSkill || superCount < superMax) && s.requirementsMet(ignoreCost);
 	}
 	
 	public boolean canAddSuperSkill(){

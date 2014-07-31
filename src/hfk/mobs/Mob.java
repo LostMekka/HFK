@@ -332,10 +332,11 @@ public abstract class Mob implements StatsModifier {
 		Weapon w = inventory.getActiveWeapon();
 		if(w != null && w != bionicWeapon) w.render();
 		// reloading progress bar
+		boolean relBar = false;
 		if(w != null && w.isReloading() && ctrl.shouldDrawReloadBar(this)){
 			PointF p = pos.clone();
 			p.x -= 0.5f;
-			p.y -=0.6f;
+			p.y -= 0.6f;
 			p = ctrl.transformTilesToScreen(p);
 			float len = ctrl.transformTilesToScreen(1f);
 			Graphics g = ctrl.renderer.getGraphics();
@@ -343,6 +344,20 @@ public abstract class Mob implements StatsModifier {
 			g.drawRect(p.x, p.y, len, 7);
 			len -= 3;
 			g.fillRect(p.x + 2, p.y + 2, len * w.getProgress(), 4);
+			relBar = true;
+		}
+		// health bar
+		if(ctrl.shouldDrawHealthBar(this)){
+			PointF p = pos.clone();
+			p.x -= 0.5f;
+			p.y -= relBar ? 0.7f : 0.6f;
+			p = ctrl.transformTilesToScreen(p);
+			float len = ctrl.transformTilesToScreen(1f);
+			Graphics g = ctrl.renderer.getGraphics();
+			g.setColor(Color.red);
+			g.drawRect(p.x, p.y, len, 7);
+			len -= 3;
+			g.fillRect(p.x + 2, p.y + 2, len * hp / totalStats.getMaxHP(), 4);
 		}
 //		if(stateTextTimer > 0 && this != ctrl.player){
 //			PointF p = pos.clone();
@@ -358,6 +373,7 @@ public abstract class Mob implements StatsModifier {
 		for(InventoryItem i : inventory.removeAll()){
 			GameController.get().dropItem(i, this, false);
 		}
+		if(!(this instanceof Player)) GameController.get().player.xp += getDifficultyScore();
 		mobOnDeath(s);
 	}
 	

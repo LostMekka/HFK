@@ -34,9 +34,10 @@ public class InputMap implements MouseListener {
 	public static final String A_INV_USE = "use_invitem";
 	public static final String A_INV_DROP = "inventory_drop";
 	
-	public static final String A_INVENTORY = "inventory";
-	public static final String A_SKILLS = "skills";
-	public static final String A_CLOSE_WINDOW = "close_window";
+	public static final String A_OPEN_INVENTORY = "open_inventory";
+	public static final String A_CLOSE_INVENTORY = "close_inventory";
+	public static final String A_OPEN_SKILLS = "open_skills";
+	public static final String A_CLOSE_SKILLS = "close_skills";
 	
 	public static final String A_NEWGAME = "newgame";
 	public static final String A_QUIT = "quit";
