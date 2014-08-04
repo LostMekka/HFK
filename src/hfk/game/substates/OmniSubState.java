@@ -6,6 +6,7 @@
 
 package hfk.game.substates;
 
+import hfk.Explosion;
 import hfk.IngameText;
 import hfk.PointF;
 import hfk.PointI;
@@ -17,7 +18,6 @@ import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
 import java.util.LinkedList;
 import java.util.ListIterator;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
@@ -69,63 +69,21 @@ public class OmniSubState extends GameSubState {
 		}
 		ListIterator<IngameText> textIter = ctrl.texts.listIterator();
 		while(textIter.hasNext()) if(textIter.next().update(time)) textIter.remove();
-		LinkedList<Mob> mobsToDelete = new LinkedList<>();
-		for(Mob m : ctrl.mobs) m.update(time);
+		for(Mob m : ctrl.mobs) if(!ctrl.mobsToRemove.contains(m)) m.update(time);
+		for(Explosion e : ctrl.explosions) if(!ctrl.explosionsToRemove.contains(e)) e.update(time);
 		
-		ListIterator<Shot> shotIter = ctrl.shots.listIterator();
-		while(shotIter.hasNext()){
-			Shot s = shotIter.next();
+		for(Shot s : ctrl.shots) if(!ctrl.shotsToRemove.contains(s)){
 			s.update(time);
-			PointI coll = ctrl.level.testCollision(s.pos, s.size);
-			if(coll != null){
-				shotIter.remove();
-				ctrl.playSoundAt(s.hit, s.pos);
-				ctrl.level.damageTile(coll, s.dmg.calcFinalDamage());
+			PointF corr = ctrl.level.doCollision(s.pos, s.size);
+			if(!corr.isZero()){
+				s.onCollideWithLevel(corr);
 				continue;
 			}
-			for(Mob m : ctrl.mobs){
+			for(Mob m : ctrl.mobs) if(!ctrl.mobsToRemove.contains(m)){
 				if(m.pos.squaredDistanceTo(s.pos) <= (m.size + s.size) / 2f){
-					// collision with mob!
-					if(s.team == Shot.Team.friendly && m == ctrl.player) continue;
-					if(s.team == Shot.Team.hostile && m != ctrl.player) continue;
-					// valid collision! deal damage and remove shot!
-					shotIter.remove();
-					ctrl.playSoundAt(s.hit, s.pos);
-					float r = s.dmg.getAreaRadius();
-					if(r > 0){
-						for(Mob m2 : ctrl.mobs){
-							if(s.team == Shot.Team.friendly && m2 == ctrl.player) continue;
-							if(s.team == Shot.Team.hostile && m2 != ctrl.player) continue;
-							float d = m2.pos.squaredDistanceTo(s.pos) - m2.size / 2f;
-							if(d < 0f) d = 0f;
-							if(d < r){
-								int dmg = Math.round((1f - d/r) * s.dmg.calcFinalDamage(m2.totalStats));
-								ctrl.addFallingText(""+dmg, s.pos.clone(), m2 == ctrl.player ? Color.red : Color.green, null);
-								m2.hp -= dmg;
-								if(m2.hp <= 0){
-									m2.onDeath(s);
-									mobsToDelete.add(m2);
-								} else {
-									m2.onHit(dmg, s);
-								}
-							}
-						}
-					} else {
-						int dmg = s.dmg.calcFinalDamage(m.totalStats);
-						ctrl.addFallingText(""+dmg, s.pos.clone(), m == ctrl.player ? Color.red : Color.green, null);
-						m.hp -= dmg;
-						if(m.hp <= 0){
-							m.onDeath(s);
-							mobsToDelete.add(m);
-						} else {
-							m.onHit(dmg, s);
-						}
-					}
-					break;
+					if(s.onCollideWithMob(m)) break;
 				}
 			}
-			ctrl.mobs.removeAll(mobsToDelete);
-			mobsToDelete.clear();
 		}
 	}
 
@@ -140,6 +98,7 @@ public class OmniSubState extends GameSubState {
 		for(InventoryItem i : ctrl.items) i.render();
 		for(Mob m : ctrl.mobs) m.draw();
 		for(Shot s : ctrl.shots) s.draw();
+		for(Explosion e : ctrl.explosions) e.draw(r, gc);
 		for(IngameText t : ctrl.texts) t.draw();
 	}
 	

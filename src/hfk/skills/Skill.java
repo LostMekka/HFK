@@ -8,7 +8,6 @@ package hfk.skills;
 
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
-import hfk.mobs.Player;
 import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
 import hfk.stats.StatsModifier;
@@ -23,11 +22,11 @@ import java.util.LinkedList;
  */
 public class Skill implements StatsModifier {
 	
+	public static enum SkillAvailability { available, cantAfford, isMaxed, isBlocked, reqNeeded, superMaxed }
+	
 	public Weapon.WeaponType weaponType = null;
 	public boolean isSuperSkill = false;
 	public String name, description;
-	public int level = 0;
-	public ArrayList<HashMap<Skill, Integer>> requirements;
 	public LinkedList<Skill> blocks = new LinkedList<>();
 	public DamageCard[] damageCards;
 	public WeaponStatsCard[] weaponStatsCards;
@@ -35,7 +34,8 @@ public class Skill implements StatsModifier {
 	public int[] costs;
 	public float[] customValues = null;
 	
-	private int maxLevel;
+	private int level = 0, maxLevel;
+	private ArrayList<HashMap<Skill, Integer>> requirements;
 	private Mob parent;
 	
 	public Skill(Mob parent, int maxLevel, String name, String description) {
@@ -52,6 +52,10 @@ public class Skill implements StatsModifier {
 		for(int i=0; i<maxLevel; i++) requirements.add(i, new HashMap<Skill, Integer>());
 	}
 
+	public int getLevel() {
+		return level;
+	}
+
 	public int getMaxLevel() {
 		return maxLevel;
 	}
@@ -66,20 +70,23 @@ public class Skill implements StatsModifier {
 		map.put(req, reqLevel);
 	}
 	
-	public boolean requirementsMet(){
-		return requirementsMet(false);
+	public void addBlock(Skill s){
+		if(!blocks.contains(s)) blocks.add(s);
+		if(!s.blocks.contains(this)) s.blocks.add(this);
 	}
 	
-	public boolean requirementsMet(boolean ignoreCosts){
-		if(maxLevel <= level || (!ignoreCosts && parent.xp < getCost())) return false;
-		HashMap<Skill, Integer> map = requirements.get(level);
-		for(Skill s : map.keySet()){
-			if(s.level < map.get(s)) return false;
-		}
-		for(Skill s : blocks){
-			if(s.level > 0) return false;
-		}
-		return true;
+	public boolean canLevelUp(){
+		return getSkillAvailability() == SkillAvailability.available;
+	}
+	
+	public SkillAvailability getSkillAvailability(){
+		if(maxLevel <= level) return SkillAvailability.isMaxed;
+		if(parent.xp < getCost()) return SkillAvailability.cantAfford;
+		if(isSuperSkill && level == 0 && !parent.skills.canAddSuperSkill()) return SkillAvailability.superMaxed;
+		HashMap<Skill, Integer> map = getRequrirements();
+		for(Skill s : map.keySet()) if(s.level < map.get(s)) return SkillAvailability.reqNeeded;
+		for(Skill s : blocks) if(s.level > 0) return SkillAvailability.isBlocked;
+		return SkillAvailability.available;
 	}
 	
 	public void setDamageCard(int i, DamageCard c) {
@@ -139,7 +146,7 @@ public class Skill implements StatsModifier {
 	
 	public int getCost(){
 		if(level >= maxLevel) return -1;
-		return costs[level];
+		return Math.round(costs[level] * parent.skills.getSkillCostMultiplier());
 	}
 	@Override
 	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {

@@ -25,6 +25,7 @@ public class InputMap implements MouseListener {
 	public static final String A_LOOT_GRAB = "loot_grab";
 	public static final String A_LOOT_USE = "loot";
 	public static final String A_SHOOT = "shoot";
+	public static final String A_SHOOT_ALTERNATIVE = "shoot_alternative";
 	public static final String A_RELOAD = "reload";
 	public static final String A_GRAB = "grab";
 	public static final String A_USE_LEVITEM = "use_levitem";

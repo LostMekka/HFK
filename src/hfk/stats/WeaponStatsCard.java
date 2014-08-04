@@ -6,6 +6,7 @@
 package hfk.stats;
 
 import hfk.items.weapons.Weapon;
+import java.util.Arrays;
 
 /**
  *
@@ -33,36 +34,43 @@ public class WeaponStatsCard {
 	public float overDamageSplashRadius;
 	public boolean isAutomatic;
 	
-	public WeaponStatsCard(){
-		this(false);
+	private boolean isBonusCard;
+	
+	public static final WeaponStatsCard createNormal(){
+		WeaponStatsCard ans = new WeaponStatsCard();
+		ans.isBonusCard = false;
+		ans.projectilesPerShot = 1;
+		ans.shotsPerBurst = 1;
+		ans.burstInterval = 100;
+		ans.shotInterval = 300;
+		ans.minScatter = 0f;
+		ans.maxScatter = 10f;
+		ans.scatterPerShot = 1f;
+		ans.scatterCoolRate = 5f;
+		ans.shotVel = 9f;
+		ans.weaponZoom = 1f;
+		return ans;
 	}
 	
-	public WeaponStatsCard(boolean empty){
-		if(empty) return;
-		projectilesPerShot = 1;
-		shotsPerBurst = 1;
-		burstInterval = 100;
-		shotInterval = 300;
-		minScatter = 0f;
-		maxScatter = 10f;
-		scatterPerShot = 1f;
-		scatterCoolRate = 5f;
-		shotVel = 9f;
-		weaponZoom = 1f;
-		isAutomatic = true;
+	public static final WeaponStatsCard createBonus(){
+		WeaponStatsCard ans = new WeaponStatsCard();
+		ans.isBonusCard = true;
+		return ans;
 	}
+	
+	private WeaponStatsCard(){}
 	
 	public void add(WeaponStatsCard c){
 		projectilesPerShot += c.projectilesPerShot;
 		shotsPerBurst += c.shotsPerBurst;
 		burstInterval += c.burstInterval;
 		shotInterval += c.shotInterval;
-		minScatter += c.minScatter;
-		maxScatter += c.maxScatter;
-		scatterPerShot += c.scatterPerShot;
-		scatterCoolRate += c.scatterCoolRate;
-		shotVel += c.shotVel;
-		weaponZoom += c.weaponZoom;
+		minScatter *= c.minScatter;
+		maxScatter *= c.maxScatter;
+		scatterPerShot *= c.scatterPerShot;
+		scatterCoolRate *= c.scatterCoolRate;
+		shotVel *= c.shotVel;
+		weaponZoom *= c.weaponZoom;
 		isAutomatic |= c.isAutomatic;
 		shotBounces += c.shotBounces;
 		overDamageSplashRadius += c.overDamageSplashRadius;
@@ -72,21 +80,21 @@ public class WeaponStatsCard {
 			reloadCount[i] += c.reloadCount[i];
 			ammoPerShot[i] += c.ammoPerShot[i];
 			ammoPerBurst[i] += c.ammoPerBurst[i];
-			ammoRegenerationRates[i] += c.ammoRegenerationRates[i];
+			ammoRegenerationRates[i] *= c.ammoRegenerationRates[i];
 		}
 	}
 	
-	public void apply(WeaponStatsCard c){
+	public void applyBonus(WeaponStatsCard c){
 		projectilesPerShot += c.projectilesPerShot;
 		shotsPerBurst += c.shotsPerBurst;
 		burstInterval += c.burstInterval;
 		shotInterval += c.shotInterval;
-		minScatter /= c.minScatter;
-		maxScatter /= c.maxScatter;
-		scatterPerShot /= c.scatterPerShot;
-		scatterCoolRate *= c.scatterCoolRate;
-		shotVel *= c.shotVel;
-		weaponZoom *= c.weaponZoom;
+		minScatter *= 1f + c.minScatter;
+		maxScatter *= 1f + c.maxScatter;
+		scatterPerShot *= 1f + c.scatterPerShot;
+		scatterCoolRate *= 1f + c.scatterCoolRate;
+		shotVel *= 1f + c.shotVel;
+		weaponZoom *= 1f + c.weaponZoom;
 		isAutomatic |= c.isAutomatic;
 		shotBounces += c.shotBounces;
 		overDamageSplashRadius += c.overDamageSplashRadius;
@@ -96,7 +104,7 @@ public class WeaponStatsCard {
 			reloadCount[i] += c.reloadCount[i];
 			ammoPerShot[i] += c.ammoPerShot[i];
 			ammoPerBurst[i] += c.ammoPerBurst[i];
-			ammoRegenerationRates[i] += c.ammoRegenerationRates[i];
+			ammoRegenerationRates[i] *= 1f + c.ammoRegenerationRates[i];
 		}
 	}
 	

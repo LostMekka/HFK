@@ -7,6 +7,7 @@
 package hfk.game.substates;
 
 import hfk.PointF;
+import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
@@ -16,6 +17,7 @@ import hfk.level.UsableLevelItem;
 import hfk.mobs.Player;
 import hfk.stats.Damage;
 import java.util.Iterator;
+import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -48,6 +50,7 @@ public class GameplaySubState extends GameSubState{
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_SHOOT);
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_LOOT_GRAB);
 		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_LOOT_USE);
+		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_SHOOT_ALTERNATIVE);
 		for(int i=0; i<10; i++) inputMap.addKey(Input.KEY_1 + i, InputMap.A_QUICKSLOTS[i]);
 	}
 
@@ -133,7 +136,9 @@ public class GameplaySubState extends GameSubState{
 				}
 			}
 		} else {
-			selectedLevelItem = ctrl.level.getUsableLevelItem(ctrl.mousePosInTiles);
+			selectedLevelItem = ctrl.level.getUsableItemOnLine(
+					ctrl.player.pos, ctrl.mousePosInTiles, 
+					ctrl.player.totalStats.getMaxPickupRange(), lootMode);
 			if(selectedLevelItem != null){
 				float dd = selectedLevelItem.pos.toFloat().squaredDistanceTo(player.pos) - selectedLevelItem.size;
 				if(dd > player.totalStats.getMaxPickupRange()) selectedLevelItem = null;
@@ -149,6 +154,19 @@ public class GameplaySubState extends GameSubState{
 					if(w.pullTrigger()){
 						ctrl.cameraShake(w.getScreenShakeAmount());
 						ctrl.cameraRecoil(w.angle + (float)Math.PI, w.getScreenRecoilAmount());
+					}
+				}
+				if(in.isMousePressed(InputMap.A_SHOOT_ALTERNATIVE)){
+					// alternative fire
+					boolean foundLevel2Shot = false;
+					for(Shot shot : ctrl.shots){
+						if(!ctrl.shotsToRemove.contains(shot) && shot.parent == w){
+							if(shot.manualDetonateLevel == 1) shot.hit();
+							if(shot.manualDetonateLevel == 2 && ! foundLevel2Shot){
+								shot.hit();
+								foundLevel2Shot = true;
+							}
+						}
 					}
 				}
 				if(in.isKeyPressed(InputMap.A_RELOAD)){

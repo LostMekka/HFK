@@ -14,7 +14,6 @@ import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
 import hfk.stats.StatsModifier;
 import hfk.stats.WeaponStatsCard;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -197,7 +196,9 @@ public final class Inventory implements StatsModifier {
 			if(i instanceof EmptyItem) continue;
 			l.add(i);
 			removeItem(i);
+			i.parentInventory = null;
 		}
+		parent.recalculateCards();
 		return l;
 	}
 	
@@ -263,6 +264,7 @@ public final class Inventory implements StatsModifier {
 		Weapon w = quickSlots[activeQuickSlot];
 		if(!w.isReady()) return null;
 		quickSlots[activeQuickSlot] = null;
+		w.parentInventory = null;
 		parent.recalculateCards();
 		return w;
 	}
@@ -272,6 +274,8 @@ public final class Inventory implements StatsModifier {
 		Weapon w = quickSlots[index];
 		if(!w.isReady()) return null;
 		quickSlots[index] = null;
+		w.parentInventory = null;
+		parent.recalculateCards();
 		return w;
 	}
 	
@@ -283,10 +287,17 @@ public final class Inventory implements StatsModifier {
 	
 	public void recalculateStats(){
 		if(parent == null) return;
-		for(InventoryItem i : getEquippedItems()){
+		updateMSC(parent.totalStats);
+		LinkedList<InventoryItem> equipped = getEquippedItems();
+		for(InventoryItem i : equipped){
 			if(i instanceof Weapon){
 				Weapon w = (Weapon)i;
 				w.recalculateStats();
+			}
+		}
+		for(InventoryItem i : list){
+			if(!equipped.contains(i) && i instanceof Weapon){
+				((Weapon)i).resetStats();
 			}
 		}
 	}

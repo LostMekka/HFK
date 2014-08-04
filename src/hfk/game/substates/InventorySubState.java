@@ -179,7 +179,7 @@ public class InventorySubState extends GameSubState{
 					mbInv.getInsideY() + INV_LINE_HEIGHT * (lastInventoryIndex - inventoryOffset), 
 					mbInv.getInsideWidth(), 
 					INV_LINE_HEIGHT, 
-					GameRenderer.COLOR_MENU_BG, GameRenderer.COLOR_MENU_LINE);
+					GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
 		}
 		// render item names
 		Iterator<InventoryItem> iter = inventory.getList().iterator();
@@ -207,19 +207,19 @@ public class InventorySubState extends GameSubState{
 		int x = mbGear.getInsideX();
 		int y = mbGear.getInsideY();
 		int x2 = x + GEAR_TAB;
-		r.drawStringOnScreen("weapons:", x, y, Color.white, 1f);
+		r.drawStringOnScreen("weapons:", x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
 		y += GEAR_HEADLINE_HEIGHT;
 		for(int i=0; i<inventory.getQuickSlotCount(); i++){
 			Weapon w = inventory.getQuickslot(i);
 			if(inventory.getActiveWeaponIndex() == i){
-				r.drawStringOnScreen("(A)", x, 7 + y, Color.white, 1f);
+				r.drawStringOnScreen("(A)", x, 7 + y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
 			}
 			if(w == null){
-				r.drawStringOnScreen("none", 8 + x2, 7 + y, Color.darkGray, 1f);
+				r.drawStringOnScreen("none", 8 + x2, 7 + y, GameRenderer.COLOR_TEXT_INACTIVE, 1f);
 			} else {
 				if(selectedGear == w){
 					r.drawMenuBox(x2, y, mbGear.getInsideWidth() - GEAR_TAB, INV_LINE_HEIGHT, 
-							GameRenderer.COLOR_MENU_BG, GameRenderer.COLOR_MENU_LINE);
+							GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
 				}
 				r.drawStringOnScreen(w.getDisplayName(), 8 + x2, 7 + y, w.getDisplayColor(), 1f);
 			}
@@ -232,7 +232,7 @@ public class InventorySubState extends GameSubState{
 		int x = mbDescr.getInsideX();
 		int y = mbDescr.getInsideY();
 		if(item == null){
-			r.drawStringOnScreen("hover over an item to see a description here", x, y, Color.darkGray, 1f);
+			r.drawStringOnScreen("hover over an item to see a description here", x, y, GameRenderer.COLOR_TEXT_INACTIVE, 1f);
 			return;
 		}
 		if(item instanceof Weapon){
@@ -244,7 +244,7 @@ public class InventorySubState extends GameSubState{
 			r.drawStringOnScreen("health pack", x, y, item.getDisplayColor(), 1f);
 			y += DESCR_LINE_HEIGHT;
 			x += 25;
-			r.drawStringOnScreen("heals for " + h.hp + " hp", x, y, Color.white, 1f);
+			r.drawStringOnScreen("heals for " + h.hp + " hp", x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
 			return;
 		}
 		// no special description handler available. just print the item description string

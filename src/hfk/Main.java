@@ -6,6 +6,7 @@
 
 package hfk;
 
+import hfk.game.GameController;
 import hfk.game.HFKGame;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,8 +25,8 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		//printFontStuff();
-		if(args.length > 1){
-			if(args[1].equalsIgnoreCase("-nomusic")) System.setProperty("nomusic", "true");
+		for(String arg : args) {
+			if(arg.equalsIgnoreCase("-nomusic")) System.setProperty("nomusic", "true");
 		}
 		try {
 			AppGameContainer c = new AppGameContainer(new HFKGame(), 1024, 768, false);

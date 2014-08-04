@@ -6,6 +6,7 @@
 
 package hfk.game;
 
+import hfk.Explosion;
 import hfk.game.substates.GameSubState;
 import hfk.IngameText;
 import hfk.PointF;
@@ -19,12 +20,14 @@ import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
+import hfk.items.weapons.GrenadeLauncher;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
 import hfk.skills.SkillSet;
+import hfk.stats.Damage;
 import java.util.LinkedList;
 import java.util.Random;
 import org.newdawn.slick.Color;
@@ -57,9 +60,9 @@ public class GameController {
 		if(gc.musicIsOn && gc.music != null) gc.startMusic();
 	}
 	
-	public final LinkedList<Shot> shots = new LinkedList<>();
-	public final LinkedList<Shot> shotsToRemove = new LinkedList<>();
-	public final LinkedList<Mob> mobs = new LinkedList<>();
+	public final LinkedList<Explosion> explosions = new LinkedList<>(), explosionsToRemove = new LinkedList<>();
+	public final LinkedList<Shot> shots = new LinkedList<>(), shotsToRemove = new LinkedList<>();
+	public final LinkedList<Mob> mobs = new LinkedList<>(), mobsToRemove = new LinkedList<Mob>();
 	public final LinkedList<IngameText> texts = new LinkedList<>();
 	public final LinkedList<InventoryItem> items = new LinkedList<>();
 
@@ -80,13 +83,15 @@ public class GameController {
 	public PointF screenPosOffset = new PointF();
 	public PointI mousePosInPixels = new PointI();
 	public float screenShake = 0f;
+	public int difficultyLevel = 1;
+	public boolean musicIsOn = true;
 	
 	private final InputMap inputMap;
 	
 	private GameSubState currSubState;
 	private Music music = null;
 	private float zoom = 3f;
-	private boolean playerIsAlive = true, musicIsOn = true;
+	private boolean playerIsAlive = true;
 	private int levelCount = 0;
 
 	public GameController(GameContainer gc, GameSettings s) {
@@ -206,12 +211,17 @@ public class GameController {
 		Weapon w = new Pistol(0, pp);
 		player = new Player(pp);
 		player.inventory.equipWeaponFromGround(w);
-		player.inventory.addAmmo(Weapon.AmmoType.bullet, 30);
+		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
 		//for(int i=0; i<20; i++) player.inventory.addItem(InventoryItem.create(pp, 99999999));
 		if(musicIsOn) startMusic();
 		currSubState = gameplaySubState;
 		playerIsAlive = true;
 		nextLevel();
+		for(int i=1; i<30; i++){
+			System.out.println("l: " + i + " d: " + 
+					getLevelDifficultyLimit(i) + " r: " + 
+					getLevelRarityLimit(i));
+		}
 	}
 	
 	public void nextLevel(){
@@ -221,20 +231,25 @@ public class GameController {
 		shots.clear();
 		texts.clear();
 		levelCount++;
-		int s = 20 + levelCount * 2;
-		int d = getLevelDifficultyLimit(levelCount, 1);
-		int r = getLevelRarityLimit(levelCount, 1);
+		int s = 20 + levelCount;
+		int d = getLevelDifficultyLimit(levelCount);
+		int r = getLevelRarityLimit(levelCount);
 		level = Level.Factory.createTestArena(s, s, d, r);
 	}
 	
-	public int getLevelDifficultyLimit(int level, int difficultyLevel){
+	public int getLevelDifficultyLimit(int level){
 		// TODO: use difficultyLevel
-		return (int)Math.pow(levelCount+5, 1.5);
+		return (int)(Math.pow(level+3, 1.95) * (0.85f + 0.3f * random.nextFloat()));
 	}
 	
-	public int getLevelRarityLimit(int level, int difficultyLevel){
+	public int getLevelRarityLimit(int level){
 		// TODO: use difficultyLevel
-		return (int)(Math.pow((levelCount)*100, 1.5) * (1f + 5f*random.nextFloat()*random.nextFloat()*random.nextFloat()));
+		return 100*(int)(Math.pow(level+5, 2.1) * (1f + 5f*random.nextFloat()*random.nextFloat()*random.nextFloat()*random.nextFloat()));
+	}
+	
+	public float getSkillCostIncreaseRate(){
+		// TODO: use difficultyLevel
+		return 0.5f;
 	}
 	
 	public int getLevelCount(){
@@ -301,7 +316,6 @@ public class GameController {
 		player.hp = 0;
 		currSubState = gameOverState;
 		((GameplaySubState)gameplaySubState).lootMode = false;
-		// TODO: handle player death properly
 	}
 	
 	public void dropItem(InventoryItem i, Mob m, boolean useLookAngle){
@@ -356,13 +370,62 @@ public class GameController {
 		t.parent = parent;
 		texts.add(t);
 	}
+	
+	public void dealAreaDamage(PointF p, Damage damage, Shot s){
+		// TODO: intelligently damage tiles (maybe reduce damage to mobs too when behind a wall?)
+		float r = damage.getAreaRadius();
+		if(r <= 0) throw new RuntimeException("deeal area damage called without area damage object!");
+		for(Mob m : mobs){
+			float dd = m.pos.squaredDistanceTo(p);
+			if(dd < (r + m.size/2f) * (r + m.size/2f)){
+				float d = Math.max(0f, (float)Math.sqrt(dd) - m.size/2f);
+				// ratio : x = 1 - d/r
+				// quadratic function: y = 1 - (x - 1)^2
+				// -> y = 1 - (1 - d/r - 1)^2 = 1 - (d/r)^2
+				float dmg = (1f - d*d/r/r) * damage.calcFinalDamage(m.totalStats);
+				damageMob(m, Math.round(dmg), null, s);
+			}
+		}
+		PointI pc = p.round();
+		int border = (int)Math.ceil(r);
+		for(int x=-border; x<=border; x++){
+			for(int y=-border; y<=border; y++){
+				PointI pi = new PointI(x + pc.x, y + pc.y);
+				// dmg calculation same as above
+				float d = Math.max(0f, p.DistanceTo(pi.toFloat()) - 0.5f);
+				if(d >= 1) continue;
+				int dmg = Math.round((1f - d*d/r/r) * damage.calcFinalDamage());
+				System.out.println("tile " + pi + " dmg: " + d + " --> " + dmg);
+				level.damageTile(pi, dmg);
+			}
+		}
+	}
+	
+	public void damageMob(Mob m, int dmg, PointF pos, Shot s){
+		addFallingText(""+dmg, pos != null ? pos.clone() : m.pos.clone(), m == player ? Color.red : Color.green, null);
+		m.hp -= dmg;
+		if(m.hp <= 0){
+			m.onDeath(s);
+			mobsToRemove.add(m);
+		} else {
+			m.onHit(dmg, s);
+		}
+	}
+	
 	public void update(GameContainer gc, StateBasedGame sbg, int time) throws SlickException{
 		mousePosInPixels.x = gc.getInput().getMouseX();
 		mousePosInPixels.y = gc.getInput().getMouseY();
+		// update of states
 		if(!isPaused()) omniSubState.update(this, gc, sbg, time);
 		currSubState.update(this, gc, sbg, time);
+		// remove marked stuff
+		mobs.removeAll(mobsToRemove);
 		shots.removeAll(shotsToRemove);
+		explosions.removeAll(explosionsToRemove);
+		mobsToRemove.clear();
 		shotsToRemove.clear();
+		explosionsToRemove.clear();
+		// update input
 		inputMap.update(time / 1000f); // must be last
 	}
 	

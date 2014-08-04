@@ -7,6 +7,7 @@ package hfk.items;
 
 import hfk.PointF;
 import hfk.game.GameController;
+import hfk.game.GameRenderer;
 import hfk.game.Resources;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
@@ -28,6 +29,7 @@ public class AmmoItem extends InventoryItem {
 		switch(ammoType){
 			case bullet: image = Resources.getImage("ammo_bullet.png"); break;
 			case shell: image = Resources.getImage("ammo_shell.png"); break;
+			case grenade: image = Resources.getImage("ammo_grenade.png"); break;
 			case plasmaround: image = Resources.getImage("ammo_plasmaround.png"); break;
 		}
 	}
@@ -55,7 +57,7 @@ public class AmmoItem extends InventoryItem {
 
 	@Override
 	public Color getDisplayColor() {
-		return Color.white;
+		return GameRenderer.COLOR_TEXT_NORMAL;
 	}
 
 	@Override
@@ -64,6 +66,7 @@ public class AmmoItem extends InventoryItem {
 		switch(ammoType){
 			case bullet: r = 10; break;
 			case shell: r = 20; break;
+			case grenade: r = 100; break;
 			case plasmaround: r = 30; break;
 			default: throw new RuntimeException("could not determine rarity!");
 		}

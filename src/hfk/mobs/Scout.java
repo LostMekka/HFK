@@ -12,7 +12,6 @@ import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.stats.MobStatsCard;
 import org.newdawn.slick.Animation;
-import org.newdawn.slick.Sound;
 import org.newdawn.slick.SpriteSheet;
 
 /**
@@ -43,13 +42,13 @@ public class Scout extends Mob {
 	}
 
 	@Override
-	public float getProbabilityModifier() {
+	public float getSpawnProbabilityModifier() {
 		return 0.1f;
 	}
 
 	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
-		MobStatsCard c = new MobStatsCard();
+		MobStatsCard c = MobStatsCard.createNormal();
 		c.setMaxHP(20);
 		c.setMaxSpeed(3f);
 		c.setSightRange(4f);
@@ -75,7 +74,7 @@ public class Scout extends Mob {
 
 	@Override
 	public void mobOnHit(int dmg, Shot s) {
-		flee(s.origin, !notifyMode);
+		if(s != null) flee(s.origin, !notifyMode);
 	}
 
 	@Override

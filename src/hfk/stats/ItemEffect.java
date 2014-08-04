@@ -15,9 +15,9 @@ public abstract class ItemEffect {
 	
 	public Weapon.WeaponType weaponType = null;
 	
-	public MobStatsCard msc = new MobStatsCard();
-	public WeaponStatsCard wsc = new WeaponStatsCard();
-	public DamageCard dc = new DamageCard();
+	public MobStatsCard msc = MobStatsCard.createBonus();
+	public WeaponStatsCard wsc = WeaponStatsCard.createBonus();
+	public DamageCard dc = DamageCard.createBonus();
 	
 	public abstract String[] getDisplayStrings();
 	public abstract long getRarity();

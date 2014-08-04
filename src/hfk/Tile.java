@@ -8,6 +8,7 @@ package hfk;
 
 import hfk.game.GameController;
 import hfk.game.Resources;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SpriteSheet;
 
@@ -34,37 +35,37 @@ public class Tile {
 				case blueWall:
 					t.img = sheet.getSprite(0, 2); t.isWall = true;
 					t.replacement = createTile(pos, TileType.blueFloor);
-					t.hp = 1000;
-					t.armor = 5;
+					t.hp = 200;
+					t.armor = 3;
 					break;
 				case blueWallB:
 					t.img = sheet.getSprite(0, 3); t.isWall = true; 
 					t.replacement = createTile(pos, TileType.blueFloor);
-					t.hp = 1000;
-					t.armor = 5;
+					t.hp = 200;
+					t.armor = 3;
 					break;
 				case boxA:
 					t.img = sheet.getSprite(1, 0); t.isWall = true;
 					t.replacement = createTile(pos, TileType.blueFloor);
-					t.hp = 400;
+					t.hp = 200;
 					t.armor = 2;
 					break;
 				case boxB:
 					t.img = sheet.getSprite(1, 1); t.isWall = true;
 					t.replacement = createTile(pos, TileType.blueFloor);
-					t.hp = 300;
+					t.hp = 160;
 					t.armor = 1;
 					break;
 				case boxC:
 					t.img = sheet.getSprite(1, 2); t.isWall = true;
 					t.replacement = createTile(pos, TileType.blueFloor);
-					t.hp = 200;
+					t.hp = 120;
 					t.armor = 0;
 					break;
 				case boxD:
 					t.img = sheet.getSprite(1, 3); t.isWall = true;
 					t.replacement = createTile(pos, TileType.blueFloor);
-					t.hp = 100;
+					t.hp = 70;
 					t.armor = 0;
 					break;
 			}

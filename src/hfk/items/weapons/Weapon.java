@@ -15,10 +15,7 @@ import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
-import hfk.stats.DamageItemEffect;
-import hfk.stats.StatsModifier;
 import hfk.stats.WeaponStatsCard;
-import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Sound;
@@ -61,6 +58,9 @@ public abstract class Weapon extends InventoryItem {
 			@Override public String getShortID(){ return "p"; }
 			@Override public String toString() { return "plasma round"; }
 		}, 
+		grenade {
+			@Override public String getShortID(){ return "g"; }
+		}, 
 		energy {
 			@Override public String getShortID(){ return "e"; }
 		}, 
@@ -79,8 +79,6 @@ public abstract class Weapon extends InventoryItem {
 	public Sound shotSound = null, burstSound = null;
 	public WeaponStatsCard basicStats, totalStats;
 	public DamageCard basicDamageCard, totalDamageCard;
-	public LinkedList<DamageItemEffect> staticEffects = new LinkedList<>();
-	public LinkedList<DamageItemEffect> dynamicEffects = new LinkedList<>();
 	public Shot.Team shotTeam = Shot.Team.dontcare;
 	public Sound[] reloadStartSound = new Sound[AMMO_TYPE_COUNT];
 	public Sound[] reloadEndSound = new Sound[AMMO_TYPE_COUNT];
@@ -108,7 +106,7 @@ public abstract class Weapon extends InventoryItem {
 		currentScatter = totalStats.minScatter;
 		System.arraycopy(totalStats.clipSize, 0, clips, 0, AMMO_TYPE_COUNT);
 		basicDamageCard = getDefaultDamageCard();
-		totalDamageCard = basicDamageCard.cloneUnique();
+		totalDamageCard = basicDamageCard.clone();
 		reloadStartSound[AmmoType.plasmaround.ordinal()] = Resources.getSound("reload_s_pr.wav");
 		reloadEndSound[AmmoType.plasmaround.ordinal()] = Resources.getSound("reload_e_pr.wav");
 		destroyWhenUsed = false;
@@ -209,6 +207,10 @@ public abstract class Weapon extends InventoryItem {
 		}
 	}
 
+	public boolean isBionic(){
+		return bionicParent != null;
+	}
+	
 	public boolean isReloading(){
 		return state == WeaponState.cooldownReload;
 	}
@@ -271,7 +273,7 @@ public abstract class Weapon extends InventoryItem {
 	private void reloadInternalBOTHVALUES(int i, AmmoType t){
 		clipToReload = i;
 		reloadAmount = Math.round(Math.min(totalStats.clipSize[i], totalStats.reloadCount[i])) - clips[i];
-		if(parentInventory != null){
+		if(!isBionic() && parentInventory != null){
 			reloadAmount = Math.min(reloadAmount, parentInventory.getAmmoCount(t));
 			parentInventory.removeAmmo(AmmoType.values()[i], reloadAmount);
 		}
@@ -339,12 +341,15 @@ public abstract class Weapon extends InventoryItem {
 			s = initShot(s);
 			s.dmg = totalDamageCard.createDamage();
 			s.team = shotTeam;
+			s.isGrenade = type == WeaponType.grenadeLauncher;
+			s.bounceCount = totalStats.shotBounces;
+			s.parent = this;
 			Mob m = getParentMob();
 			if(m != null) s = m.skills.modifyShot(s, this, m);
 			GameController.get().shots.add(s);
 		}
 		if(burstShotCount > 0){
-			addTimer(mustReload() ? 0 : totalStats.shotInterval, WeaponState.cooldownShot);
+			addTimer(totalStats.shotInterval, WeaponState.cooldownShot);
 		} else {
 			addTimer(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst);
 		}
@@ -432,14 +437,14 @@ public abstract class Weapon extends InventoryItem {
 	
 	public void renderInformation(int x, int y, boolean colored){
 		GameRenderer r = GameController.get().renderer;
-		Color c = colored ? getDisplayColor() : Color.white;
+		Color c = colored ? getDisplayColor() : GameRenderer.COLOR_TEXT_NORMAL;
 		r.drawStringOnScreen("weapon : " + getWeaponName(), x, y, c, 1f);
 		y += GameRenderer.MIN_TEXT_HEIGHT;
 		DamageCard dc = totalDamageCard;
 		x += 25;
 		int l = 0;
 		for(int i=0; i<Damage.DAMAGE_TYPE_COUNT; i++){
-			if(colored) c = totalDamageCard.doesDamage(i) ? Color.white : Color.darkGray;
+			if(colored) c = totalDamageCard.doesDamage(i) ? GameRenderer.COLOR_TEXT_NORMAL : GameRenderer.COLOR_TEXT_INACTIVE;
 			String s = dc.getLongDamageString(i, true);
 			int projectiles = totalStats.projectilesPerShot;
 			if(projectiles > 1) s = "" + projectiles + " x " + s;
@@ -450,10 +455,10 @@ public abstract class Weapon extends InventoryItem {
 		if(colored){
 			if(isReady()){
 				c = Color.green;
-				if(canReload()) c = Color.white;
+				if(canReload()) c = GameRenderer.COLOR_TEXT_NORMAL;
 				if(mustReload(false, false)) c = Color.red;
 			} else {
-				c = Color.darkGray;
+				c = GameRenderer.COLOR_TEXT_INACTIVE;
 			}
 		}
 		for(int i=0; i<Weapon.AMMO_TYPE_COUNT; i++){
@@ -468,20 +473,23 @@ public abstract class Weapon extends InventoryItem {
 		return (currentScatter - totalStats.minScatter) / (totalStats.maxScatter - totalStats.minScatter);
 	}
 	
-	public void addStaticEffect(DamageItemEffect die){
-		staticEffects.add(die);
-		basicDamageCard.add(die.dc);
-		Mob m = getParentMob();
-		if(m != null) m.recalculateCards();
+	public void resetStats(){
+		totalDamageCard = basicDamageCard.clone();
+		totalStats = basicStats.clone();
 	}
 	
 	public void recalculateStats(){
+		resetStats();
 		Mob p = getParentMob();
 		if(p == null) return;
-		totalDamageCard = basicDamageCard.cloneUnique();
-		DamageCard damageEffect = new DamageCard();
-		p.addDamageCardEffects(damageEffect, this, p);
-		totalDamageCard.add(damageEffect);
+		// calculate damage card
+		DamageCard dcEffect = DamageCard.createBonus();
+		p.addDamageCardEffects(dcEffect, this, p);
+		totalDamageCard.applyBonus(dcEffect);
+		// calculate weapon stats card
+		WeaponStatsCard wscEffect = WeaponStatsCard.createBonus();
+		p.addWeaponStatsCardEffects(wscEffect, this, p);
+		totalStats.applyBonus(wscEffect);
 	}
 	
 }

@@ -16,87 +16,110 @@ public class MobStatsCard {
 	
 	private final int[] resistances = new int[Damage.DAMAGE_TYPE_COUNT];
 	private final int[] ammoSlotSizes = new int[Weapon.AMMO_TYPE_COUNT];
-	private float maxSpeed, maxPickupRange, sightRange, hearRange;
-	private int maxHP, inventorySize, quickSlotCount, memoryTime;
+	private float maxSpeed;				// multiplied on applyBonus
+	private float maxPickupRange;		// multiplied on applyBonus
+	private float sightRange;			// multiplied on applyBonus
+	private float hearRange;			// multiplied on applyBonus
+	private float maxHP;				// multiplied on applyBonus
+	private float memoryTime;			// multiplied on applyBonus
+	private int inventorySize;
+	private int quickSlotCount;
 
-	public MobStatsCard() {
-		this(false);
-	}
-
-	public MobStatsCard(boolean empty) {
-		if(empty) return;
-		maxSpeed = 1f;
-		maxPickupRange = 1f;
-		sightRange = 4f;
-		hearRange = 4f;
-		maxHP = 100;
-		inventorySize = 10;
-		quickSlotCount = 2;
-		memoryTime = 5000;
-	}
-
-	public float getHearRange() {
-		return hearRange;
-	}
-
-	public void setHearRange(float hearRange) {
-		this.hearRange = hearRange;
-	}
-
-	public float getSightRange() {
-		return sightRange;
-	}
-
-	public void setSightRange(float sightRange) {
-		this.sightRange = sightRange;
-	}
-
-	public int getMemoryTime() {
-		return memoryTime;
-	}
-
-	public void setMemoryTime(int memoryTime) {
-		this.memoryTime = memoryTime;
-	}
-
-	public float getMaxPickupRange() {
-		return maxPickupRange;
-	}
-
-	public void setMaxPickupRange(float maxPickupRange) {
-		this.maxPickupRange = maxPickupRange;
-	}
-
-	public int getQuickSlotCount() {
-		return quickSlotCount;
-	}
-
-	public void setQuickSlotCount(int quickSlotCount) {
-		this.quickSlotCount = quickSlotCount;
+	private boolean isBonusCard;
+	
+	public static final MobStatsCard createNormal(){
+		MobStatsCard ans = new MobStatsCard();
+		ans.isBonusCard = false;
+		ans.maxSpeed = 1f;
+		ans.maxPickupRange = 1f;
+		ans.sightRange = 4f;
+		ans.hearRange = 4f;
+		ans.maxHP = 100;
+		ans.inventorySize = 10;
+		ans.quickSlotCount = 2;
+		ans.memoryTime = 5000;
+		return ans;
 	}
 	
-	public int getResistance(int type){
-		return resistances[type];
+	public static final MobStatsCard createBonus(){
+		MobStatsCard ans = new MobStatsCard();
+		ans.isBonusCard = true;
+		return ans;
 	}
 	
-	public void setResistance(int type, int resistance){
-		resistances[type] = resistance;
-	}
+	private MobStatsCard() {}
 
-	public int getAmmoSlotSize(int type){
-		return ammoSlotSizes[type];
+	public void add(MobStatsCard c){
+		if(!isBonusCard || !c.isBonusCard) throw new RuntimeException(
+				"trying to add a " + 
+				(c.isBonusCard ? "bonus" : "normal") + 
+				" card to a " +
+				(isBonusCard ? "bonus" : "normal") + 
+				" card!");
+		maxHP += c.maxHP;
+		maxSpeed += c.maxSpeed;
+		inventorySize += c.inventorySize;
+		quickSlotCount += c.quickSlotCount;
+		maxPickupRange += c.maxPickupRange;
+		memoryTime += c.memoryTime;
+		sightRange += c.sightRange;
+		hearRange += c.hearRange;
+		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
+		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
 	}
 	
-	public void setAmmoSlotSize(int type, int ammoSlotSize){
-		ammoSlotSizes[type] = ammoSlotSize;
+	public void applyBonus(MobStatsCard c){
+		if(isBonusCard || !c.isBonusCard) throw new RuntimeException(
+				"trying to apply a " + 
+				(c.isBonusCard ? "bonus" : "normal") + 
+				" card to a " +
+				(isBonusCard ? "bonus" : "normal") + 
+				" card!");
+		// apply by multiplication
+		maxHP *= 1f + c.maxHP;
+		maxSpeed *= 1f + c.maxSpeed;
+		maxPickupRange *= 1f + c.maxPickupRange;
+		memoryTime *= 1f + c.memoryTime;
+		sightRange *= 1f + c.sightRange;
+		hearRange *= 1f + c.hearRange;
+		// apply by addition
+		inventorySize += c.inventorySize;
+		quickSlotCount += c.quickSlotCount;
+		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
+		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
+	}
+	
+	@Override
+	public MobStatsCard clone(){
+		MobStatsCard ans = new MobStatsCard();
+		ans.isBonusCard = isBonusCard;
+		ans.maxHP = maxHP;
+		ans.maxSpeed = maxSpeed;
+		ans.inventorySize = inventorySize;
+		ans.quickSlotCount = quickSlotCount;
+		ans.maxPickupRange = maxPickupRange;
+		ans.memoryTime = memoryTime;
+		ans.sightRange = sightRange;
+		ans.hearRange = hearRange;
+		System.arraycopy(resistances, 0, ans.resistances, 0, Damage.DAMAGE_TYPE_COUNT);
+		System.arraycopy(ammoSlotSizes, 0, ans.ammoSlotSizes, 0, Weapon.AMMO_TYPE_COUNT);
+		return ans;
 	}
 
-	public int getInventorySize() {
-		return inventorySize;
+	public int getResistance(int damageType) {
+		return resistances[damageType];
 	}
 
-	public void setInventorySize(int inventorySize) {
-		this.inventorySize = inventorySize;
+	public void setResistance(int damageType, int resistance) {
+		this.resistances[damageType] = resistance;
+	}
+
+	public int getAmmoSlotSize(int ammoType) {
+		return ammoSlotSizes[ammoType];
+	}
+
+	public void setAmmoSlotSize(int ammoType, int ammoSlotSize) {
+		this.ammoSlotSizes[ammoType] = ammoSlotSize;
 	}
 
 	public float getMaxSpeed() {
@@ -107,39 +130,64 @@ public class MobStatsCard {
 		this.maxSpeed = maxSpeed;
 	}
 
+	public float getMaxPickupRange() {
+		return maxPickupRange;
+	}
+
+	public void setMaxPickupRange(float maxPickupRange) {
+		this.maxPickupRange = maxPickupRange;
+	}
+
+	public float getSightRange() {
+		return sightRange;
+	}
+
+	public void setSightRange(float sightRange) {
+		this.sightRange = sightRange;
+	}
+
+	public float getHearRange() {
+		return hearRange;
+	}
+
+	public void setHearRange(float hearRange) {
+		this.hearRange = hearRange;
+	}
+
 	public int getMaxHP() {
-		return maxHP;
+		return Math.round(maxHP);
 	}
 
 	public void setMaxHP(int maxHP) {
 		this.maxHP = maxHP;
 	}
-	
-	public void add(MobStatsCard c){
-		maxHP += c.maxHP;
-		maxSpeed += c.maxSpeed;
-		inventorySize += c.inventorySize;
-		quickSlotCount += c.quickSlotCount;
-		maxPickupRange += c.maxPickupRange;
-		memoryTime += c.memoryTime;
-		sightRange += c.sightRange;
-		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
-		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
+
+	public int getMemoryTime() {
+		return Math.round(memoryTime);
 	}
-	
-	@Override
-	public MobStatsCard clone(){
-		MobStatsCard ans = new MobStatsCard(true);
-		ans.maxHP = maxHP;
-		ans.maxSpeed = maxSpeed;
-		ans.inventorySize = inventorySize;
-		ans.quickSlotCount = quickSlotCount;
-		ans.maxPickupRange = maxPickupRange;
-		ans.memoryTime = memoryTime;
-		ans.sightRange = sightRange;
-		System.arraycopy(resistances, 0, ans.resistances, 0, Damage.DAMAGE_TYPE_COUNT);
-		System.arraycopy(ammoSlotSizes, 0, ans.ammoSlotSizes, 0, Weapon.AMMO_TYPE_COUNT);
-		return ans;
+
+	public void setMemoryTime(int memoryTime) {
+		this.memoryTime = memoryTime;
+	}
+
+	public int getInventorySize() {
+		return inventorySize;
+	}
+
+	public void setInventorySize(int inventorySize) {
+		this.inventorySize = inventorySize;
+	}
+
+	public int getQuickSlotCount() {
+		return quickSlotCount;
+	}
+
+	public void setQuickSlotCount(int quickSlotCount) {
+		this.quickSlotCount = quickSlotCount;
+	}
+
+	public boolean isIsBonusCard() {
+		return isBonusCard;
 	}
 	
 }

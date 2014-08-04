@@ -42,7 +42,7 @@ public class Star extends Mob {
 		alertSound = Resources.getSound("e_star_alert.wav");
 		deathSound = Resources.getSound("e_star_die.wav");
 		shotImage = Resources.getImage("shot.png");
-		damageCard = new DamageCard();
+		damageCard = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
 		damageCard.setDieCount(physical, 2);
 		damageCard.setEyeCount(physical, 3);
@@ -53,20 +53,22 @@ public class Star extends Mob {
 		} else {
 			inventory.addAmmo(Weapon.AmmoType.bullet, 2 + GameController.random.nextInt(14));
 		}
-		final Mob thizz = this;
 		Weapon w = new Weapon(getLookAngle(), pos) {
-			{bionicParent = thizz; shotTeam = Shot.Team.hostile;}
+			{shotTeam = Shot.Team.hostile;}
 			@Override
 			public Shot initShot(Shot s) {
 				s.img = shotImage;
-				s.hit = shotHitSound;
+				s.hitSound = shotHitSound;
 				s.size = 0.08f;
 				return s;
 			}
 			@Override
 			public WeaponStatsCard getDefaultWeaponStats() {
-				WeaponStatsCard ans = new WeaponStatsCard();
-				ans.burstInterval = 2000;
+				WeaponStatsCard ans = WeaponStatsCard.createNormal();
+				ans.clipSize[0] = 1;
+				ans.ammoPerBurst[0] = 1;
+				ans.reloadCount[0] = 1;
+				ans.reloadTimes[0] = 2000;
 				ans.shotInterval = 200;
 				ans.maxScatter = 10f;
 				ans.minScatter = 10f;
@@ -98,7 +100,7 @@ public class Star extends Mob {
 
 	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
-		MobStatsCard c = new MobStatsCard();
+		MobStatsCard c = MobStatsCard.createNormal();
 		c.setMaxHP(40);
 		c.setMaxSpeed(1f);
 		c.setSightRange(4f);

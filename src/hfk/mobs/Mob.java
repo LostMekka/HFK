@@ -51,6 +51,8 @@ public abstract class Mob implements StatsModifier {
 	public boolean moveWhilePlayerVisible = true;
 	public boolean moveWhileShooting = false;
 	public float minDistanceToPlayer = 2f;
+	public int minPullTriggerDelay = 50;
+	public int maxPullTriggerDelay = 450;
 	public int barrageTimeOnHit = 0;
 	public int barrageTimeOnLost = 0;
 	public int barrageTimeOnNotify = 0;
@@ -68,6 +70,7 @@ public abstract class Mob implements StatsModifier {
 	private int lastPlayerTime = -1;
 	private float lookAngle = 0f;
 	private int barrageTimer = 0;
+	private int pullTriggerDelayTimer = 0;
 	private int safetyTimer = 0;
 	private int stateTextTimer = 0;
 	private String stateText = "";
@@ -83,15 +86,16 @@ public abstract class Mob implements StatsModifier {
 		l.add(new Freak(pos, Freak.LoadOutType.shotgun));
 		l.add(new Freak(pos, Freak.LoadOutType.energypistol));
 		l.add(new Freak(pos, Freak.LoadOutType.plasmaminigun));
+		l.add(new Grunt(pos));
 		float p = 0f;
 		ListIterator<Mob> iter = l.listIterator();
 		while(iter.hasNext()) if(iter.next().getDifficultyScore() > maxDifficulty) iter.remove();
 		if(l.isEmpty()) return null;
 		
-		for(Mob m : l) p += m.getProbabilityModifier();
+		for(Mob m : l) p += m.getSpawnProbabilityModifier();
 		float r = p * GameController.random.nextFloat();
 		for(Mob m : l){
-			p = m.getProbabilityModifier();
+			p = m.getSpawnProbabilityModifier();
 			if(p > r) return m;
 			r -= p;
 		}
@@ -112,7 +116,7 @@ public abstract class Mob implements StatsModifier {
 	public abstract MobStatsCard getDefaultMobStatsCard();
 	public abstract int getDifficultyScore();
 	
-	public float getProbabilityModifier(){ return 1f; }
+	public float getSpawnProbabilityModifier(){ return 1f; }
 	public void mobOnLostSightOfPlayer(PointF playerPos){}
 	public void mobOnGetSightOfPlayer(PointF playerPos){}
 	public void mobOnLostMemoryOfPlayer(){}
@@ -215,8 +219,23 @@ public abstract class Mob implements StatsModifier {
 		return playerVisible;
 	}
 	
+	private void tryToShoot(){
+		Weapon w = getActiveWeapon();
+		if(w == null) return;
+		if(w.totalStats.isAutomatic || pullTriggerDelayTimer <= 0){
+			boolean b = w.pullTrigger();
+			if(b){
+				pullTriggerDelayTimer = minPullTriggerDelay;
+				if(minPullTriggerDelay <= maxPullTriggerDelay){
+					pullTriggerDelayTimer += GameController.random.nextInt(maxPullTriggerDelay - minPullTriggerDelay);
+				}
+			}
+		}
+	}
+	
 	public final void update(int time){
 		GameController ctrl = GameController.get();
+		pullTriggerDelayTimer = Math.max(0, pullTriggerDelayTimer - time);
 		stateTextTimer = Math.max(0, stateTextTimer - time);
 		safetyTimer = Math.min(safetyTimer + time, timeToFeelSafe);
 		animation.update(time);
@@ -243,7 +262,7 @@ public abstract class Mob implements StatsModifier {
 				lookInDirection(pos.angleTo(ctrl.player.pos));
 				path.clear();
 				if(moveWhilePlayerVisible) path.add(ctrl.player.pos.clone());
-				if(autoUseWeapon && w != null) w.pullTrigger();
+				if(autoUseWeapon) tryToShoot();
 			}
 		} else {
 			// handle last known player position
@@ -261,7 +280,7 @@ public abstract class Mob implements StatsModifier {
 					barrageTimer = 0;
 				} else {
 					lookAt(lastPlayerPos);
-					if(w != null) w.pullTrigger();
+					tryToShoot();
 				}
 			}
 			if(lastPlayerTime >= 0){
@@ -329,7 +348,7 @@ public abstract class Mob implements StatsModifier {
 	public void draw(){
 		GameController ctrl = GameController.get();
 		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos);
-		Weapon w = inventory.getActiveWeapon();
+		Weapon w = getActiveWeapon();
 		if(w != null && w != bionicWeapon) w.render();
 		// reloading progress bar
 		boolean relBar = false;
@@ -380,17 +399,21 @@ public abstract class Mob implements StatsModifier {
 	public final void onHit(int dmg, Shot s){
 		alert(false, false);
 		if(hitSound != null) GameController.get().playSoundAt(hitSound, pos);
-		lastPlayerPos = s.origin.clone();
-		if(autoFollowPlayerOnHit && s.team == Shot.Team.friendly) lastPlayerTime = 0;
-		startBarrage(null, barrageTimeOnHit);
+		if(s != null && s.team == Shot.Team.friendly){
+			if(autoFollowPlayerOnHit){
+				lastPlayerTime = 0;
+				lastPlayerPos = s.origin.clone();
+			}
+			startBarrage(null, barrageTimeOnHit);
+		}
 		mobOnHit(dmg, s);
 	}
 	
 	public final void recalculateCards(){
 		totalStats = basicStats.clone();
-		MobStatsCard c = new MobStatsCard(true);
+		MobStatsCard c = MobStatsCard.createBonus();
 		addMobStatsCardEffects(c, this);
-		totalStats.add(c);
+		totalStats.applyBonus(c);
 		inventory.recalculateStats();
 		hp = Math.min(hp, totalStats.getMaxHP());
 	}

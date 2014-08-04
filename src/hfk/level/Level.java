@@ -751,6 +751,58 @@ public class Level {
 		return ans;
 	}
 	
+	public UsableLevelItem getUsableItemOnLine(PointF p1, PointF p2, float maxDistance, boolean ignoreWalls){
+		for(PointI p : getTilesOnLine(p1, p2, maxDistance + 1f)){
+			UsableLevelItem i = getUsableLevelItem(p.toFloat());
+			if(i != null) return i;
+			if(isWall(p.x, p.y) && !ignoreWalls) return null;
+		}
+		return null;
+	}
+	
+	public LinkedList<PointI> getTilesOnLine(PointF p1, PointF p2, float maxDistance){
+		LinkedList<PointI> ans = new LinkedList<>();
+		if(p1.squaredDistanceTo(p2) > maxDistance*maxDistance){
+			// set p2 to the point that is on the line and is maxDistance away from p1
+			PointF tmp = p2.clone();
+			tmp.subtract(p1);
+			tmp.multiply(maxDistance / tmp.length());
+			p2 = p1.clone();
+			p2.add(tmp);
+		}
+		float dx = p2.x - p1.x;
+		float dy = p2.y - p1.y;
+		int sx = (int)Math.signum(dx);
+		int sy = (int)Math.signum(dy);
+		if(Math.round(p1.x) == Math.round(p2.x) && Math.round(p1.y) == Math.round(p2.y)){
+			ans.add(p1.round());
+			return ans;
+		}
+		if(dx == 0){
+			int y1 = Math.round(p1.y);
+			int y2 = Math.round(p2.y);
+			int x = Math.round(p1.x);
+			for(int y=y1; y*sy<=y2*sy; y+=sy) ans.add(new PointI(x, y));
+			return ans;
+		}
+		float m = dy / dx;
+		float n = p1.y - m * p1.x;
+		int x1 = Math.round(p1.x);
+		int x2 = Math.round(p2.x);
+		if(dy == 0){
+			for(int x=x1; x*sx<=x2*sx; x+=sx){
+				ans.add(new PointI(x, Math.round(p1.y)));
+			}
+		} else {
+			for(int x=x1; x*sx<=x2*sx; x+=sx){
+				int y1 = x == x1 ? Math.round(p1.y) : Math.round(m * (x - sx * 0.5f) + n - sy*0.001f);
+				int y2 = x == x2 ? Math.round(p2.y) : Math.round(m * (x + sx * 0.5f) + n + sy*0.001f);
+				for(int y=y1; y*sy<=y2*sy; y+=sy) ans.add(new PointI(x, y));
+			}
+		}
+		return ans;
+	}
+	
 	public boolean isVisibleFrom(PointF p1, PointF p2, float maxDistance){
 		float dx = p2.x - p1.x;
 		float dy = p2.y - p1.y;

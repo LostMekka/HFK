@@ -21,8 +21,8 @@ public class PlasmaMachinegun extends Weapon {
 	public PlasmaMachinegun(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("shot1.wav");
-		img = Resources.getImage("plasmamachinegun.png");
-		flippedImg = Resources.getImage("plasmamachinegun.png", true);
+		img = Resources.getImage("w_plasmamachinegun.png");
+		flippedImg = Resources.getImage("w_plasmamachinegun.png", true);
 		type = WeaponType.plasmaWeapon;
 	}
 
@@ -35,28 +35,30 @@ public class PlasmaMachinegun extends Weapon {
 	public Shot initShot(Shot s) {
 		s.size = 0.09f;
 		s.img = Resources.getImage("shot.png");
-		s.hit = Resources.getSound("hit1.wav");
+		s.hitSound = Resources.getSound("hit1.wav");
 		return s;
 	}
 
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
-		WeaponStatsCard s = new WeaponStatsCard();
-		int plasmaround = Weapon.AmmoType.plasmaround.ordinal();
-		s.clipSize[plasmaround] = 80;
-		s.reloadTimes[plasmaround] = 5000;
-		s.ammoPerShot[plasmaround] = 1;
+		WeaponStatsCard s = WeaponStatsCard.createNormal();
+		int plasma = Weapon.AmmoType.plasmaround.ordinal();
+		s.clipSize[plasma] = 80;
+		s.reloadCount[plasma] = s.clipSize[plasma];
+		s.reloadTimes[plasma] = 5000;
+		s.ammoPerShot[plasma] = 1;
 		s.shotsPerBurst = 1;
 		s.burstInterval = 100;
 		s.maxScatter = 25f;
 		s.scatterCoolRate = 15f;
 		s.scatterPerShot = 2.2f;
+		s.isAutomatic = true;
 		return s;
 	}
 
 	@Override
 	public DamageCard getDefaultDamageCard() {
-		DamageCard d = new DamageCard(1);
+		DamageCard d = DamageCard.createNormal();
 		int plasma = Damage.DamageType.plasma.ordinal();
 		d.setDieCount(plasma, 2);
 		d.setEyeCount(plasma, 4);

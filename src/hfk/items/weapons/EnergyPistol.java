@@ -21,8 +21,8 @@ public class EnergyPistol extends Weapon {
 	public EnergyPistol(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
-		img = Resources.getImage("energy_pistol.png");
-		flippedImg = Resources.getImage("energy_pistol.png", true);
+		img = Resources.getImage("w_energypistol.png");
+		flippedImg = Resources.getImage("w_energypistol.png", true);
 		type = WeaponType.pistol;
 	}
 
@@ -30,13 +30,13 @@ public class EnergyPistol extends Weapon {
 	public Shot initShot(Shot s) {
 		s.size = 0.09f;
 		s.img = Resources.getImage("shot.png");
-		s.hit = Resources.getSound("hit1.wav");
+		s.hitSound = Resources.getSound("hit1.wav");
 		return s;
 	}
 
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
-		WeaponStatsCard s = new WeaponStatsCard();
+		WeaponStatsCard s = WeaponStatsCard.createNormal();
 		int bullet = Weapon.AmmoType.bullet.ordinal();
 		int energy = Weapon.AmmoType.energy.ordinal();
 		s.clipSize[bullet] = 8;
@@ -59,7 +59,7 @@ public class EnergyPistol extends Weapon {
 
 	@Override
 	public DamageCard getDefaultDamageCard() {
-		DamageCard d = new DamageCard(1);
+		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
 		int mental = Damage.DamageType.mental.ordinal();
 		d.setDieCount(physical, 3);

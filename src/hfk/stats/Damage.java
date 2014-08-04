@@ -6,7 +6,6 @@
 
 package hfk.stats;
 
-import hfk.PointF;
 
 /**
  *

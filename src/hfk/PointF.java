@@ -39,8 +39,36 @@ public class PointF {
 		return (float)Math.atan2(dy, dx);
 	}
 	
+	public float angle(){
+		return (float)Math.atan2(y, x);
+	}
+	
+	public void rotate(float angle){
+		float cos = (float)Math.cos(angle);
+		float sin = (float)Math.sin(angle);
+		float tx = cos * x - sin * y;
+		y = sin * x + cos * y;
+		x = tx;
+	}
+	
 	public float squaredDistanceTo(PointF p){
 		return (p.x-x)*(p.x-x) + (p.y-y)*(p.y-y);
+	}
+
+	public float DistanceTo(PointF p){
+		return (float)Math.sqrt((p.x-x)*(p.x-x) + (p.y-y)*(p.y-y));
+	}
+
+	public float squaredLength(){
+		return x*x + y*y;
+	}
+
+	public float length(){
+		return (float)Math.sqrt(x*x + y*y);
+	}
+	
+	public void normalize(){
+		divide(length());
 	}
 
 	@Override

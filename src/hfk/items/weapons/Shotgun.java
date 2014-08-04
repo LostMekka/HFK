@@ -8,7 +8,6 @@ package hfk.items.weapons;
 import hfk.PointF;
 import hfk.Shot;
 import hfk.game.GameController;
-import hfk.game.slickstates.GameplayState;
 import hfk.game.Resources;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
@@ -23,8 +22,8 @@ public class Shotgun extends Weapon {
 	public Shotgun(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_sg_s.wav");
-		img = Resources.getImage("shotgun.png");
-		flippedImg = Resources.getImage("shotgun.png", true);
+		img = Resources.getImage("w_shotgun.png");
+		flippedImg = Resources.getImage("w_shotgun.png", true);
 		type = WeaponType.shotgun;
 	}
 
@@ -36,16 +35,16 @@ public class Shotgun extends Weapon {
 	@Override
 	public Shot initShot(Shot s) {
 		s.lifetime = GameController.random.nextInt(500) + 400;
-		s.friction = 0.9f - 0.8f * GameController.random.nextFloat();
+		s.friction = 2f + 8f * GameController.random.nextFloat();
 		s.size = 0.09f;
 		s.img = Resources.getImage("shot.png");
-		s.hit = Resources.getSound("hit1.wav");
+		s.hitSound = Resources.getSound("hit1.wav");
 		return s;
 	}
 
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
-		WeaponStatsCard s = new WeaponStatsCard();
+		WeaponStatsCard s = WeaponStatsCard.createNormal();
 		int shells = Weapon.AmmoType.shell.ordinal();
 		s.clipSize[shells] = 2;
 		s.reloadCount[shells] = 2;
@@ -56,7 +55,7 @@ public class Shotgun extends Weapon {
 		s.burstInterval = 500;
 		s.minScatter = 35f;
 		s.maxScatter = s.minScatter;
-		s.shotVel = 8f;
+		s.shotVel = 7f;
 		s.weaponZoom = 0.2f;
 		s.isAutomatic = false;
 		return s;
@@ -64,7 +63,7 @@ public class Shotgun extends Weapon {
 
 	@Override
 	public DamageCard getDefaultDamageCard() {
-		DamageCard d = new DamageCard(1);
+		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
 		d.setDieCount(physical, 3);
 		d.setEyeCount(physical, 4);

@@ -9,6 +9,7 @@ import hfk.PointF;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.items.weapons.EnergyPistol;
+import hfk.items.weapons.GrenadeLauncher;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.PlasmaMachinegun;
 import hfk.items.weapons.Shotgun;
@@ -37,7 +38,7 @@ public abstract class InventoryItem implements StatsModifier {
 	private static final PointF LABEL_OFFSET = new PointF(0f, -0.4f);
 	private static final float LABEL_BORDER = 4f;
 	
-	public LinkedList<ItemEffect> effects =  new LinkedList<>();
+	public LinkedList<ItemEffect> effects = new LinkedList<>();
 	public PointF pos, vel = new PointF(0f, 0f);
 	public float angle = 0f, vAngle = 0f;
 	public Image image = null;
@@ -59,12 +60,14 @@ public abstract class InventoryItem implements StatsModifier {
 		LinkedList<InventoryItem> l = new LinkedList<>();
 		l.add(new AmmoItem(pos, Weapon.AmmoType.bullet, r.nextInt(91)+10));
 		l.add(new AmmoItem(pos, Weapon.AmmoType.shell, r.nextInt(46)+5));
+		l.add(new AmmoItem(pos, Weapon.AmmoType.grenade, r.nextInt(36)+5));
 		l.add(new AmmoItem(pos, Weapon.AmmoType.plasmaround, r.nextInt(181)+20));
 		l.add(new HealthPack(pos, HealthPack.Type.small));
 		l.add(new HealthPack(pos, HealthPack.Type.medium));
 		l.add(new HealthPack(pos, HealthPack.Type.big));
 		l.add(new Pistol(0, pos));
 		l.add(new Shotgun(0, pos));
+		l.add(new GrenadeLauncher(0, pos));
 		l.add(new EnergyPistol(0, pos));
 		l.add(new PlasmaMachinegun(0, pos));
 		ListIterator<InventoryItem> iter = l.listIterator();

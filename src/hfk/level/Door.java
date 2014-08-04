@@ -25,7 +25,7 @@ public class Door extends UsableLevelItem {
 		vertical = isVertical;
 		sheet = Resources.getSpriteSheet("door.png");
 		setImg();
-		hp = 100;
+		hp = 70;
 	}
 	
 	private void setImg(){
@@ -41,7 +41,7 @@ public class Door extends UsableLevelItem {
 		boolean destroyed = super.damage(dmg);
 		if(damaged) return destroyed;
 		if(destroyed){
-			hp = 500;
+			hp = 200;
 			damaged = true;
 			setImg();
 		}

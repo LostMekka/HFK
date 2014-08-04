@@ -16,38 +16,40 @@ import hfk.stats.WeaponStatsCard;
  *
  * @author LostMekka
  */
-public class Pistol extends Weapon {
+public class GrenadeLauncher extends Weapon {
 
-	public Pistol(float angle, PointF position) {
+	public GrenadeLauncher(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
-		img = Resources.getImage("w_pistol.png");
-		flippedImg = Resources.getImage("w_pistol.png", true);
-		type = WeaponType.pistol;
+		img = Resources.getImage("w_grenadelauncher.png");
+		flippedImg = Resources.getImage("w_grenadelauncher.png", true);
+		type = WeaponType.grenadeLauncher;
 	}
 
 	@Override
 	public Shot initShot(Shot s) {
 		s.size = 0.09f;
-		s.img = Resources.getImage("shot.png");
-		s.hitSound = Resources.getSound("hit1.wav");
+		s.img = Resources.getImage("s_grenade.png");
+		s.hitSound = Resources.getSound("s_grenade_hit.wav");
+		s.bounceSound = Resources.getSound("s_grenade_bounce.wav");
+		s.friction = 7f;
+		s.lifetime = 1500;
 		return s;
 	}
 
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
 		WeaponStatsCard s = WeaponStatsCard.createNormal();
-		int bullet = Weapon.AmmoType.bullet.ordinal();
-		s.clipSize[bullet] = 8;
-		s.reloadCount[bullet] = s.clipSize[bullet];
-		s.reloadTimes[bullet] = 1200;
-		s.ammoPerShot[bullet] = 1;
+		int grenade = Weapon.AmmoType.grenade.ordinal();
+		s.clipSize[grenade] = 1;
+		s.reloadCount[grenade] = s.clipSize[grenade];
+		s.reloadTimes[grenade] = 1100;
+		s.ammoPerShot[grenade] = 1;
 		s.shotsPerBurst = 1;
-		s.burstInterval = 250;
 		s.maxScatter = 30f;
 		s.scatterCoolRate = 10f;
 		s.scatterPerShot = 6f;
-		s.shotVel = 7f;
+		s.shotVel = 9f;
 		s.isAutomatic = false;
 		return s;
 	}
@@ -55,20 +57,24 @@ public class Pistol extends Weapon {
 	@Override
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
-		int physical = Damage.DamageType.physical.ordinal();
-		d.setDieCount(physical, 3);
-		d.setEyeCount(physical, 6);
+		int phys = Damage.DamageType.physical.ordinal();
+		int fire = Damage.DamageType.fire.ordinal();
+		d.setDieCount(phys, 5);
+		d.setEyeCount(phys, 6);
+		d.setDieCount(fire, 4);
+		d.setEyeCount(fire, 7);
+		d.setAreaRadius(1f);
 		return d;
 	}
 
 	@Override
 	public String getWeaponName() {
-		return "Pistol";
+		return "Grenade Launcher";
 	}
 
 	@Override
 	public long getRarityScore() {
-		return 3000;
+		return 12000;
 	}
 	
 }

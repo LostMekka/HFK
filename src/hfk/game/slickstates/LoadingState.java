@@ -82,9 +82,9 @@ public class LoadingState extends BasicGameState implements LoadingProgressListe
 	@Override
 	public void onDone() {
 		GameController.set(new GameController(sbg.getContainer(), new GameSettings()));
-		GameController.get().initAfterLoading(sbg.getContainer());
 		String nm = System.getProperty("nomusic");
-		if(nm != null && nm.equals("true")) GameController.get().stopMusic();
+		if(nm != null && nm.equals("true")) GameController.get().musicIsOn = false;
+		GameController.get().initAfterLoading(sbg.getContainer());
 		sbg.enterState(HFKGame.STATEID_GAMEPLAY);
 	}
 	

@@ -81,7 +81,7 @@ public class Freak extends Mob {
 
 	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
-		MobStatsCard c = new MobStatsCard();
+		MobStatsCard c = MobStatsCard.createNormal();
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
 		c.setAmmoSlotSize(Weapon.AmmoType.plasmaround.ordinal(), 150);
 		c.setAmmoSlotSize(Weapon.AmmoType.shell.ordinal(), 50);

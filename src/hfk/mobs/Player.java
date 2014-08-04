@@ -10,7 +10,6 @@ import hfk.Shot;
 import hfk.game.GameController;
 import hfk.items.weapons.Weapon;
 import hfk.game.Resources;
-import hfk.skills.SkillSet;
 import hfk.stats.MobStatsCard;
 import org.newdawn.slick.Animation;
 
@@ -42,11 +41,12 @@ public class Player extends Mob {
 
 	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
-		MobStatsCard c = new MobStatsCard();
+		MobStatsCard c = MobStatsCard.createNormal();
 		c.setMaxHP(100);
 		c.setMaxSpeed(4f);
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
 		c.setAmmoSlotSize(Weapon.AmmoType.shell.ordinal(), 50);
+		c.setAmmoSlotSize(Weapon.AmmoType.grenade.ordinal(), 20);
 		c.setAmmoSlotSize(Weapon.AmmoType.plasmaround.ordinal(), 150);
 		c.setInventorySize(15);
 		c.setHearRange(10);

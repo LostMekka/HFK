@@ -9,7 +9,6 @@ package hfk.game.substates;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
-import hfk.items.EmptyItem;
 import hfk.menu.MenuBox;
 import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
@@ -17,7 +16,6 @@ import hfk.skills.Skill;
 import hfk.skills.SkillSet;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -113,7 +111,7 @@ public class SkillsSubState extends GameSubState {
 		}
 		// use or drop selected item
 		if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill != null){
-			if(set.canLevelUp(selectedSkill)) selectedSkill.levelUp();
+			if(selectedSkill.canLevelUp()) selectedSkill.levelUp();
 		}
 	}
 
@@ -121,6 +119,7 @@ public class SkillsSubState extends GameSubState {
 	public void render(GameController ctrl, GameRenderer r, GameContainer gc) throws SlickException {
 		mb.render();
 		int max = getSkillSlotCount();
+		
 		// render skill list
 		if(selectedSkill != null){
 			r.drawMenuBox(
@@ -128,7 +127,7 @@ public class SkillsSubState extends GameSubState {
 					mbSkills.getInsideY() + SKILLS_LINE_HEIGHT * (selectedIndex - offset), 
 					mbSkills.getInsideWidth(), 
 					SKILLS_LINE_HEIGHT, 
-					GameRenderer.COLOR_MENU_BG, GameRenderer.COLOR_MENU_LINE);
+					GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
 		}
 		Iterator<Skill> iter = set.getSkillList().iterator();
 		for(int i=0; i<offset; i++) iter.next();
@@ -136,18 +135,19 @@ public class SkillsSubState extends GameSubState {
 		while(iter.hasNext() && n < max){
 			Skill s = iter.next();
 			Color c;
-			boolean req = set.canLevelUp(s);
-			if(s.level == 0){
-				c = req ? Color.white : Color.darkGray;
+			boolean req = s.canLevelUp();
+			if(s.getLevel() == 0){
+				c = req ? Color.white : GameRenderer.COLOR_TEXT_INACTIVE;
 			} else {
-				c = req ? Color.green : Color.yellow;
+				c = req ? Color.green : new Color(0.8f, 0.8f, 0f);
 			}
-			r.drawStringOnScreen(s.name + " (" + s.level + ")", 
+			r.drawStringOnScreen(s.name + " (" + s.getLevel() + ")", 
 					8 + mbSkills.getInsideX(), 
 					7 + mbSkills.getInsideY() + n * SKILLS_LINE_HEIGHT, 
 					c, 1f);
 			n++;
 		}
+		
 		// render scroll bar if necessary
 		float size = set.size();
 		if(max < size){
@@ -156,60 +156,80 @@ public class SkillsSubState extends GameSubState {
 			r.getGraphics().setColor(GameRenderer.COLOR_MENU_LINE);
 			r.getGraphics().fillRect(mbSkills.getBoxX() + 4, mbSkills.getInsideY() + start, 2, ratio);
 		}
+		
 		// render description
 		int x = mbDescr.getInsideX();
 		int y = mbDescr.getInsideY();
 		String str = "super skills: ";
 		int w = r.getStringWidth(str);
-		r.drawStringOnScreen(str, x, y, Color.white, 1f);
+		r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
 		int ssc = set.getSuperSkillCount(), ssm = set.getSuperSkillMax();
 		r.drawStringOnScreen("" + ssc + "/" + ssm, x+w, y, ssc<ssm ? Color.green : Color.red, 1f); y += 2*DESC_LINE_HEIGHT;
 		
 		if(selectedSkill == null){
-			r.drawStringOnScreen(r.wordWrapString("hover over a skill to see a detailed description.", mbDescr.getInsideWidth()), x, y, Color.darkGray, 1f);
+			String[] sa = r.wordWrapString("hover over a skill to see a detailed description.", mbDescr.getInsideWidth());
+			for(String s : sa){
+				r.drawStringOnScreen(s, x, y, GameRenderer.COLOR_TEXT_INACTIVE, 1f); y += DESC_LINE_HEIGHT;
+			}
 			return;
 		}
 		Skill s = selectedSkill;
+		Skill.SkillAvailability av = s.getSkillAvailability();
 		int cost = s.getCost();
-		w = r.getStringWidth(s.name);
-		r.drawStringOnScreen(s.name, x, y, Color.white, 1f); y += DESC_LINE_HEIGHT;
-		str = "current level: " + s.level;
-		if(s.level == s.getMaxLevel()) str += " (max)";
-		r.drawStringOnScreen(str, x, y, Color.white, 1f); y += DESC_LINE_HEIGHT;
-		if(set.canLevelUp(s, true)){
-			str = "next level cost: ";
-			w = r.getStringWidth(str);
-			r.drawStringOnScreen(str, x, y, Color.white, 1f);
-			r.drawStringOnScreen("" + cost, x+w, y, cost<=set.getParent().xp ? Color.green : Color.red, 1f); y += DESC_LINE_HEIGHT;
-		} else {
-			str = "skill cannot be leveled up";
-			if(s.level > 0) str += " anymore";
-			r.drawStringOnScreen(str, x, y, Color.red, 1f); y += DESC_LINE_HEIGHT;
+		r.drawStringOnScreen(s.name, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
+		str = "current level: " + s.getLevel();
+		if(s.getLevel() == s.getMaxLevel()) str += " (maxed)";
+		r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
+		switch(av){
+			case available: case cantAfford:
+				boolean b = av == Skill.SkillAvailability.available;
+				Color c = b ? Color.green : Color.red;
+				str = "next level cost: ";
+				w = r.getStringWidth(str);
+				r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
+				r.drawStringOnScreen("" + cost, x+w, y, c, 1f); y += DESC_LINE_HEIGHT;
+				if(b){
+					str = "click this skill to level up!";
+				} else {
+					str = "you cannot afford this skill!";
+				}
+				r.drawStringOnScreen(str, x, y, c, 1f); y += DESC_LINE_HEIGHT;
+				break;
+			case isBlocked:
+				r.drawStringOnScreen("this skill is blocked by another skill!", x, y, Color.red, 1f); y += DESC_LINE_HEIGHT;
+				break;
+			case reqNeeded:
+				r.drawStringOnScreen("required skills not active!", x, y, Color.red, 1f); y += DESC_LINE_HEIGHT;
+				break;
+			case superMaxed:
+				r.drawStringOnScreen("cannot have more super skills!", x, y, Color.red, 1f); y += DESC_LINE_HEIGHT;
+				break;
 		}
 		y += DESC_LINE_HEIGHT;
-		str = r.wordWrapString(s.description, mbDescr.getInsideWidth());
-		int h = r.getStringHeight(str);
-		r.drawStringOnScreen(str, x, y, Color.white, 1f); y += h+DESC_LINE_HEIGHT;
+		String[] descr = r.wordWrapString(s.description, mbDescr.getInsideWidth());
+		for(String line : descr){
+			r.drawStringOnScreen(line, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
+		}
 		w = 0;
 		HashMap<Skill, Integer> req = s.getRequrirements();
 		if(!req.isEmpty()){
 			int ty = y;
-			r.drawStringOnScreen("requires:", x, y, Color.white, 1f); y += DESC_LINE_HEIGHT;
+			r.drawStringOnScreen("requires:", x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
 			for(Skill sr : req.keySet()){
 				int lr = req.get(sr);
 				str = sr.name + " (" + lr + ")";
 				int wr = r.getStringWidth(str);
 				w = Math.max(w, wr);
-				r.drawStringOnScreen(str, x+20, y, sr.level>=lr ? Color.green : Color.red, 1f); y += DESC_LINE_HEIGHT;
+				r.drawStringOnScreen(str, x+20, y, sr.getLevel()>=lr ? Color.green : Color.red, 1f); y += DESC_LINE_HEIGHT;
 			}
 			y = ty;
 			x += 60;
 		}
 		if(!s.blocks.isEmpty()){
 			x += w;
-			r.drawStringOnScreen("blocks:", x, y, Color.white, 1f); y += DESC_LINE_HEIGHT;
+			r.drawStringOnScreen("blocks:", x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
 			for(Skill sb : s.blocks){
-				r.drawStringOnScreen(sb.name + " (" + sb.level + ")", x+20, y, sb.level==0 ? Color.green : Color.red, 1f); y += DESC_LINE_HEIGHT;
+				r.drawStringOnScreen(sb.name + " (" + sb.getLevel() + ")", x+20, y, sb.getLevel()==0 ? Color.green : Color.red, 1f); y += DESC_LINE_HEIGHT;
 			}
 		}
 	}

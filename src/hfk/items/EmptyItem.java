@@ -6,6 +6,7 @@
 package hfk.items;
 
 import hfk.PointF;
+import hfk.game.GameRenderer;
 import hfk.mobs.Mob;
 import org.newdawn.slick.Color;
 
@@ -31,7 +32,7 @@ public class EmptyItem extends InventoryItem {
 
 	@Override
 	public Color getDisplayColor() {
-		return Color.darkGray;
+		return GameRenderer.COLOR_TEXT_INACTIVE;
 	}
 
 	@Override

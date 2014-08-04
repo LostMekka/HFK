@@ -7,6 +7,7 @@
 package hfk.game;
 
 import hfk.PointF;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import org.newdawn.slick.Color;
@@ -22,8 +23,12 @@ import org.newdawn.slick.SlickException;
  */
 public class GameRenderer {
 
-	public static final Color COLOR_MENU_BG = new Color(1f, 1f, 1f, 0.5f);
+	public static final Color COLOR_TEXT_NORMAL = new Color(0f, 0.35f, 0.65f, 1f);
+	public static final Color COLOR_TEXT_INACTIVE = new Color(0.45f, 0.45f, 0.45f, 1f);
+	public static final Color COLOR_MENU_BG = new Color(1f, 1f, 1f, 0.7f);
 	public static final Color COLOR_MENU_LINE = new Color(0f, 1f, 0f, 1f);
+	public static final Color COLOR_MENUITEM_BG = new Color(1f, 1f, 1f, 0.7f);
+	public static final Color COLOR_MENUITEM_LINE = new Color(0f, 0.8f, 0f, 1f);
 	public static final Color COLOR_LOOT_NORMAL_BG = new Color(1f, 1f, 1f, 0.4f);
 	public static final Color COLOR_LOOT_NORMAL_LINE = new Color(0f, 0f, 1f, 0.5f);
 	public static final Color COLOR_LOOT_INRANGE_BG = new Color(1f, 1f, 1f, 0.6f);
@@ -107,14 +112,21 @@ public class GameRenderer {
 		return font.getHeight(string)-1;
 	}
 	
-	public String wordWrapString(String s, int maxWidth){
+	public String[] wordWrapString(String s, int maxWidth){
 		if(s.contains("\n")){
 			String[] parts = s.split("\n");
-			int n = parts.length;
-			String ans = "";
-			for(int i=0; i<n; i++){
-				ans += wordWrapString(parts[i], maxWidth);
-				if(i<n-1) ans += "\n";
+			int numLines = 0;
+			ArrayList<String[]> all = new ArrayList<>(parts.length);
+			for(String part : parts) {
+				String[] partLines = wordWrapString(part, maxWidth);
+				all.add(partLines);
+				numLines += partLines.length;
+			}
+			int n = 0;
+			String[] ans = new String[numLines];
+			for(String[] part : all){
+				System.arraycopy(part, 0, ans, n, part.length);
+				n += part.length;
 			}
 			return ans;
 		}
@@ -141,13 +153,7 @@ public class GameRenderer {
 			}
 		}
 		lines.add(currLine);
-		String ans = "";
-		Iterator<String> iter = lines.iterator();
-		while(iter.hasNext()){
-			ans += iter.next();
-			if(iter.hasNext()) ans += "\n";
-		}
-		return ans;
+		return lines.toArray(new String[lines.size()]);
 	}
 	
 	public void drawImage(Image i, PointF pos){
