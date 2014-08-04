@@ -46,7 +46,7 @@ public class SkillSet implements StatsModifier {
 			dc.setDieCount(Damage.DamageType.fire.ordinal(), (i+1)/2);
 			dc.setEyeCount(Damage.DamageType.fire.ordinal(), (i+2)/2);
 			s.damageCards[i] = dc;
-			s.costs[i] = 10 + i>5 ? 10*i : 5*i;
+			s.costs[i] = 10 + (i>5 ? 10*i : 5*i);
 		}
 		skills.add(s);
 		
