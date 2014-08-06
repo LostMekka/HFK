@@ -178,6 +178,7 @@ public class Level {
 			}
 		}
 		private static void addMobs(int diff, PointI plp, Level l){
+//			System.out.println("\n--- level ----------------");
 			GameController ctrl = GameController.get();
 			LinkedList<PointI> ex = new LinkedList<>();
 			Mob m;
@@ -191,8 +192,9 @@ public class Level {
 					} while(p.hammingDistanceTo(plp) < 10);
 					stack = ran.nextInt(ran.nextInt(ran.nextInt(12)+1)+1);
 				}
-				m = Mob.createMob(new PointF(), Math.min(d, diff/4), ctrl.getLevelCount());
+				m = Mob.createMob(new PointF(), Math.min(d, Math.round(diff/6f)), ctrl.getLevelCount());
 				if(m == null) break;
+//				System.out.println("   mob: " + m.getDisplayName());
 				mc++;
 				d -= m.getDifficultyScore();
 				PointI p2 = l.getNextFreeField(p, ex);

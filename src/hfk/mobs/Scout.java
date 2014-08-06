@@ -47,6 +47,11 @@ public class Scout extends Mob {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "Scout Bot";
+	}
+	
+	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setMaxHP(20);

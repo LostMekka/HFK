@@ -94,6 +94,11 @@ public class Star extends Mob {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "Star";
+	}
+
+	@Override
 	public int getDifficultyScore() {
 		return 1;
 	}

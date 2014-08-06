@@ -1,0 +1,23 @@
+weapon types
+	pistol
+	machinegun
+	shotgun
+	plasma wpn
+	rocket launcher
+	grenade launcher
+
+
+skills
+	dmg +1 [wpn type]
+	reload -t [wpn type]
+	clip size +x [ammo type]
+	armor +1 [dmg type] (really everything? composite armor packages?)
+
+
+wpn type skills
+	pistol --------------- projectile speed +x | dual mode
+	machinegun ----------- fire rate +x
+	shotgun -------------- pellets bounce | range +x
+	plasma wpn ----------- overdamage deals splash
+	rocket launcher ------ 
+	grenade launcher ----- manual detonation (RMB) | range +x

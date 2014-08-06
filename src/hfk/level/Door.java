@@ -24,11 +24,11 @@ public class Door extends UsableLevelItem {
 		super(pos);
 		vertical = isVertical;
 		sheet = Resources.getSpriteSheet("door.png");
-		setImg();
+		updateImg();
 		hp = 70;
 	}
 	
-	private void setImg(){
+	private void updateImg(){
 		int x = open ? 1 : 0;
 		int y = vertical ? 0 : 1;
 		if(damaged) x = 2;
@@ -37,13 +37,13 @@ public class Door extends UsableLevelItem {
 
 	@Override
 	public boolean damage(int dmg) {
-		if(open) return false;
 		boolean destroyed = super.damage(dmg);
 		if(damaged) return destroyed;
 		if(destroyed){
+			if(open) return true;
 			hp = 200;
 			damaged = true;
-			setImg();
+			updateImg();
 		}
 		return false;
 	}
@@ -59,8 +59,9 @@ public class Door extends UsableLevelItem {
 
 	@Override
 	public boolean use(Player p) {
+		if(damaged) return false;
 		open = !open;
-		setImg();
+		updateImg();
 		return true;
 	}
 	

@@ -12,6 +12,8 @@ import hfk.game.Resources;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.SpriteSheet;
 
 /**
  *
@@ -30,8 +32,9 @@ public class Explosion {
 		this.maxRadius = maxRadius;
 		radius = 0f;
 		lifeTime = 0;
-		maxLifeTime = 350;
-		animation = new Animation(Resources.getSpriteSheet("ex_001.png"), maxLifeTime / 10);
+		maxLifeTime = 250;
+		Image image = Resources.getImage("ex_002.png");
+		animation = new Animation(new SpriteSheet(image, 64, 64), maxLifeTime / 10);
 	}
 	
 	public void update(int time){
@@ -49,7 +52,7 @@ public class Explosion {
 		GameController ctrl = GameController.get();
 		PointF p = ctrl.transformTilesToScreen(pos);
 		float rad = ctrl.transformTilesToScreen(radius);
-		r.drawImage(animation.getCurrentFrame(), pos, maxRadius * 2);
+		r.drawImage(animation.getCurrentFrame(), pos, maxRadius);
 //		r.getGraphics().setColor(Color.white);
 //		r.getGraphics().drawOval(p.x-rad, p.y-rad, 2*rad, 2*rad);
 	}

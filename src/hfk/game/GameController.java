@@ -20,6 +20,7 @@ import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
+import hfk.items.weapons.CheatRifle;
 import hfk.items.weapons.GrenadeLauncher;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.Weapon;
@@ -217,11 +218,11 @@ public class GameController {
 		currSubState = gameplaySubState;
 		playerIsAlive = true;
 		nextLevel();
-		for(int i=1; i<30; i++){
-			System.out.println("l: " + i + " d: " + 
-					getLevelDifficultyLimit(i) + " r: " + 
-					getLevelRarityLimit(i));
-		}
+//		for(int i=1; i<30; i++){
+//			System.out.println("l: " + i + " d: " + 
+//					getLevelDifficultyLimit(i) + " r: " + 
+//					getLevelRarityLimit(i));
+//		}
 	}
 	
 	public void nextLevel(){
@@ -395,7 +396,6 @@ public class GameController {
 				float d = Math.max(0f, p.DistanceTo(pi.toFloat()) - 0.5f);
 				if(d >= 1) continue;
 				int dmg = Math.round((1f - d*d/r/r) * damage.calcFinalDamage());
-				System.out.println("tile " + pi + " dmg: " + d + " --> " + dmg);
 				level.damageTile(pi, dmg);
 			}
 		}
@@ -413,6 +413,7 @@ public class GameController {
 	}
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int time) throws SlickException{
+//		if(inputMap.isKeyPressed(InputMap.A_CLOSE_INVENTORY)) nextLevel();
 		mousePosInPixels.x = gc.getInput().getMouseX();
 		mousePosInPixels.y = gc.getInput().getMouseY();
 		// update of states

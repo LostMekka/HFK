@@ -106,6 +106,11 @@ public class Grunt extends Mob {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "Grunt";
+	}
+	
+	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setAmmoSlotSize(Weapon.AmmoType.grenade.ordinal(), 20);

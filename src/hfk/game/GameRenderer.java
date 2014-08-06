@@ -164,8 +164,9 @@ public class GameRenderer {
 		GameController gc = GameController.get();
 		float zoom = gc.getZoom();
 		PointF screenPos = gc.getScreenPos();
-		i.draw( gc.transformTilesToScreen(pos.x - screenPos.x - scale * 0.5f), 
-				gc.transformTilesToScreen(pos.y - screenPos.y - scale * 0.5f), 
+		float s = i.getWidth() / GameController.SPRITE_SIZE;
+		i.draw( gc.transformTilesToScreen(pos.x - screenPos.x - scale * s * 0.5f), 
+				gc.transformTilesToScreen(pos.y - screenPos.y - scale * s * 0.5f), 
 				zoom * scale);
 	}
 	

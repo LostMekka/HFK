@@ -40,6 +40,11 @@ public class Player extends Mob {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "Player";
+	}
+	
+	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setMaxHP(100);

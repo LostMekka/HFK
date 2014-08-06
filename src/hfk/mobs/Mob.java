@@ -92,15 +92,18 @@ public abstract class Mob implements StatsModifier {
 		while(iter.hasNext()) if(iter.next().getDifficultyScore() > maxDifficulty) iter.remove();
 		if(l.isEmpty()) return null;
 		
-		for(Mob m : l) p += m.getSpawnProbabilityModifier();
+		for(Mob m : l) p += getP(m);
 		float r = p * GameController.random.nextFloat();
 		for(Mob m : l){
-			p = m.getSpawnProbabilityModifier();
+			p = getP(m);
 			if(p > r) return m;
 			r -= p;
 		}
 		System.out.println("WARNING: createMob should not end up here!");
 		return l.getLast();
+	}
+	private static float getP(Mob m){
+		return m.getSpawnProbabilityModifier() + m.getDifficultyScore()/30f;
 	}
 	
 	public Mob(PointF pos){
@@ -115,6 +118,7 @@ public abstract class Mob implements StatsModifier {
 	
 	public abstract MobStatsCard getDefaultMobStatsCard();
 	public abstract int getDifficultyScore();
+	public abstract String getDisplayName();
 	
 	public float getSpawnProbabilityModifier(){ return 1f; }
 	public void mobOnLostSightOfPlayer(PointF playerPos){}

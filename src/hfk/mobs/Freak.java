@@ -80,6 +80,17 @@ public class Freak extends Mob {
 	}
 
 	@Override
+	public String getDisplayName() {
+		switch(t){
+			case pistol: return "Freak:Pistol";
+			case shotgun: return "Freak:Shotgun";
+			case energypistol: return "Freak:EnergyPistol";
+			case plasmaminigun: return "Freak:PlasmaMachinegun";
+			default: throw new RuntimeException("loadout type not recognized");
+		}
+	}
+
+	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
