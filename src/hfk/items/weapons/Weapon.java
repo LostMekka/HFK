@@ -258,9 +258,6 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public boolean reload(){
-		if(this instanceof SniperRifle){
-			System.out.println("");
-		}
 		if(!isReady()) return false;
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
 			if(canReload(i)){
@@ -393,7 +390,7 @@ public abstract class Weapon extends InventoryItem {
 		} else {
 			setState(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst);
 		}
-		currentScatter = Math.min(0, Math.max(totalStats.maxScatter, currentScatter + totalStats.scatterPerShot));
+		currentScatter = Math.max(0, Math.min(totalStats.maxScatter, currentScatter + totalStats.scatterPerShot));
 	}
 	
 	public Mob getParentMob(){
