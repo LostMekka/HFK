@@ -62,8 +62,8 @@ public class SkillSet implements StatsModifier {
 		}
 		skills.add(s);
 		
-		shotgunDouble = new Skill(parent, 1, "dual barrel1	", "enables the alternative fire of double barrel shotguns to shoot both shells at once.");
-		s.costs[0] = 20;
+		shotgunDouble = new Skill(parent, 1, "dual barrel", "enables the alternative fire of double barrel shotguns to shoot both shells at once.");
+		shotgunDouble.costs[0] = 20;
 		skills.add(shotgunDouble);
 		
 		s = new Skill(parent, 5, "weapon juggler", "if surviving in a foreign universe has taught you one thing, it is that you need all the weapons you can get... at the same time! for each level of this skill you gain an extra weapon slot.");
