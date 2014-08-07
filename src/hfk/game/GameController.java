@@ -21,8 +21,12 @@ import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.CheatRifle;
+import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.GrenadeLauncher;
 import hfk.items.weapons.Pistol;
+import hfk.items.weapons.PumpActionShotgun;
+import hfk.items.weapons.RocketLauncher;
+import hfk.items.weapons.SniperRifle;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.mobs.Mob;
@@ -43,6 +47,8 @@ import org.newdawn.slick.state.StateBasedGame;
  * @author LostMekka
  */
 public class GameController {
+	
+	public static final String VERSION = "0.0.13";
 	
 	public static final float SQRT2 = (float)Math.sqrt(2);
 	public static final Random random = new Random();

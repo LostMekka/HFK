@@ -35,6 +35,11 @@ public abstract class Weapon extends InventoryItem {
 			public String toString() {
 				return "plasma weapon";
 			}},
+		sniperRifle{
+			@Override
+			public String toString() {
+				return "sniper rifle";
+			}},
 		rocketLauncher{
 			@Override
 			public String toString() {
@@ -52,14 +57,21 @@ public abstract class Weapon extends InventoryItem {
 			@Override public String getShortID(){ return "b"; }
 		}, 
 		shell {
-			@Override public String getShortID(){ return "s"; }
+			@Override public String getShortID(){ return "sh"; }
 		}, 
-		plasmaround {
+		plasmaRound {
 			@Override public String getShortID(){ return "p"; }
 			@Override public String toString() { return "plasma round"; }
 		}, 
+		sniperRound {
+			@Override public String getShortID(){ return "sr"; }
+			@Override public String toString() { return "sniper round"; }
+		}, 
 		grenade {
 			@Override public String getShortID(){ return "g"; }
+		}, 
+		rocket {
+			@Override public String getShortID(){ return "r"; }
 		}, 
 		energy {
 			@Override public String getShortID(){ return "e"; }
@@ -107,14 +119,19 @@ public abstract class Weapon extends InventoryItem {
 		System.arraycopy(totalStats.clipSize, 0, clips, 0, AMMO_TYPE_COUNT);
 		basicDamageCard = getDefaultDamageCard();
 		totalDamageCard = basicDamageCard.clone();
-		reloadStartSound[AmmoType.plasmaround.ordinal()] = Resources.getSound("reload_s_pr.wav");
-		reloadEndSound[AmmoType.plasmaround.ordinal()] = Resources.getSound("reload_e_pr.wav");
+		reloadStartSound[AmmoType.plasmaRound.ordinal()] = Resources.getSound("reload_s_pr.wav");
+		reloadEndSound[AmmoType.plasmaRound.ordinal()] = Resources.getSound("reload_e_pr.wav");
 		destroyWhenUsed = false;
 	}
 	
-	private void addTimer(int t, WeaponState s){
-		timer += t;
-		timerStart = t;
+	public void setImg(String ref){
+		img = Resources.getImage(ref);
+		flippedImg = Resources.getImage(ref, true);
+	}
+	
+	private void setState(int timer, WeaponState s){
+		this.timer = timer;
+		timerStart = timer;
 		state = s;
 	}
 	
@@ -241,6 +258,9 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public boolean reload(){
+		if(this instanceof SniperRifle){
+			System.out.println("");
+		}
 		if(!isReady()) return false;
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
 			if(canReload(i)){
@@ -272,12 +292,12 @@ public abstract class Weapon extends InventoryItem {
 	
 	private void reloadInternalBOTHVALUES(int i, AmmoType t){
 		clipToReload = i;
-		reloadAmount = Math.round(Math.min(totalStats.clipSize[i], totalStats.reloadCount[i])) - clips[i];
+		reloadAmount = Math.round(Math.min(totalStats.clipSize[i] - clips[i], totalStats.reloadCount[i]));
 		if(!isBionic() && parentInventory != null){
 			reloadAmount = Math.min(reloadAmount, parentInventory.getAmmoCount(t));
 			parentInventory.removeAmmo(AmmoType.values()[i], reloadAmount);
 		}
-		addTimer(Math.round(totalStats.reloadTimes[i]), WeaponState.cooldownReload);
+		setState(Math.round(totalStats.reloadTimes[i]), WeaponState.cooldownReload);
 		Sound sound = reloadStartSound[i];
 		if(sound != null) GameController.get().playSoundAt(sound, pos);
 	}
@@ -304,17 +324,29 @@ public abstract class Weapon extends InventoryItem {
 		return false;
 	}
 	
-	private boolean canReload(AmmoType t){
-		return canReloadInternalBOTHVALUES(t.ordinal(), t);
-	}
-	
 	private boolean canReload(int i){
-		return canReloadInternalBOTHVALUES(i, AmmoType.values()[i]);
+		return (totalStats.reloadCount[i] > 0 && clips[i] < totalStats.clipSize[i]
+				&& (parentInventory == null || parentInventory.hasAmmo(AmmoType.values()[i])));
 	}
 	
-	private boolean canReloadInternalBOTHVALUES(int i, AmmoType t){
-		return (totalStats.reloadCount[i] > 0 && clips[i] < totalStats.clipSize[i]
-				&& (parentInventory == null || parentInventory.hasAmmo(t)));
+	public void pullAlternativeTrigger(){
+		Mob m = getParentMob();
+		if(m == null || m.skills.canAltFire(this)) pullAlternativeTriggerInternal();
+	}
+	
+	public void pullAlternativeTriggerInternal(){
+		if(type == WeaponType.grenadeLauncher){
+			boolean foundLevel2Shot = false;
+			for(Shot shot : GameController.get().shots){
+				if(!GameController.get().shotsToRemove.contains(shot) && shot.parent == this){
+					if(shot.manualDetonateLevel == 1) shot.hit();
+					if(shot.manualDetonateLevel == 2 && ! foundLevel2Shot){
+						shot.hit();
+						foundLevel2Shot = true;
+					}
+				}
+			}
+		}
 	}
 	
 	public boolean pullTrigger(){
@@ -332,10 +364,18 @@ public abstract class Weapon extends InventoryItem {
 		return angle + currentScatter / 180f * (float)Math.PI * (GameController.random.nextFloat() - 0.5f);
 	}
 	
-	private void shootInternal(){
+	public void shootInternal(){
+		shootInternal(true);
+	}
+	
+	public void shootInternal(boolean playSound){
+		if(getParentMob() == GameController.get().player){
+			GameController.get().cameraShake(getScreenShakeAmount());
+			GameController.get().cameraRecoil(angle + (float)Math.PI, getScreenRecoilAmount());
+		}
 		burstShotCount--;
 		for(int i=0; i<AMMO_TYPE_COUNT; i++) clips[i] -= totalStats.ammoPerShot[i];
-		if(shotSound != null) GameController.get().playSoundAt(shotSound, pos);
+		if(playSound && shotSound != null) GameController.get().playSoundAt(shotSound, pos);
 		for(int i=0; i<totalStats.projectilesPerShot; i++){
 			Shot s = new Shot(this, null, null, 0.1f);
 			s = initShot(s);
@@ -349,12 +389,11 @@ public abstract class Weapon extends InventoryItem {
 			GameController.get().shots.add(s);
 		}
 		if(burstShotCount > 0){
-			addTimer(totalStats.shotInterval, WeaponState.cooldownShot);
+			setState(totalStats.shotInterval, WeaponState.cooldownShot);
 		} else {
-			addTimer(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst);
+			setState(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst);
 		}
-		currentScatter += totalStats.scatterPerShot;
-		if(currentScatter > totalStats.maxScatter) currentScatter = totalStats.maxScatter;
+		currentScatter = Math.min(0, Math.max(totalStats.maxScatter, currentScatter + totalStats.scatterPerShot));
 	}
 	
 	public Mob getParentMob(){

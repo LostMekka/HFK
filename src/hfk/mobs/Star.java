@@ -49,7 +49,7 @@ public class Star extends Mob {
 		autoUseWeapon = true;
 		barrageTimeOnLost = 500;
 		if(GameController.random.nextFloat() < 0.1){
-			inventory.addAmmo(Weapon.AmmoType.plasmaround, 10 + GameController.random.nextInt(31));
+			inventory.addAmmo(Weapon.AmmoType.plasmaRound, 10 + GameController.random.nextInt(31));
 		} else {
 			inventory.addAmmo(Weapon.AmmoType.bullet, 2 + GameController.random.nextInt(14));
 		}
@@ -110,7 +110,7 @@ public class Star extends Mob {
 		c.setMaxSpeed(1f);
 		c.setSightRange(4f);
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 1000);
-		c.setAmmoSlotSize(Weapon.AmmoType.plasmaround.ordinal(), 1000);
+		c.setAmmoSlotSize(Weapon.AmmoType.plasmaRound.ordinal(), 1000);
 		return c;
 	}
 	

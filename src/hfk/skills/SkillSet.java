@@ -8,6 +8,7 @@ package hfk.skills;
 
 import hfk.Shot;
 import hfk.game.GameController;
+import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
@@ -29,7 +30,7 @@ public class SkillSet implements StatsModifier {
 	
 	// special skills (need special handling)
 	private Skill pistolVel, pistolAuto;
-	private Skill shotgunBounce, shotgunRange;
+	private Skill shotgunDouble;
 	private Skill machinegunRate;
 	private Skill plasmaOverDmgSplash;
 	private Skill grenadeRange, grenadeManual, grenadeSmart;
@@ -60,6 +61,10 @@ public class SkillSet implements StatsModifier {
 			s.costs[i] = 10 + 5*i;
 		}
 		skills.add(s);
+		
+		shotgunDouble = new Skill(parent, 1, "dual barrel1	", "enables the alternative fire of double barrel shotguns to shoot both shells at once.");
+		s.costs[0] = 20;
+		skills.add(shotgunDouble);
 		
 		s = new Skill(parent, 5, "weapon juggler", "if surviving in a foreign universe has taught you one thing, it is that you need all the weapons you can get... at the same time! for each level of this skill you gain an extra weapon slot.");
 		for(int i=0; i<s.getMaxLevel(); i++){
@@ -164,6 +169,12 @@ public class SkillSet implements StatsModifier {
 	
 	public boolean shouldRenderHealthBar(Mob m){
 		return spiderSenses.getLevel() > 1;
+	}
+	
+	public boolean canAltFire(Weapon w){
+		if(w.type == Weapon.WeaponType.grenadeLauncher) return grenadeManual.getLevel() > 0;
+		if(w instanceof DoubleBarrelShotgun) return shotgunDouble.getLevel() > 0;
+		return false;
 	}
 	
 }

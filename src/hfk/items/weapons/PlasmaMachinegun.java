@@ -21,8 +21,7 @@ public class PlasmaMachinegun extends Weapon {
 	public PlasmaMachinegun(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("shot1.wav");
-		img = Resources.getImage("w_plasmamachinegun.png");
-		flippedImg = Resources.getImage("w_plasmamachinegun.png", true);
+		setImg("w_plasmamachinegun.png");
 		type = WeaponType.plasmaWeapon;
 	}
 
@@ -42,7 +41,7 @@ public class PlasmaMachinegun extends Weapon {
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
 		WeaponStatsCard s = WeaponStatsCard.createNormal();
-		int plasma = Weapon.AmmoType.plasmaround.ordinal();
+		int plasma = Weapon.AmmoType.plasmaRound.ordinal();
 		s.clipSize[plasma] = 80;
 		s.reloadCount[plasma] = s.clipSize[plasma];
 		s.reloadTimes[plasma] = 5000;

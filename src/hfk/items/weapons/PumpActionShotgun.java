@@ -7,6 +7,7 @@ package hfk.items.weapons;
 
 import hfk.PointF;
 import hfk.Shot;
+import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
@@ -16,17 +17,24 @@ import hfk.stats.WeaponStatsCard;
  *
  * @author LostMekka
  */
-public class EnergyPistol extends Weapon {
+public class PumpActionShotgun extends Weapon {
 
-	public EnergyPistol(float angle, PointF position) {
+	public PumpActionShotgun(float angle, PointF position) {
 		super(angle, position);
-		shotSound = Resources.getSound("w_p_s.wav");
-		setImg("w_energypistol.png");
-		type = WeaponType.pistol;
+		shotSound = Resources.getSound("w_sg_s.wav");
+		setImg("w_pumpActionShotgun.png");
+		type = WeaponType.shotgun;
+	}
+
+	@Override
+	public float getScreenRecoilAmount() {
+		return 0.5f;
 	}
 
 	@Override
 	public Shot initShot(Shot s) {
+		s.lifetime = GameController.random.nextInt(500) + 400;
+		s.friction = 2f + 8f * GameController.random.nextFloat();
 		s.size = 0.09f;
 		s.img = Resources.getImage("shot.png");
 		s.hitSound = Resources.getSound("hit1.wav");
@@ -36,22 +44,18 @@ public class EnergyPistol extends Weapon {
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
 		WeaponStatsCard s = WeaponStatsCard.createNormal();
-		int bullet = Weapon.AmmoType.bullet.ordinal();
-		int energy = Weapon.AmmoType.energy.ordinal();
-		s.clipSize[bullet] = 8;
-		s.reloadCount[bullet] = s.clipSize[bullet];
-		s.reloadTimes[bullet] = 1500;
-		s.ammoPerShot[bullet] = 1;
-		s.clipSize[energy] = 50;
-		s.reloadTimes[energy] = -1;
-		s.ammoPerShot[energy] = 5;
-		s.ammoRegenerationRates[energy] = 3.5f;
+		int shells = Weapon.AmmoType.shell.ordinal();
+		s.clipSize[shells] = 8;
+		s.reloadCount[shells] = 1;
+		s.reloadTimes[shells] = 500;
+		s.ammoPerShot[shells] = 1;
 		s.shotsPerBurst = 1;
-		s.burstInterval = 250;
-		s.maxScatter = 30f;
-		s.scatterCoolRate = 10f;
-		s.scatterPerShot = 6f;
-		s.shotVel = 9f;
+		s.projectilesPerShot = 8;
+		s.burstInterval = 800;
+		s.minScatter = 32f;
+		s.maxScatter = s.minScatter;
+		s.shotVel = 7f;
+		s.weaponZoom = 0.2f;
 		s.isAutomatic = false;
 		return s;
 	}
@@ -60,22 +64,19 @@ public class EnergyPistol extends Weapon {
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
-		int mental = Damage.DamageType.mental.ordinal();
 		d.setDieCount(physical, 3);
-		d.setEyeCount(physical, 6);
-		d.setDieCount(mental, 1);
-		d.setEyeCount(mental, 6);
+		d.setEyeCount(physical, 4);
 		return d;
 	}
 
 	@Override
 	public String getWeaponName() {
-		return "Energy Pistol";
+		return "Pump Action Shotgun";
 	}
 
 	@Override
 	public long getRarityScore() {
-		return 10000;
+		return 15000;
 	}
-	
+
 }

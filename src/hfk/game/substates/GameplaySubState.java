@@ -151,23 +151,10 @@ public class GameplaySubState extends GameSubState{
 				boolean dn = input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON);
 				boolean a = w.totalStats.isAutomatic;
 				if((a && dn) || (!a && pr)){
-					if(w.pullTrigger()){
-						ctrl.cameraShake(w.getScreenShakeAmount());
-						ctrl.cameraRecoil(w.angle + (float)Math.PI, w.getScreenRecoilAmount());
-					}
+					w.pullTrigger();
 				}
 				if(in.isMousePressed(InputMap.A_SHOOT_ALTERNATIVE)){
-					// alternative fire
-					boolean foundLevel2Shot = false;
-					for(Shot shot : ctrl.shots){
-						if(!ctrl.shotsToRemove.contains(shot) && shot.parent == w){
-							if(shot.manualDetonateLevel == 1) shot.hit();
-							if(shot.manualDetonateLevel == 2 && ! foundLevel2Shot){
-								shot.hit();
-								foundLevel2Shot = true;
-							}
-						}
-					}
+					w.pullAlternativeTrigger();
 				}
 				if(in.isKeyPressed(InputMap.A_RELOAD)){
 					if(w.reload()){

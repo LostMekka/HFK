@@ -21,8 +21,7 @@ public class GrenadeLauncher extends Weapon {
 	public GrenadeLauncher(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
-		img = Resources.getImage("w_grenadelauncher.png");
-		flippedImg = Resources.getImage("w_grenadelauncher.png", true);
+		setImg("w_grenadelauncher.png");
 		type = WeaponType.grenadeLauncher;
 	}
 

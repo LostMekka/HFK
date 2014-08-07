@@ -11,7 +11,7 @@ import hfk.game.Resources;
 import hfk.items.weapons.EnergyPistol;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.PlasmaMachinegun;
-import hfk.items.weapons.Shotgun;
+import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.Weapon;
 import hfk.stats.Damage;
 import hfk.stats.MobStatsCard;
@@ -48,7 +48,7 @@ public class Freak extends Mob {
 				barrageTimeOnLost = 500;
 				moveWhileShooting = true;
 				moveWhilePlayerVisible = true;
-				inventory.equipWeaponFromGround(new Shotgun(0f, pos.clone()));
+				inventory.equipWeaponFromGround(new DoubleBarrelShotgun(0f, pos.clone()));
 				inventory.addAmmo(Weapon.AmmoType.shell, GameController.random.nextInt(100) + 50);
 				break;
 			case energypistol:
@@ -62,7 +62,7 @@ public class Freak extends Mob {
 				barrageTimeOnLost = 1000;
 				barrageTimeOnNotify = 4000;
 				inventory.equipWeaponFromGround(new PlasmaMachinegun(0f, pos.clone()));
-				inventory.addAmmo(Weapon.AmmoType.plasmaround, GameController.random.nextInt(300) + 300);
+				inventory.addAmmo(Weapon.AmmoType.plasmaRound, GameController.random.nextInt(300) + 300);
 				break;
 			default: throw new RuntimeException("loadout type not recognized");
 		}
@@ -94,7 +94,7 @@ public class Freak extends Mob {
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
-		c.setAmmoSlotSize(Weapon.AmmoType.plasmaround.ordinal(), 150);
+		c.setAmmoSlotSize(Weapon.AmmoType.plasmaRound.ordinal(), 150);
 		c.setAmmoSlotSize(Weapon.AmmoType.shell.ordinal(), 50);
 		c.setMaxHP(70);
 		c.setSightRange(4.6f);

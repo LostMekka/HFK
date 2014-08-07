@@ -16,39 +16,37 @@ import hfk.stats.WeaponStatsCard;
  *
  * @author LostMekka
  */
-public class CheatRifle extends Weapon {
+public class RocketLauncher extends Weapon {
 
-	public CheatRifle(float angle, PointF position) {
+	public RocketLauncher(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
-		setImg("w_grenadelauncher.png");
-		type = WeaponType.grenadeLauncher;
+		setImg("w_rocketlauncher.png");
+		type = WeaponType.rocketLauncher;
 	}
 
 	@Override
 	public Shot initShot(Shot s) {
 		s.size = 0.09f;
-		s.img = Resources.getImage("s_grenade.png");
+		s.img = Resources.getImage("s_rocket.png");
 		s.hitSound = Resources.getSound("s_grenade_hit.wav");
-		s.bounceSound = Resources.getSound("s_grenade_bounce.wav");
-		s.friction = 5f;
-		s.lifetime = 2000;
 		return s;
 	}
 
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
 		WeaponStatsCard s = WeaponStatsCard.createNormal();
-		int grenade = Weapon.AmmoType.grenade.ordinal();
-		s.clipSize[grenade] = 1;
-		s.reloadCount[grenade] = s.clipSize[grenade];
-		s.reloadTimes[grenade] = 1100;
+		int rocket = Weapon.AmmoType.rocket.ordinal();
+		s.clipSize[rocket] = 1;
+		s.reloadCount[rocket] = s.clipSize[rocket];
+		s.reloadTimes[rocket] = 1400;
+		s.ammoPerShot[rocket] = 1;
 		s.shotsPerBurst = 1;
 		s.maxScatter = 30f;
 		s.scatterCoolRate = 10f;
 		s.scatterPerShot = 6f;
 		s.shotVel = 9f;
-		s.isAutomatic = true;
+		s.isAutomatic = false;
 		return s;
 	}
 
@@ -57,22 +55,22 @@ public class CheatRifle extends Weapon {
 		DamageCard d = DamageCard.createNormal();
 		int phys = Damage.DamageType.physical.ordinal();
 		int fire = Damage.DamageType.fire.ordinal();
-		d.setDieCount(phys, 10);
-		d.setEyeCount(phys, 10);
-		d.setDieCount(fire, 10);
-		d.setEyeCount(fire, 10);
+		d.setDieCount(phys, 6);
+		d.setEyeCount(phys, 6);
+		d.setDieCount(fire, 6);
+		d.setEyeCount(fire, 6);
 		d.setAreaRadius(1f);
 		return d;
 	}
 
 	@Override
 	public String getWeaponName() {
-		return "Grenade Launcher";
+		return "Rocket Launcher";
 	}
 
 	@Override
 	public long getRarityScore() {
-		return 12000;
+		return 25000;
 	}
 	
 }

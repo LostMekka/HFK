@@ -12,7 +12,7 @@ import hfk.game.Resources;
 import hfk.items.weapons.EnergyPistol;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.PlasmaMachinegun;
-import hfk.items.weapons.Shotgun;
+import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.Weapon;
 import hfk.skills.Skill;
 import hfk.stats.Damage;

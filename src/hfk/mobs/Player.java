@@ -51,8 +51,10 @@ public class Player extends Mob {
 		c.setMaxSpeed(4f);
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
 		c.setAmmoSlotSize(Weapon.AmmoType.shell.ordinal(), 50);
+		c.setAmmoSlotSize(Weapon.AmmoType.sniperRound.ordinal(), 20);
 		c.setAmmoSlotSize(Weapon.AmmoType.grenade.ordinal(), 20);
-		c.setAmmoSlotSize(Weapon.AmmoType.plasmaround.ordinal(), 150);
+		c.setAmmoSlotSize(Weapon.AmmoType.rocket.ordinal(), 5);
+		c.setAmmoSlotSize(Weapon.AmmoType.plasmaRound.ordinal(), 150);
 		c.setInventorySize(15);
 		c.setHearRange(10);
 		c.setQuickSlotCount(2);
