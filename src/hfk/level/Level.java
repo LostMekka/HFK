@@ -142,6 +142,7 @@ public class Level {
 			}
 		}
 		private static void generateBoxLevel(Level l, int lx, int ly, int lw, int lh, int minW, int maxW, int minH, int maxH, float rate){
+			if(minW > lw-2 || minH > lh-2) return; // boxes do not fit!
 			LinkedList<Box> bl = new LinkedList<>();
 			for(int i=0; i<lh*lw*rate; i++){
 				Box b1 = new Box();
