@@ -4,8 +4,10 @@
  * and open the template in the editor.
  */
 
-package hfk;
+package hfk.level;
 
+import hfk.PointF;
+import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.Resources;
 import org.newdawn.slick.Color;

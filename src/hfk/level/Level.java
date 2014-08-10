@@ -8,7 +8,6 @@ package hfk.level;
 
 import hfk.PointF;
 import hfk.PointI;
-import hfk.Tile;
 import hfk.game.GameController;
 import hfk.game.slickstates.GameplayState;
 import hfk.items.InventoryItem;
