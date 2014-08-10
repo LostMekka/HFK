@@ -6,7 +6,6 @@
 
 package hfk;
 
-import hfk.game.GameController;
 import hfk.game.HFKGame;
 import java.util.logging.Level;
 import java.util.logging.Logger;
