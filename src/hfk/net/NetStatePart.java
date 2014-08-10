@@ -31,6 +31,47 @@ public final class NetStatePart<T extends NetStateObject>{
 		type = o.getClass();
 	}
 	
+	private NetStatePart(NetStatePart sp) {
+		objectID = sp.objectID;
+		type = sp.type;
+	}
+	
+	public NetStatePart createDiff(NetStatePart parent){
+		if(parent == null) return this; // diff to nothing is everything
+		if(objectID != parent.getObjectID()) throw new RuntimeException("trying to create net diff with wrong object!");
+		NetStatePart ans = new NetStatePart(this);
+		boolean changed = false;
+		for(int i : bools.keySet()){
+			boolean val = bools.get(i);
+			if(val != parent.getBoolean(i)){
+				ans.bools.put(i, val);
+				changed = true;
+			}
+		}
+		for(int i : ints.keySet()){
+			int val = ints.get(i);
+			if(val != parent.getInteger(i)){
+				ans.ints.put(i, val);
+				changed = true;
+			}
+		}
+		for(int i : floats.keySet()){
+			float val = floats.get(i);
+			if(val != parent.getFloat(i)){
+				ans.floats.put(i, val);
+				changed = true;
+			}
+		}
+		for(int i : objects.keySet()){
+			Object val = objects.get(i);
+			if(val != parent.getObject(i)){
+				ans.objects.put(i, val);
+				changed = true;
+			}
+		}
+		return changed ? ans : null;
+	}
+	
 	public T createObject(){
 		try {
 			NetStateObject o = type.newInstance();
