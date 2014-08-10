@@ -22,6 +22,7 @@ import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.CheatRifle;
 import hfk.items.weapons.DoubleBarrelShotgun;
+import hfk.items.weapons.EnergyPistol;
 import hfk.items.weapons.GrenadeLauncher;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.PumpActionShotgun;
@@ -69,9 +70,9 @@ public class GameController {
 	
 	public final LinkedList<Explosion> explosions = new LinkedList<>(), explosionsToRemove = new LinkedList<>();
 	public final LinkedList<Shot> shots = new LinkedList<>(), shotsToRemove = new LinkedList<>();
-	public final LinkedList<Mob> mobs = new LinkedList<>(), mobsToRemove = new LinkedList<Mob>();
+	public final LinkedList<Mob> mobs = new LinkedList<>(), mobsToRemove = new LinkedList<>();
+	public final LinkedList<InventoryItem> items = new LinkedList<>(), itemsToRemove = new LinkedList<>();
 	public final LinkedList<IngameText> texts = new LinkedList<>();
-	public final LinkedList<InventoryItem> items = new LinkedList<>();
 
 	public GameOverSubState gameOverState;
 	public GameplaySubState gameplaySubState;
@@ -215,9 +216,8 @@ public class GameController {
 		if(musicIsOn) startMusic();
 		levelCount = 0;
 		PointF pp = new PointF();
-		Weapon w = new Pistol(0, pp);
 		player = new Player(pp);
-		player.inventory.equipWeaponFromGround(w);
+		player.inventory.equipWeaponFromGround(new Pistol(0, pp));
 		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
 		//for(int i=0; i<20; i++) player.inventory.addItem(InventoryItem.create(pp, 99999999));
 		if(musicIsOn) startMusic();
@@ -378,6 +378,13 @@ public class GameController {
 		texts.add(t);
 	}
 	
+	private int getAreaDamage(float r, float d, int dmg){
+		// ratio : x = 1 - d/r
+		// quadratic function: y = 1 - (x - 1)^2
+		// -> y = 1 - (1 - d/r - 1)^2 = 1 - (d/r)^2
+		return Math.round((1f - d*d/r/r) * dmg);
+	}
+	
 	public void dealAreaDamage(PointF p, Damage damage, Shot s){
 		// TODO: intelligently damage tiles (maybe reduce damage to mobs too when behind a wall?)
 		float r = damage.getAreaRadius();
@@ -386,23 +393,28 @@ public class GameController {
 			float dd = m.pos.squaredDistanceTo(p);
 			if(dd < (r + m.size/2f) * (r + m.size/2f)){
 				float d = Math.max(0f, (float)Math.sqrt(dd) - m.size/2f);
-				// ratio : x = 1 - d/r
-				// quadratic function: y = 1 - (x - 1)^2
-				// -> y = 1 - (1 - d/r - 1)^2 = 1 - (d/r)^2
-				float dmg = (1f - d*d/r/r) * damage.calcFinalDamage(m.totalStats);
-				damageMob(m, Math.round(dmg), null, s);
+				int dmg = getAreaDamage(r, d, damage.calcFinalDamage(m.totalStats));
+				damageMob(m, dmg, null, s);
 			}
 		}
+		int normalDmg = damage.calcFinalDamage();
 		PointI pc = p.round();
 		int border = (int)Math.ceil(r);
 		for(int x=-border; x<=border; x++){
 			for(int y=-border; y<=border; y++){
 				PointI pi = new PointI(x + pc.x, y + pc.y);
-				// dmg calculation same as above
 				float d = Math.max(0f, p.DistanceTo(pi.toFloat()) - 0.5f);
 				if(d >= 1) continue;
-				int dmg = Math.round((1f - d*d/r/r) * damage.calcFinalDamage());
+				int dmg = Math.round(getAreaDamage(r, d, normalDmg));
 				level.damageTile(pi, dmg);
+			}
+		}
+		for(InventoryItem i : items){
+			float dd = i.pos.squaredDistanceTo(p);
+			if(dd < r*r){
+				float d = Math.max(0f, (float)Math.sqrt(dd) - 0.5f);
+				int dmg = Math.round(getAreaDamage(r, d, normalDmg));
+				if(dmg >= 4) itemsToRemove.add(i);
 			}
 		}
 	}
@@ -429,9 +441,11 @@ public class GameController {
 		mobs.removeAll(mobsToRemove);
 		shots.removeAll(shotsToRemove);
 		explosions.removeAll(explosionsToRemove);
+		items.removeAll(itemsToRemove);
 		mobsToRemove.clear();
 		shotsToRemove.clear();
 		explosionsToRemove.clear();
+		itemsToRemove.clear();
 		// update input
 		inputMap.update(time / 1000f); // must be last
 	}
