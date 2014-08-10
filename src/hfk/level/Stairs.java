@@ -24,6 +24,11 @@ public class Stairs extends UsableLevelItem {
 	}
 
 	@Override
+	public boolean damage(int dmg) {
+		return false;
+	}
+
+	@Override
 	public String getDisplayName() {
 		return "Stairs";
 	}

@@ -288,11 +288,8 @@ public class Level {
 		} else {
 			UsableLevelItem toDelete = null;
 			for(UsableLevelItem i : items){
-				if(i.pos.equals(pos) && i instanceof Door){
-					Door d = (Door)i;
-					if(!d.isOpen() && d.damage(dmg)){
-						toDelete = i;
-					}
+				if(i.pos.equals(pos)){
+					if(i.damage(dmg)) toDelete = i;
 				}
 			}
 			items.remove(toDelete); // if toDelete is null, nothing is removed
