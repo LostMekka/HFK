@@ -80,7 +80,7 @@ public class SkillSet implements StatsModifier {
 		skills.add(grenadeSmart);
 
 		grenadeManual = new Skill(parent, 2, "grenade trigger", "grenades are detonated manually! so skill, many control, much kapow.");
-		grenadeManual.costs = new int[] { 10, 20 };
+		grenadeManual.costs = new int[] { 35, 35 };
 		skills.add(grenadeManual);
 
 		spiderSenses = new Skill(parent, 2, "spider senses", "you evolved to sense information about your enemies. how did you even do that??? level 1 shows reload status, level 2 shows health bars.");
