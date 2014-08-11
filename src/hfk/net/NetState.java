@@ -25,6 +25,13 @@ public class NetState {
 		return timeStamp;
 	}
 	
+	public boolean addObject(NetStateObject o){
+		long id = o.getID();
+		if(parts.containsKey(id)) return false;
+		parts.put(id, NetStatePart.create(o, this));
+		return true;
+	}
+	
 	public NetState createDiffTo(NetState parent){
 		NetState ans = new NetState(timeStamp);
 		boolean changed = false;

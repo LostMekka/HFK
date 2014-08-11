@@ -32,8 +32,11 @@ import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
+import hfk.net.NetState;
+import hfk.net.NetStateObject;
 import hfk.skills.SkillSet;
 import hfk.stats.Damage;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 import org.newdawn.slick.Color;
@@ -101,6 +104,8 @@ public class GameController {
 	private float zoom = 3f;
 	private boolean playerIsAlive = true;
 	private int levelCount = 0;
+	private long nextID = 0, timeStamp = 0;
+	private HashMap<Long, NetStateObject> objectMap = new HashMap<>();
 
 	public GameController(GameContainer gc, GameSettings s) {
 		settings = s;
@@ -115,6 +120,13 @@ public class GameController {
 		renderer = new GameRenderer(gc);
 	}
 
+	public long createIdFor(NetStateObject o){
+		long id = nextID;
+		nextID++;
+		objectMap.put(id, o);
+		return id;
+	}
+	
 	public Music getMusic(){
 		return music;
 	}
@@ -432,6 +444,7 @@ public class GameController {
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int time) throws SlickException{
 //		if(inputMap.isKeyPressed(InputMap.A_CLOSE_INVENTORY)) nextLevel();
+		timeStamp += time;
 		mousePosInPixels.x = gc.getInput().getMouseX();
 		mousePosInPixels.y = gc.getInput().getMouseY();
 		// update of states
@@ -452,6 +465,30 @@ public class GameController {
 	
 	public void render() throws SlickException{
 		renderer.render(this);
+	}
+	
+	// ----- net code ----------------------------------------------------------
+	
+	public void netStateObjectCreated(NetStateObject o){
+		objectMap.put(o.getID(), o);
+	}
+	
+	public NetState createNetState(){
+		NetState state = new NetState(timeStamp);
+		// TODO: create net state parts for each directly known game object
+		return state;
+	}
+	
+	public boolean containsNetStateObject(long id){
+		return objectMap.containsKey(id);
+	}
+	
+	public NetStateObject getNetStateObject(long id){
+		return objectMap.get(id);
+	}
+	
+	public void setNetState(NetState state){
+		// TODO: set state of every object, create new ones, remove old ones not contained in state
 	}
 	
 }

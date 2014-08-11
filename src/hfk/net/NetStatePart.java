@@ -6,6 +6,8 @@
 
 package hfk.net;
 
+import hfk.PointI;
+import hfk.level.Tile;
 import java.util.HashMap;
 
 /**
@@ -18,12 +20,13 @@ public final class NetStatePart<T extends NetStateObject>{
 	private final long objectID;
 	private final HashMap<Integer, Boolean> bools = new HashMap<>();
 	private final HashMap<Integer, Integer> ints = new HashMap<>();
+	private final HashMap<Integer, Long> references = new HashMap<>();
 	private final HashMap<Integer, Float> floats = new HashMap<>();
 	private final HashMap<Integer, Object> objects = new HashMap<>();
 
-	public static NetStatePart create(NetStateObject o){
+	public static NetStatePart create(NetStateObject o, NetState state){
 		NetStatePart s = new NetStatePart(o);
-		return o.fillStatePart(s);
+		return o.fillStateParts(s, state);
 	}
 	
 	private NetStatePart(T o) {
@@ -55,6 +58,13 @@ public final class NetStatePart<T extends NetStateObject>{
 				changed = true;
 			}
 		}
+		for(int i : references.keySet()){
+			long val = references.get(i);
+			if(val != parent.getID(i)){
+				ans.references.put(i, val);
+				changed = true;
+			}
+		}
 		for(int i : floats.keySet()){
 			float val = floats.get(i);
 			if(val != parent.getFloat(i)){
@@ -72,11 +82,11 @@ public final class NetStatePart<T extends NetStateObject>{
 		return changed ? ans : null;
 	}
 	
-	public T createObject(){
+	public T createObject(NetState state){
 		try {
 			NetStateObject o = type.newInstance();
 			o.setID(objectID);
-			o.updateFromStatePart(this);
+			o.updateFromStatePart(this, state);
 			return (T)o;
 		} catch (IllegalAccessException | InstantiationException ex) {
 			throw new RuntimeException("exception while instantiating new object from net state part!", ex);
@@ -87,36 +97,44 @@ public final class NetStatePart<T extends NetStateObject>{
 		return objectID;
 	}
 	
-	public void setBoolean(int id, boolean b){
-		bools.put(id, b);
+	public void setBoolean(int index, boolean b){
+		bools.put(index, b);
 	}
 	
-	public void setInteger(int id, int i){
-		ints.put(id, i);
+	public void setID(int index, long id){
+		references.put(index, id);
 	}
 	
-	public void setFloat(int id, float f){
-		floats.put(id, f);
+	public void setInteger(int index, int i){
+		ints.put(index, i);
 	}
 	
-	public void setObject(int id, Object o){
-		objects.put(id, o);
+	public void setFloat(int index, float f){
+		floats.put(index, f);
 	}
 	
-	public boolean getBoolean(int id){
-		return bools.get(id);
+	public void setObject(int index, Object o){
+		objects.put(index, o);
 	}
 	
-	public int getInteger(int id){
-		return ints.get(id);
+	public boolean getBoolean(int index){
+		return bools.get(index);
 	}
 	
-	public float getFloat(int id){
-		return floats.get(id);
+	public int getInteger(int index){
+		return ints.get(index);
 	}
 	
-	public Object getObject(int id){
-		return objects.get(id);
+	public long getID(int index){
+		return references.get(index);
+	}
+	
+	public float getFloat(int index){
+		return floats.get(index);
+	}
+	
+	public Object getObject(int index){
+		return objects.get(index);
 	}
 	
 }

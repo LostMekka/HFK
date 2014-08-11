@@ -14,7 +14,7 @@ public interface NetStateObject{
 	
 	public long getID();
 	public void setID(long id);
-	public NetStatePart fillStatePart(NetStatePart s);
-	public void updateFromStatePart(NetStatePart s);
+	public NetStatePart fillStateParts(NetStatePart part, NetState state);
+	public void updateFromStatePart(NetStatePart part, NetState state);
 	
 }

@@ -55,7 +55,7 @@ public class Level {
 			l.items.add(new Stairs(l.getNextFreeField(PointI.random(sx, sy), null)));
 			addMobs(difficulty, plp, l);
 			addItems(itemScore, l);
-			l.defaultTile = Tile.Factory.createTile(new PointI(0, 0), Tile.TileType.blueWall);
+			l.defaultTile = new Tile(new PointI(0, 0), Tile.TileType.blueWall);
 			return l;
 		}
 		private static void generateRoomLevel(Level l, int lx, int ly, int lw, int lh, int minW, int maxW, int minH, int maxH){
@@ -92,7 +92,7 @@ public class Level {
 			for(int x=lx; x<lx+lw; x++){
 				for(int y=ly; y<ly+lh; y++){
 					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueWall : Tile.TileType.blueWallB;
-					l.tiles[x][y] = Tile.Factory.createTile(new PointI(x, y), t);
+					l.tiles[x][y] = new Tile(new PointI(x, y), t);
 				}
 			}
 			for(Box b : finalRooms){
@@ -102,7 +102,7 @@ public class Level {
 					for(int x=b.x; x<b.x+b.w; x++){
 						for(int y=b.y; y<b.y+b.h; y++){
 							Tile.TileType t = ran.nextFloat()>0.4 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
-							l.tiles[x][y] = Tile.Factory.createTile(new PointI(x, y), t);
+							l.tiles[x][y] = new Tile(new PointI(x, y), t);
 						}
 					}
 				}
@@ -124,7 +124,7 @@ public class Level {
 						int posY = startY + ran.nextInt(endY - startY);
 						PointI p = new PointI(posX, posY);
 						Door door = new Door(p, true);
-						l.tiles[posX][posY] = Tile.Factory.createTile(p, Tile.TileType.blueFloor);
+						l.tiles[posX][posY] = new Tile(p, Tile.TileType.blueFloor);
 						l.items.add(door);
 					}
 					if(dy == 1 && dx < 0){
@@ -134,7 +134,7 @@ public class Level {
 						int posX = startX + ran.nextInt(endX - startX);
 						PointI p = new PointI(posX, posY);
 						Door door = new Door(p, false);
-						l.tiles[posX][posY] = Tile.Factory.createTile(p, Tile.TileType.blueFloor);
+						l.tiles[posX][posY] = new Tile(p, Tile.TileType.blueFloor);
 						l.items.add(door);
 					}
 				}
@@ -159,7 +159,7 @@ public class Level {
 			for(int x=lx; x<lx+lw; x++){
 				for(int y=ly; y<ly+lh; y++){
 					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
-					l.tiles[x][y] = Tile.Factory.createTile(new PointI(x, y), t);
+					l.tiles[x][y] = new Tile(new PointI(x, y), t);
 				}
 			}
 			for(Box b : bl){
@@ -172,7 +172,7 @@ public class Level {
 				}
 				for(int x=b.x; x<b.x+b.w; x++){
 					for(int y=b.y; y<b.y+b.h; y++){
-						l.tiles[x][y] = Tile.Factory.createTile(new PointI(x, y), t);
+						l.tiles[x][y] = new Tile(new PointI(x, y), t);
 					}
 				}
 			}
@@ -309,7 +309,7 @@ public class Level {
 				if(x >= 0 && x < getWidth() && y >= 0 && y < getHeight()){
 					tiles[x][y].draw();
 				} else {
-					defaultTile.move(x, y);
+					defaultTile.moveTo(x, y);
 					defaultTile.draw();
 				}
 			}
