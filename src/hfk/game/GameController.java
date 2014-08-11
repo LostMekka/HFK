@@ -9,6 +9,7 @@ package hfk.game;
 import hfk.Explosion;
 import hfk.game.substates.GameSubState;
 import hfk.IngameText;
+import hfk.Particle;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.Shot;
@@ -41,6 +42,7 @@ import java.util.LinkedList;
 import java.util.Random;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Music;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.Sound;
@@ -76,6 +78,7 @@ public class GameController {
 	public final LinkedList<Mob> mobs = new LinkedList<>(), mobsToRemove = new LinkedList<>();
 	public final LinkedList<InventoryItem> items = new LinkedList<>(), itemsToRemove = new LinkedList<>();
 	public final LinkedList<IngameText> texts = new LinkedList<>();
+	public final LinkedList<Particle> particles = new LinkedList<Particle>();
 
 	public GameOverSubState gameOverState;
 	public GameplaySubState gameplaySubState;
@@ -244,6 +247,7 @@ public class GameController {
 	}
 	
 	public void nextLevel(){
+		particles.clear();
 		mobs.clear();
 		mobs.add(player);
 		items.clear();
@@ -322,11 +326,17 @@ public class GameController {
 		return i;
 	}
 	
-	public void moveMob(Mob m, float vx, float vy, int time){
-		m.pos.x += vx * (time / 1000f);
-		m.pos.y += vy * (time / 1000f);
-		PointF corr = level.doCollision(m.pos, m.size);
-		m.pos.add(corr);
+	public void moveMob(Mob m, float vx, float vy, int time, boolean collide){
+		moveThing(m.pos, vx, vy, m.size, time, collide);
+	}
+	
+	public void moveThing(PointF pos, float vx, float vy, float size, int time, boolean collide){
+		pos.x += vx * (time / 1000f);
+		pos.y += vy * (time / 1000f);
+		if(collide){
+			PointF corr = level.doCollision(pos, size);
+			pos.add(corr);
+		}
 	}
 	
 	public void playerDied(){
@@ -417,7 +427,7 @@ public class GameController {
 				PointI pi = new PointI(x + pc.x, y + pc.y);
 				float d = Math.max(0f, p.DistanceTo(pi.toFloat()) - 0.5f);
 				if(d >= 1) continue;
-				int dmg = Math.round(getAreaDamage(r, d, normalDmg));
+				int dmg = getAreaDamage(r, d, normalDmg);
 				level.damageTile(pi, dmg);
 			}
 		}
@@ -425,9 +435,32 @@ public class GameController {
 			float dd = i.pos.squaredDistanceTo(p);
 			if(dd < r*r){
 				float d = Math.max(0f, (float)Math.sqrt(dd) - 0.5f);
-				int dmg = Math.round(getAreaDamage(r, d, normalDmg));
+				int dmg = getAreaDamage(r, d, normalDmg);
 				if(dmg >= 4) itemsToRemove.add(i);
 			}
+		}
+		float rm = 2.1f;
+		for(Particle part : particles){
+			float dd = part.pos.squaredDistanceTo(p);
+			if(dd < r*r*rm*rm){
+				float force = 1f - dd/(r*r*rm*rm);
+				PointF vel = part.pos.clone();
+				vel.subtract(p);
+				vel.multiply(2.6f * force / vel.length());
+				part.vel.add(vel);
+			}
+		}
+	}
+	
+	public void createDebris(PointF pos, Image i, int border){
+		createDebris(pos, i, border, 3, 8);
+	}
+	
+	public void createDebris(PointF pos, Image origImage, int border, int min, int max){
+		int n = GameController.random.nextInt(5) + 4;
+		for(int i=0; i<n; i++){
+			Particle p = new Particle(origImage, border, pos, 0.4f);
+			GameController.get().particles.add(p);
 		}
 	}
 	

@@ -84,7 +84,7 @@ public class GameplaySubState extends GameSubState{
 		if(in.isKeyDown(InputMap.A_MOVE_UP)) vy--;
 		float s = player.totalStats.getMaxSpeed();
 		if(vx != 0 && vy != 0) s /= GameController.SQRT2;
-		ctrl.moveMob(player, vx * s, vy * s, time);
+		ctrl.moveMob(player, vx * s, vy * s, time, true);
 		// camera
 		ctrl.screenPosOriginal.x = player.pos.x - ctrl.transformScreenToTiles(gc.getWidth()) / 2f;
 		ctrl.screenPosOriginal.y = player.pos.y - ctrl.transformScreenToTiles(gc.getHeight()) / 2f;

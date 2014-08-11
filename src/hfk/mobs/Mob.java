@@ -318,7 +318,7 @@ public abstract class Mob implements StatsModifier {
 			speed = (float)Math.sqrt(dd) / time * 1000f;
 			arrived = true;
 		}
-		GameController.get().moveMob(this, vel.x * speed, vel.y * speed, time);
+		GameController.get().moveMob(this, vel.x * speed, vel.y * speed, time, true);
 		return arrived;
 	}
 	

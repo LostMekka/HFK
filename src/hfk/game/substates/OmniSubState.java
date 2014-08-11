@@ -8,6 +8,7 @@ package hfk.game.substates;
 
 import hfk.Explosion;
 import hfk.IngameText;
+import hfk.Particle;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.Shot;
@@ -67,8 +68,6 @@ public class OmniSubState extends GameSubState {
 			}
 			i1.labelPos.add(corr);
 		}
-		ListIterator<IngameText> textIter = ctrl.texts.listIterator();
-		while(textIter.hasNext()) if(textIter.next().update(time)) textIter.remove();
 		for(Mob m : ctrl.mobs) if(!ctrl.mobsToRemove.contains(m)) m.update(time);
 		for(Explosion e : ctrl.explosions) if(!ctrl.explosionsToRemove.contains(e)) e.update(time);
 		
@@ -85,6 +84,10 @@ public class OmniSubState extends GameSubState {
 				}
 			}
 		}
+		ListIterator<IngameText> textIter = ctrl.texts.listIterator();
+		while(textIter.hasNext()) if(textIter.next().update(time)) textIter.remove();
+		ListIterator<Particle> particleIter = ctrl.particles.listIterator();
+		while(particleIter.hasNext()) if(particleIter.next().update(time)) particleIter.remove();
 	}
 
 	@Override
@@ -95,6 +98,7 @@ public class OmniSubState extends GameSubState {
 				(int)Math.floor(screenPos.y - 0.5f),
 				(int)Math.ceil(ctrl.transformScreenToTiles(gc.getWidth()) + screenPos.x - 0.5f),
 				(int)Math.ceil(ctrl.transformScreenToTiles(gc.getHeight()) + screenPos.y - 0.5f));
+		for(Particle p : ctrl.particles) p.draw();
 		for(InventoryItem i : ctrl.items) i.render();
 		for(Mob m : ctrl.mobs) m.draw();
 		for(Shot s : ctrl.shots) s.draw();

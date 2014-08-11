@@ -6,6 +6,7 @@
 
 package hfk.level;
 
+import hfk.Particle;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
@@ -17,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
+import org.newdawn.slick.Image;
 
 /**
  *
@@ -284,15 +286,22 @@ public class Level {
 	public void damageTile(PointI pos, int dmg){
 		if(!isInLevel(pos)) return;
 		if(tiles[pos.x][pos.y].isWall()){
-			tiles[pos.x][pos.y] = tiles[pos.x][pos.y].damage(dmg);
+			Tile t = tiles[pos.x][pos.y].damage(dmg);
+			if(tiles[pos.x][pos.y] != t){
+				GameController.get().createDebris(pos.toFloat(), tiles[pos.x][pos.y].getImage(), 1);
+				tiles[pos.x][pos.y] = t;
+			}
 		} else {
-			UsableLevelItem toDelete = null;
-			for(UsableLevelItem i : items){
+			ListIterator<UsableLevelItem> itemIter = items.listIterator();
+			while(itemIter.hasNext()){
+				UsableLevelItem i = itemIter.next();
 				if(i.pos.equals(pos)){
-					if(i.damage(dmg)) toDelete = i;
+					if(i.damage(dmg)){
+						itemIter.remove();
+						GameController.get().createDebris(pos.toFloat(), i.img, 4);
+					}
 				}
 			}
-			items.remove(toDelete); // if toDelete is null, nothing is removed
 		}
 	}
 	

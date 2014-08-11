@@ -164,16 +164,17 @@ public class GameRenderer {
 		GameController gc = GameController.get();
 		float zoom = gc.getZoom();
 		PointF screenPos = gc.getScreenPos();
-		float s = i.getWidth() / GameController.SPRITE_SIZE;
-		i.draw( gc.transformTilesToScreen(pos.x - screenPos.x - scale * s * 0.5f), 
-				gc.transformTilesToScreen(pos.y - screenPos.y - scale * s * 0.5f), 
+		float sx = i.getWidth() / GameController.SPRITE_SIZE;
+		float sy = i.getHeight() / GameController.SPRITE_SIZE;
+		i.draw( gc.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
+				gc.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
 				zoom * scale);
 	}
 	
 	public void drawImage(Image i, PointF pos, float scale, float angle){
 		GameController gc = GameController.get();
 		float zoom = gc.getZoom();
-		i.setCenterOfRotation(scale * zoom * gc.SPRITE_SIZE / 2f, scale * zoom * gc.SPRITE_SIZE / 2f);
+		i.setCenterOfRotation(scale * zoom * i.getWidth() / 2f, scale * zoom * i.getHeight() / 2f);
 		i.setRotation(angle / (float)Math.PI * 180f);
 		drawImage(i, pos, scale);
 	}

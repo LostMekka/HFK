@@ -140,14 +140,11 @@ public class Shot {
 		// handle collision
 		if(smartGrenadeLevel > 0 || manualDetonateLevel > 0 || bounceCount > 0){
 			pos.add(corr);
-			float pi = (float)Math.PI;
-			float aDiff = (corr.angle() - vel.angle() + 2*pi) % (2*pi);
-			float aRot = 2*(aDiff) - pi;
-			vel.rotate(aRot);
-			angle += aRot;
-			float force = 0.4f * (1f - Math.abs(aDiff/pi*2 - 2f));
-			if(!isGrenade && manualDetonateLevel <= 0) ctrl.level.damageTile(tilePos, Math.round(force * dmg.calcFinalDamage()));
-			vel.multiply(1f - force);
+			PointF bounceAns = vel.bounce(corr, 0.4f);
+			angle += bounceAns.y;
+			if(!isGrenade && manualDetonateLevel <= 0){
+				ctrl.level.damageTile(tilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()));
+			}
 			bounceCount--;
 			if(bounceSound != null) ctrl.playSoundAt(bounceSound, pos);
 		} else {
