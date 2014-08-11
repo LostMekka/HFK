@@ -7,6 +7,7 @@
 package hfk.net;
 
 import hfk.PointI;
+import hfk.game.GameController;
 import hfk.level.Tile;
 import java.util.HashMap;
 
@@ -87,6 +88,7 @@ public final class NetStatePart<T extends NetStateObject>{
 			NetStateObject o = type.newInstance();
 			o.setID(objectID);
 			o.updateFromStatePart(this, state);
+			GameController.get().netStateObjectCreated(o);
 			return (T)o;
 		} catch (IllegalAccessException | InstantiationException ex) {
 			throw new RuntimeException("exception while instantiating new object from net state part!", ex);

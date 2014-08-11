@@ -94,11 +94,11 @@ public class Tile implements NetStateObject{
 				throw new RuntimeException("tile type not recognized!");
 		}
 		init();
+		id = GameController.get().createIdFor(this);
 	}
 
 	private void init(){
 		if(sheet == null) sheet = Resources.getSpriteSheet("tiles.png");
-		id = GameController.get().createIdFor(this);
 	}
 	
 	public Tile damage(int dmg){
