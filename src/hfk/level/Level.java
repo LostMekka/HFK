@@ -38,6 +38,12 @@ public class Level {
 				this.w = w;
 				this.h = h;
 			}
+			public Box(Box b) {
+				this.x = b.x;
+				this.y = b.y;
+				this.w = b.w;
+				this.h = b.h;
+			}
 		}
 		private static boolean boxesTouch(Box b1, Box b2){
 			return	b1.x+b1.w >= b2.x && 
@@ -46,25 +52,38 @@ public class Level {
 					b1.y <= b2.y+b2.h;
 		}
 		public static Level createTestArena(int sx, int sy, int difficulty, int itemScore){
+			int border = 10;
 			GameController ctrl = GameController.get();
 			Level l = new Level();
-			l.tiles = new Tile[sx][sy];
+			l.tiles = new Tile[sx+2*border][sy+2*border];
+			generateBorder(l, new Box(0, 0, sx+2*border, sy+2*border), border);
 			int min = ran.nextInt(10)+3;
 			int max = ran.nextInt(20)+10;
-			generateRoomLevel(l, 0, 0, sx, sy, min, max, min, max);
+			generateRoomLevel(l, new Box(border, border, sx, sy), min, max, min, max);
 			PointI plp = PointI.random(sx, sy);
 			ctrl.player.pos = l.getNextFreeField(plp, null).toFloat();
 			l.items.add(new Stairs(l.getNextFreeField(PointI.random(sx, sy), null)));
-			addMobs(difficulty, plp, l);
+			addMobs(difficulty, ctrl.player.pos.round(), l, 8f);
 			addItems(itemScore, l);
 			l.defaultTile = new Tile(new PointI(0, 0), Tile.TileType.blueWall);
 			return l;
 		}
-		private static void generateRoomLevel(Level l, int lx, int ly, int lw, int lh, int minW, int maxW, int minH, int maxH){
-			GameController ctrl = GameController.get();
+		private static void generateBorder(Level l, Box b, int border){
+			for(int i=0; i<border; i++){
+				for(int x=b.x; x<b.x+b.w; x++){
+					l.tiles[x][i] = new Tile(new PointI(x, i), Tile.TileType.blueWall);
+					l.tiles[x][b.h-1-i] = new Tile(new PointI(x, b.h-1-i), Tile.TileType.blueWall);
+				}
+				for(int y=border; y<b.y+b.h-border; y++){
+					l.tiles[i][y] = new Tile(new PointI(i, y), Tile.TileType.blueWall);
+					l.tiles[b.h-1-i][y] = new Tile(new PointI(b.h-1-i, y), Tile.TileType.blueWall);
+				}
+			}
+		}
+		private static void generateRoomLevel(Level l, Box b, int minW, int maxW, int minH, int maxH){
 			LinkedList<Box> roomsToSplit = new LinkedList<>();
 			LinkedList<Box> finalRooms = new LinkedList<>();
-			roomsToSplit.add(new Box(lx, ly, lw, lh));
+			roomsToSplit.add(new Box(b));
 			while(!roomsToSplit.isEmpty()){
 				Box r1 = roomsToSplit.removeFirst();
 				boolean vert = r1.w >= 2*minW + 1;
@@ -91,18 +110,18 @@ public class Level {
 					roomsToSplit.add(r2);
 				}
 			}
-			for(int x=lx; x<lx+lw; x++){
-				for(int y=ly; y<ly+lh; y++){
+			for(int x=b.x; x<b.x+b.w; x++){
+				for(int y=b.y; y<b.y+b.h; y++){
 					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueWall : Tile.TileType.blueWallB;
 					l.tiles[x][y] = new Tile(new PointI(x, y), t);
 				}
 			}
-			for(Box b : finalRooms){
-				if(b.w * b.h > 40){
-					generateBoxLevel(l, b.x, b.y, b.w, b.h, 2, 3, 2, 3, 0.04f);
+			for(Box b1 : finalRooms){
+				if(b1.w * b1.h > 40){
+					generateBoxLevel(l, b1, 2, 3, 2, 3, 0.04f);
 				} else {
-					for(int x=b.x; x<b.x+b.w; x++){
-						for(int y=b.y; y<b.y+b.h; y++){
+					for(int x=b1.x; x<b1.x+b1.w; x++){
+						for(int y=b1.y; y<b1.y+b1.h; y++){
 							Tile.TileType t = ran.nextFloat()>0.4 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
 							l.tiles[x][y] = new Tile(new PointI(x, y), t);
 						}
@@ -142,15 +161,15 @@ public class Level {
 				}
 			}
 		}
-		private static void generateBoxLevel(Level l, int lx, int ly, int lw, int lh, int minW, int maxW, int minH, int maxH, float rate){
-			if(minW > lw-2 || minH > lh-2) return; // boxes do not fit!
+		private static void generateBoxLevel(Level l, Box b, int minW, int maxW, int minH, int maxH, float rate){
+			if(minW > b.w-2 || minH > b.h-2) return; // boxes do not fit!
 			LinkedList<Box> bl = new LinkedList<>();
-			for(int i=0; i<lh*lw*rate; i++){
+			for(int i=0; i<b.w*b.h*rate; i++){
 				Box b1 = new Box();
-				b1.w = Math.min(ran.nextInt(maxW-minW+1)+minW, lw-2);
-				b1.h = Math.min(ran.nextInt(maxH-minH+1)+minH, lh-2);
-				b1.x = ran.nextInt(lw-b1.w-1)+1+lx;
-				b1.y = ran.nextInt(lh-b1.h-1)+1+ly;
+				b1.w = Math.min(ran.nextInt(maxW-minW+1)+minW, b.w-2);
+				b1.h = Math.min(ran.nextInt(maxH-minH+1)+minH, b.h-2);
+				b1.x = ran.nextInt(b.w-b1.w-1)+1+b.x;
+				b1.y = ran.nextInt(b.h-b1.h-1)+1+b.y;
 				boolean touch = false;
 				for(Box b2 : bl) if(boxesTouch(b1, b2)){
 					touch = true;
@@ -158,13 +177,13 @@ public class Level {
 				}
 				if(!touch) bl.add(b1);
 			}
-			for(int x=lx; x<lx+lw; x++){
-				for(int y=ly; y<ly+lh; y++){
+			for(int x=b.x; x<b.x+b.w; x++){
+				for(int y=b.y; y<b.y+b.h; y++){
 					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
 					l.tiles[x][y] = new Tile(new PointI(x, y), t);
 				}
 			}
-			for(Box b : bl){
+			for(Box b1 : bl){
 				Tile.TileType t = null;
 				switch(ran.nextInt(4)){
 					case 0: t = Tile.TileType.boxA; break;
@@ -172,26 +191,31 @@ public class Level {
 					case 2: t = Tile.TileType.boxC; break;
 					case 3: t = Tile.TileType.boxD; break;
 				}
-				for(int x=b.x; x<b.x+b.w; x++){
-					for(int y=b.y; y<b.y+b.h; y++){
+				for(int x=b1.x; x<b1.x+b1.w; x++){
+					for(int y=b1.y; y<b1.y+b1.h; y++){
 						l.tiles[x][y] = new Tile(new PointI(x, y), t);
 					}
 				}
 			}
 		}
-		private static void addMobs(int diff, PointI plp, Level l){
+		private static void addMobs(int diff, PointI plp, Level l, float minMobDistance){
 //			System.out.println("\n--- level ----------------");
 			GameController ctrl = GameController.get();
 			LinkedList<PointI> ex = new LinkedList<>();
+			PointF plpF = plp.toFloat();
+			for(int x=0; x<l.getWidth(); x++){
+				for(int y=0; y<l.getHeight(); y++){
+					PointF p = new PointF(x, y);
+					if(p.squaredDistanceTo(plpF) <= minMobDistance*minMobDistance) ex.add(p.round());
+				}
+			}
 			Mob m;
 			int d = diff, mc = Integer.MAX_VALUE, stack = 0;
 			PointI p = null;
 			for(;;){
 				if(mc >= stack){
 					mc = 0;
-					do {
-						p = PointI.random(l.getWidth(), l.getHeight());
-					} while(p.hammingDistanceTo(plp) < 10);
+					p = PointI.random(l.getWidth(), l.getHeight());
 					stack = ran.nextInt(ran.nextInt(ran.nextInt(12)+1)+1);
 				}
 				m = Mob.createMob(new PointF(), Math.min(d, Math.round(diff/6f)), ctrl.getLevelCount());
