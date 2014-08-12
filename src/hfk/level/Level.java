@@ -784,12 +784,19 @@ public class Level {
 	}
 	
 	public UsableLevelItem getUsableItemOnLine(PointF p1, PointF p2, float maxDistance, boolean ignoreWalls){
+		UsableLevelItem ans = null;
 		for(PointI p : getTilesOnLine(p1, p2, maxDistance + 1f)){
 			UsableLevelItem i = getUsableLevelItem(p.toFloat());
-			if(i != null) return i;
-			if(isWall(p.x, p.y) && !ignoreWalls) return null;
+			if(i != null){
+				// when i is something other than stairs, return it
+				// if it is stairs, save it for later.
+				// if nothing else comes up later, we return the stairs
+				if(!(i instanceof Stairs)) return i;
+				if(ans == null) ans = i;
+			}
+			if(isWall(p.x, p.y) && !ignoreWalls) return ans;
 		}
-		return null;
+		return ans;
 	}
 	
 	public LinkedList<PointI> getTilesOnLine(PointF p1, PointF p2, float maxDistance){
