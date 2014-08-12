@@ -30,7 +30,7 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class GameplaySubState extends GameSubState{
 
-	public boolean lootMode = false;
+	public boolean lootMode = false, drawMap = false;
 	public InventoryItem selectedLoot = null;
 	public UsableLevelItem selectedLevelItem = null;
 	
@@ -58,6 +58,7 @@ public class GameplaySubState extends GameSubState{
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
 		Input input = gc.getInput();
+		drawMap = input.isKeyDown(Input.KEY_TAB);
 		Player player = ctrl.player;
 		if(in.isKeyPressed(InputMap.A_PAUSE)){
 			ctrl.setCurrSubState(ctrl.pauseSubState);
@@ -199,6 +200,10 @@ public class GameplaySubState extends GameSubState{
 			y = h - 20 - (1 + Math.max(Damage.DAMAGE_TYPE_COUNT, Weapon.AMMO_TYPE_COUNT)) * sh;
 			wpn.renderInformation(x, y, true);
 		}
+		if(drawMap) r.drawMiniMap(
+				new PointF(10, 10), 
+				new PointF(gc.getWidth()-20, gc.getHeight()-20), 25, 
+				new PointF(ctrl.level.getWidth()/2f, ctrl.level.getHeight()/2f));
 	}
 	
 }

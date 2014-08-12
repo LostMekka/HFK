@@ -7,8 +7,13 @@
 package hfk.game;
 
 import hfk.PointF;
+import hfk.items.InventoryItem;
+import hfk.level.Door;
+import hfk.level.Stairs;
+import hfk.level.UsableLevelItem;
+import hfk.mobs.Mob;
+import hfk.mobs.Player;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
@@ -48,6 +53,81 @@ public class GameRenderer {
 	
 	public Graphics getGraphics(){
 		return container.getGraphics();
+	}
+	
+	private static final Color MM_BACK = new Color(0f, 0f, 0f);
+	private static final Color MM_WALL = new Color(1f, 1f, 1f);
+	private static final Color MM_STAIRS = new Color(1f, 0.5f, 0f);
+	private static final Color MM_DOOR_O = new Color(1f, 1f, 0f);
+	private static final Color MM_DOOR_C = new Color(1f, 1f, 0f);
+	private static final Color MM_PLAYER = new Color(0f, 1f, 0f);
+	private static final Color MM_ENEMY = new Color(1f, 0f, 0f);
+	private static final Color MM_LOOT = new Color(0f, 0f, 1f);
+	private static final Color MM_FINAL = new Color(1f, 1f, 1f, 0.5f);
+	private Image mmImg = null;
+	public void drawMiniMap(PointF pos, PointF size, float zoom, PointF mid){
+		GameController ctrl = GameController.get();
+		Graphics g = null;
+		try {
+			int w = Math.round(size.x);
+			int h = Math.round(size.y);
+			if(mmImg == null || mmImg.getWidth() != w || mmImg.getHeight() != h){
+				if(mmImg != null) mmImg.destroy();
+				mmImg = new Image(w, h, Image.FILTER_NEAREST);
+			}
+			g = mmImg.getGraphics();
+		} catch (SlickException ex) {
+			throw new RuntimeException();
+		}
+		float fl = mid.x - size.x/2f/zoom;
+		float fr = mid.x + size.x/2f/zoom;
+		float ft = mid.y - size.y/2f/zoom;
+		float fb = mid.y + size.y/2f/zoom;
+		int il = Math.round(fl)-1;
+		int ir = Math.round(fr)+1;
+		int it = Math.round(ft)-1;
+		int ib = Math.round(fb)+1;
+		//g.setClip(Math.round(loc.x), Math.round(loc.y), Math.round(size.x), Math.round(size.y));
+		g.setColor(MM_BACK);
+		g.fillRect(pos.x, pos.y, size.x, size.y);
+		g.setColor(MM_WALL);
+		for(int ix=il; ix<=ir; ix++){
+			float x = size.x/2f + (ix - mid.x)*zoom;
+			for(int iy=it; iy<=ib; iy++){
+				float y = size.y/2f + (iy - mid.y)*zoom;
+				UsableLevelItem i = ctrl.level.getUsableLevelItem(new PointF(ix, iy));
+				if(i != null){
+					if(i instanceof Stairs){
+						g.setColor(MM_STAIRS);
+					} else if(i instanceof Door){
+						g.setColor(((Door)i).isOpen() ? MM_DOOR_O : MM_DOOR_C);
+					}
+					g.fillRect(x, y, zoom, zoom);
+					g.setColor(MM_WALL);
+				} else if(ctrl.level.isWall(ix, iy)){
+					g.fillRect(x, y, zoom, zoom);
+				}
+			}
+		}
+		g.setColor(MM_LOOT);
+		for(InventoryItem i : ctrl.items){
+			float x = size.x/2f + (i.pos.x - mid.x)*zoom;
+			float y = size.y/2f + (i.pos.y - mid.y)*zoom;
+			g.fillRect(x, y, zoom, zoom);
+		}
+		g.setColor(MM_ENEMY);
+		for(Mob m : ctrl.mobs){
+			if(m instanceof Player) continue;
+			float x = size.x/2f + (m.pos.x - mid.x)*zoom;
+			float y = size.y/2f + (m.pos.y - mid.y)*zoom;
+			g.fillRect(x, y, zoom, zoom);
+		}
+		g.setColor(MM_PLAYER);
+		float x = size.x/2f + (ctrl.player.pos.x - mid.x)*zoom;
+		float y = size.y/2f + (ctrl.player.pos.y - mid.y)*zoom;
+		g.fillRect(x, y, zoom, zoom);
+		//g.setClip(null);
+		getGraphics().drawImage(mmImg, pos.x, pos.y, MM_FINAL);
 	}
 	
 	public void drawMenuBox(float x, float y, float w, float h, Color backgroundColor, Color lineColor){
