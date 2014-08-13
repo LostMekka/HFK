@@ -7,6 +7,10 @@
 package hfk;
 
 import hfk.game.HFKGame;
+import hfk.net.NetState;
+import hfk.net.NetStateObject;
+import hfk.net.NetStatePart;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -24,8 +28,12 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		//printFontStuff();
+		System.setProperty("mode", "normal");
 		for(String arg : args) {
+			System.out.println(arg);
 			if(arg.equalsIgnoreCase("-nomusic")) System.setProperty("nomusic", "true");
+			if(arg.equalsIgnoreCase("-server")) System.setProperty("mode", "server");
+			if(arg.equalsIgnoreCase("-client")) System.setProperty("mode", "client");
 		}
 		try {
 			AppGameContainer c = new AppGameContainer(new HFKGame(), 1024, 768, false);

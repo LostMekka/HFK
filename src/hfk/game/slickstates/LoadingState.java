@@ -10,6 +10,7 @@ import hfk.game.GameSettings;
 import hfk.game.HFKGame;
 import hfk.game.LoadingProgressListener;
 import hfk.game.Resources;
+import hfk.game.ServerGameController;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
 import org.newdawn.slick.GameContainer;
@@ -81,9 +82,17 @@ public class LoadingState extends BasicGameState implements LoadingProgressListe
 
 	@Override
 	public void onDone() {
-		GameController.set(new GameController(sbg.getContainer(), new GameSettings()));
-		String nm = System.getProperty("nomusic");
-		if(nm != null && nm.equals("true")) GameController.get().musicIsOn = false;
+		GameSettings settings = new GameSettings();
+		String noMusic = System.getProperty("nomusic");
+		String ctrlMode = System.getProperty("mode");
+		GameController ctrl;
+		if(ctrlMode != null && ctrlMode.equalsIgnoreCase("server")){
+			ctrl = new ServerGameController(7766, sbg.getContainer(), settings);
+		} else {
+			ctrl = new GameController(sbg.getContainer(), settings);
+		}
+		GameController.set(ctrl);
+		if(noMusic != null && noMusic.equals("true")) GameController.get().musicIsOn = false;
 		GameController.get().initAfterLoading(sbg.getContainer());
 		sbg.enterState(HFKGame.STATEID_GAMEPLAY);
 	}

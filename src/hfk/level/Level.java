@@ -6,25 +6,25 @@
 
 package hfk.level;
 
-import hfk.Particle;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
-import hfk.game.slickstates.GameplayState;
 import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
+import hfk.net.NetState;
+import hfk.net.NetStateObject;
+import hfk.net.NetStatePart;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
-import org.newdawn.slick.Image;
 
 /**
  *
  * @author LostMekka
  */
-public class Level {
+public class Level implements NetStateObject{
 	
 	public static class Factory{
 		private static Random ran = GameController.random;
@@ -874,6 +874,74 @@ public class Level {
 	
 	public boolean isVisibleFrom(Mob m1, Mob m2, float maxDistance){
 		return isVisibleFrom(m1.pos, m2.pos, maxDistance);
+	}
+
+	private long id;
+	@Override
+	public long getID() {
+		return id;
+	}
+
+	@Override
+	public void setID(long id) {
+		this.id = id;
+	}
+
+	@Override
+	public NetStatePart fillStateParts(NetStatePart part, NetState state) {
+		state.addObject(defaultTile);
+		int i = 0;
+		for(int x=0; x<getWidth(); x++){
+			for(int y=0; y<getHeight(); y++){
+				state.addObject(tiles[x][y]);
+				part.setID(i, tiles[x][y].getID());
+				i++;
+			}
+		}
+		part.setInteger(0, items.size());
+		for(UsableLevelItem item : items){
+			state.addObject(item);
+			part.setID(i, item.getID());
+			i++;
+		}
+		return part;
+	}
+
+	@Override
+	public void updateFromStatePart(NetStatePart part, NetState state) {
+		defaultTile.updateFromStatePart(state.parts.get(defaultTile.getID()), state);
+		int i = 0;
+		for(int x=0; x<getWidth(); x++){
+			for(int y=0; y<getHeight(); y++){
+				long tileID = part.getID(i);
+				NetStatePart<Tile> tilePart = state.parts.get(tileID);
+				if(tiles[x][y].getID() == tileID){
+					tiles[x][y].updateFromStatePart(tilePart, state);
+				} else {
+					tiles[x][y] = tilePart.getAndUpdateObject(state);
+				}
+				i++;
+			}
+		}
+		// item list will only get smaller. there cannot be new items coming into a level
+		// also, ordering stays the same
+		int size = part.getInteger(0);
+		int start = i;
+		ListIterator<UsableLevelItem> iter = items.listIterator();
+		for(; i<start+size; i++){
+			UsableLevelItem ownItem = iter.next();
+			long remoteID = part.getID(i);
+			while(remoteID != ownItem.getID()){
+				iter.remove();
+				ownItem = iter.next();
+			}
+			ownItem.updateFromStatePart(state.parts.get(remoteID), state);
+		}
+		// remove trailing items
+		while(iter.hasNext()){
+			iter.next();
+			iter.remove();
+		}
 	}
 	
 }

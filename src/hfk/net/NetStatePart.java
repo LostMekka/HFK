@@ -6,16 +6,15 @@
 
 package hfk.net;
 
-import hfk.PointI;
 import hfk.game.GameController;
-import hfk.level.Tile;
+import java.io.Serializable;
 import java.util.HashMap;
 
 /**
  *
  * @author LostMekka
  */
-public final class NetStatePart<T extends NetStateObject>{
+public final class NetStatePart<T extends NetStateObject> implements Serializable{
 	
 	private final Class<? extends NetStateObject> type;
 	private final long objectID;
@@ -95,6 +94,16 @@ public final class NetStatePart<T extends NetStateObject>{
 		}
 	}
 
+	public T getAndUpdateObject(NetState state){
+		T ans = (T)GameController.get().getNetStateObject(objectID);
+		if(ans == null){
+			ans = createObject(state);
+		} else {
+			ans.updateFromStatePart(this, state);
+		}
+		return ans;
+	}
+	
 	public long getObjectID() {
 		return objectID;
 	}

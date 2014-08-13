@@ -8,6 +8,8 @@ package hfk.level;
 import hfk.PointI;
 import hfk.game.Resources;
 import hfk.mobs.Player;
+import hfk.net.NetState;
+import hfk.net.NetStatePart;
 import org.newdawn.slick.SpriteSheet;
 
 /**
@@ -16,14 +18,14 @@ import org.newdawn.slick.SpriteSheet;
  */
 public class Door extends UsableLevelItem {
 
-	private final SpriteSheet sheet;
-	private final boolean vertical;
+	private static SpriteSheet sheet = null;
+	private boolean vertical;
 	private boolean open = false, damaged = false;
 	
 	public Door(PointI pos, boolean isVertical) {
 		super(pos);
 		vertical = isVertical;
-		sheet = Resources.getSpriteSheet("door.png");
+		if(sheet == null) sheet = Resources.getSpriteSheet("door.png");
 		updateImg();
 		hp = 70;
 	}
@@ -63,6 +65,24 @@ public class Door extends UsableLevelItem {
 		open = !open;
 		updateImg();
 		return true;
+	}
+
+	@Override
+	public NetStatePart fillStateParts(NetStatePart part, NetState state) {
+		part = super.fillStateParts(part, state);
+		part.setBoolean(0, vertical);
+		part.setBoolean(1, open);
+		part.setBoolean(2, damaged);
+		return part;
+	}
+
+	@Override
+	public void updateFromStatePart(NetStatePart part, NetState state) {
+		super.updateFromStatePart(part, state);
+		vertical = part.getBoolean(0);
+		open = part.getBoolean(1);
+		damaged = part.getBoolean(2);
+		updateImg();
 	}
 	
 }

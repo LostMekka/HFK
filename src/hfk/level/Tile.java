@@ -163,6 +163,8 @@ public class Tile implements NetStateObject{
 				replacement = (Tile)o;
 			}
 			replacement.updateFromStatePart(state.parts.get(repID), state);
+		} else {
+			replacement = null;
 		}
 		hp = part.getInteger(0);
 		armor = part.getInteger(1);

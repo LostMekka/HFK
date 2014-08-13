@@ -35,6 +35,7 @@ import hfk.mobs.Mob;
 import hfk.mobs.Player;
 import hfk.net.NetState;
 import hfk.net.NetStateObject;
+import hfk.net.NetStatePart;
 import hfk.skills.SkillSet;
 import hfk.stats.Damage;
 import java.util.HashMap;
@@ -508,6 +509,7 @@ public class GameController {
 	
 	public NetState createNetState(){
 		NetState state = new NetState(timeStamp);
+		NetStatePart levelPart = NetStatePart.create(level, state);
 		// TODO: create net state parts for each directly known game object
 		return state;
 	}
