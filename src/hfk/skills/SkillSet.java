@@ -40,7 +40,16 @@ public class SkillSet implements StatsModifier {
 	public SkillSet(Mob parent) {
 		this.parent = parent;
 		// TODO: init skills
-		Skill s = new Skill(parent, 8, "explosive bullets", "all pistols deal extra fire damage.");
+		Skill s = new Skill(parent, 8, "health boost", "health is important! especially when you are hunted by an army of aliens! with each level of this skill you get +25 max hp.");
+		for(int i=0; i<s.getMaxLevel(); i++){
+			MobStatsCard msc = MobStatsCard.createBonus();
+			msc.setMaxHP((i+1)*25);
+			s.mobStatsCards[i] = msc;
+			s.costs[i] = 20 + 10*i;
+		}
+		skills.add(s);
+		
+		s = new Skill(parent, 8, "explosive bullets", "all pistols deal extra fire damage.");
 		s.weaponType = Weapon.WeaponType.pistol;
 		for(int i=0; i<s.getMaxLevel(); i++){
 			DamageCard dc = DamageCard.createBonus();
