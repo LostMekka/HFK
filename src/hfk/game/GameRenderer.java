@@ -14,6 +14,7 @@ import hfk.level.UsableLevelItem;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
@@ -64,16 +65,18 @@ public class GameRenderer {
 	private static final Color MM_ENEMY = new Color(1f, 0f, 0f);
 	private static final Color MM_LOOT = new Color(0f, 0f, 1f);
 	private static final Color MM_FINAL = new Color(1f, 1f, 1f, 0.5f);
-	private Image mmImg = null;
+	private HashMap<PointF, Image> mmImages = new HashMap<>();
 	public void drawMiniMap(PointF pos, PointF size, float zoom, PointF mid){
 		GameController ctrl = GameController.get();
 		Graphics g = null;
+		Image mmImg;
 		try {
 			int w = Math.round(size.x);
 			int h = Math.round(size.y);
-			if(mmImg == null || mmImg.getWidth() != w || mmImg.getHeight() != h){
-				if(mmImg != null) mmImg.destroy();
+			mmImg = mmImages.get(size);
+			if(mmImg == null){
 				mmImg = new Image(w, h, Image.FILTER_NEAREST);
+				mmImages.put(size, mmImg);
 			}
 			g = mmImg.getGraphics();
 		} catch (SlickException ex) {
