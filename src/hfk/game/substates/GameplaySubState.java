@@ -7,7 +7,6 @@
 package hfk.game.substates;
 
 import hfk.PointF;
-import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
@@ -17,7 +16,6 @@ import hfk.level.UsableLevelItem;
 import hfk.mobs.Player;
 import hfk.stats.Damage;
 import java.util.Iterator;
-import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -200,10 +198,17 @@ public class GameplaySubState extends GameSubState{
 			y = h - 20 - (1 + Math.max(Damage.DAMAGE_TYPE_COUNT, Weapon.AMMO_TYPE_COUNT)) * sh;
 			wpn.renderInformation(x, y, true);
 		}
-		if(drawMap) r.drawMiniMap(
-				new PointF(10, 10), 
+		if(drawMap){
+			r.drawMiniMap(new PointF(10, 10), 
 				new PointF(gc.getWidth()-20, gc.getHeight()-20), 25, 
-				new PointF(ctrl.level.getWidth()/2f, ctrl.level.getHeight()/2f));
+				new PointF(ctrl.level.getWidth()/2f, ctrl.level.getHeight()/2f), 0.5f);
+		} else {
+			int w = 400;
+			h = 200;
+			r.drawMiniMap(new PointF(gc.getWidth()-w, gc.getHeight()-h), 
+				new PointF(w, h), 8, 
+				ctrl.player.pos, 0.3f);
+		}
 	}
 	
 }

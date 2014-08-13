@@ -28,6 +28,33 @@ public class PointF {
 		this.x = (float)Math.cos(angle);
 		this.y = (float)Math.sin(angle);
 	}
+
+	@Override
+	public int hashCode() {
+		int hash = 5;
+		hash = 67 * hash + Float.floatToIntBits(this.x);
+		hash = 67 * hash + Float.floatToIntBits(this.y);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final PointF other = (PointF) obj;
+		if (Float.floatToIntBits(this.x) != Float.floatToIntBits(other.x)) {
+			return false;
+		}
+		if (Float.floatToIntBits(this.y) != Float.floatToIntBits(other.y)) {
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * bounces the vector off of a line with a specified normal vector
 	 * @param normal normal vector of the line to bounce off from

@@ -66,7 +66,7 @@ public class GameRenderer {
 	private static final Color MM_LOOT = new Color(0f, 0f, 1f);
 	private static final Color MM_FINAL = new Color(1f, 1f, 1f, 0.5f);
 	private HashMap<PointF, Image> mmImages = new HashMap<>();
-	public void drawMiniMap(PointF pos, PointF size, float zoom, PointF mid){
+	public void drawMiniMap(PointF pos, PointF size, float zoom, PointF mid, float alpha){
 		GameController ctrl = GameController.get();
 		Graphics g = null;
 		Image mmImg;
@@ -90,28 +90,9 @@ public class GameRenderer {
 		int ir = Math.round(fr)+1;
 		int it = Math.round(ft)-1;
 		int ib = Math.round(fb)+1;
-		//g.setClip(Math.round(loc.x), Math.round(loc.y), Math.round(size.x), Math.round(size.y));
+		g.clear();
 		g.setColor(MM_BACK);
 		g.fillRect(pos.x, pos.y, size.x, size.y);
-		g.setColor(MM_WALL);
-		for(int ix=il; ix<=ir; ix++){
-			float x = size.x/2f + (ix - mid.x)*zoom;
-			for(int iy=it; iy<=ib; iy++){
-				float y = size.y/2f + (iy - mid.y)*zoom;
-				UsableLevelItem i = ctrl.level.getUsableLevelItem(new PointF(ix, iy));
-				if(i != null){
-					if(i instanceof Stairs){
-						g.setColor(MM_STAIRS);
-					} else if(i instanceof Door){
-						g.setColor(((Door)i).isOpen() ? MM_DOOR_O : MM_DOOR_C);
-					}
-					g.fillRect(x, y, zoom, zoom);
-					g.setColor(MM_WALL);
-				} else if(ctrl.level.isWall(ix, iy)){
-					g.fillRect(x, y, zoom, zoom);
-				}
-			}
-		}
 		g.setColor(MM_LOOT);
 		for(InventoryItem i : ctrl.items){
 			float x = size.x/2f + (i.pos.x - mid.x)*zoom;
@@ -129,7 +110,26 @@ public class GameRenderer {
 		float x = size.x/2f + (ctrl.player.pos.x - mid.x)*zoom;
 		float y = size.y/2f + (ctrl.player.pos.y - mid.y)*zoom;
 		g.fillRect(x, y, zoom, zoom);
-		//g.setClip(null);
+		g.setColor(MM_WALL);
+		for(int ix=il; ix<=ir; ix++){
+			x = size.x/2f + (ix - mid.x)*zoom;
+			for(int iy=it; iy<=ib; iy++){
+				y = size.y/2f + (iy - mid.y)*zoom;
+				UsableLevelItem i = ctrl.level.getUsableLevelItem(new PointF(ix, iy));
+				if(i != null){
+					if(i instanceof Stairs){
+						g.setColor(MM_STAIRS);
+					} else if(i instanceof Door){
+						g.setColor(((Door)i).isOpen() ? MM_DOOR_O : MM_DOOR_C);
+					}
+					g.fillRect(x, y, zoom, zoom);
+					g.setColor(MM_WALL);
+				} else if(ctrl.level.isWall(ix, iy)){
+					g.fillRect(x, y, zoom, zoom);
+				}
+			}
+		}
+		MM_FINAL.a = alpha;
 		getGraphics().drawImage(mmImg, pos.x, pos.y, MM_FINAL);
 	}
 	
