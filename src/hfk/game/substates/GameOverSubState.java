@@ -48,35 +48,42 @@ public class GameOverSubState extends GameSubState {
 	public void render(GameController ctrl, GameRenderer r, GameContainer gc) throws SlickException {
 		mb.render();
 		int w = gc.getWidth(), h = gc.getHeight();
-		int y = h/2 - 100;
+		int y = h/2 - 150;
+		int lineGap = 8;
 		String s = "game over";
 		int scale = 4;
 		PointI size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 		scale = 2;
 
 		s = "-------------------------------";
 		size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 		s = "level reached: " + ctrl.getLevelCount();
 		size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 		s = "xp gathered: " + (ctrl.player.xp + ctrl.player.skills.getTotalXpSpent());
 		size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 		s = "skills learned: " + ctrl.player.skills.getSkillLearnedCount();
 		size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
+		s = "damage taken: " + ctrl.player.totalDamageTaken;
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
+		s = "hp healed: " + ctrl.player.totalHpHealed;
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 		s = "-------------------------------";
 		size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 		
 		s = "space : retry";
 		size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 		s = "q : quit";
 		size = r.getStringSize(s);
-		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + lineGap;
 	}
 
 }

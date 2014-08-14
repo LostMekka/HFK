@@ -483,6 +483,8 @@ public class GameController {
 	
 	public void damageMob(Mob m, int dmg, PointF pos, Shot s){
 		addFallingText(""+dmg, pos != null ? pos.clone() : m.pos.clone(), m == player ? Color.red : Color.green, null);
+		dmg = Math.min(dmg, m.hp);
+		m.totalDamageTaken += dmg;
 		m.hp -= dmg;
 		if(m.hp <= 0){
 			m.onDeath(s);

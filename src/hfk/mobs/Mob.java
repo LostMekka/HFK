@@ -65,6 +65,8 @@ public abstract class Mob implements StatsModifier {
 	// stuff that normally will not be set by extending classes
 	public MobStatsCard basicStats, totalStats;
 	public int hp;
+	public int totalDamageTaken = 0;
+	public int totalHpHealed = 0;
 	public Inventory inventory;
 	private PointF lastPlayerPos = null;
 	private int lastPlayerTime = -1;
@@ -144,7 +146,9 @@ public abstract class Mob implements StatsModifier {
 	
 	public boolean heal(int amount){
 		if(hp >= totalStats.getMaxHP()) return false;
-		hp = Math.min(hp + amount, totalStats.getMaxHP());
+		amount = Math.min(amount, totalStats.getMaxHP()-hp);
+		totalHpHealed += amount;
+		hp += amount;
 		return true;
 	}
 	
@@ -307,7 +311,7 @@ public abstract class Mob implements StatsModifier {
 		}
 		// look
 		if(!(this instanceof Player) && lookAngle != desiredLookAngle){
-			float diff = ctrl.getAngleDiff(lookAngle, desiredLookAngle);
+			float diff = GameController.getAngleDiff(lookAngle, desiredLookAngle);
 			if(Math.abs(diff) <= totalStats.getTurnRate()*time/1000f){
 				lookAngle = desiredLookAngle;
 			} else {
