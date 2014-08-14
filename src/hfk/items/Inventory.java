@@ -56,16 +56,22 @@ public final class Inventory implements StatsModifier {
 	
 	public boolean setActiveQuickSlot(int slot){
 		if(slot < 0 || slot >= quickSlots.length) return false;
+		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponUnSelected();
 		activeQuickSlot = slot;
+		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponSelected();
 		return true;
 	}
 	
 	public void nextQuickSlot(){
+		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponUnSelected();
 		activeQuickSlot = (activeQuickSlot + 1) % quickSlots.length;
+		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponSelected();
 	}
 	
 	public void previousQuickSlot(){
+		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponUnSelected();
 		activeQuickSlot = (activeQuickSlot - 1 + quickSlots.length) % quickSlots.length;
+		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponSelected();
 	}
 	
 	public int getQuickSlotCount(){
@@ -213,6 +219,8 @@ public final class Inventory implements StatsModifier {
 	public boolean equipWeaponFromInventory(Weapon w){
 		Weapon tmp = quickSlots[activeQuickSlot];
 		if(tmp != null && !tmp.isReady()) return false;
+		if(tmp != null) tmp.weaponUnSelected();
+		w.weaponSelected();
 		int i = weapons.indexOf(w);
 		if(i == -1) throw new IllegalArgumentException("weapon is not in inventory!");
 		quickSlots[activeQuickSlot] = w;
@@ -230,6 +238,7 @@ public final class Inventory implements StatsModifier {
 	public boolean equipWeaponFromGround(Weapon w){
 		if(quickSlots[activeQuickSlot] != null) return false;
 		quickSlots[activeQuickSlot] = w;
+		w.weaponSelected();
 		w.parentInventory = this;
 		w.angle = parent.getLookAngle();
 		w.shotTeam = Shot.Team.hostile;
@@ -242,6 +251,7 @@ public final class Inventory implements StatsModifier {
 		if(freeSlots <= 0) return false;
 		Weapon w = quickSlots[activeQuickSlot];
 		if(!w.isReady()) return false;
+		w.weaponUnSelected();
 		quickSlots[activeQuickSlot] = null;
 		insertSorted(w, weapons);
 		generateList();
@@ -253,6 +263,7 @@ public final class Inventory implements StatsModifier {
 		if(freeSlots <= 0 || index < 0 || index >= quickSlots.length) return false;
 		Weapon w = quickSlots[index];
 		if(!w.isReady()) return false;
+		w.weaponUnSelected();
 		quickSlots[index] = null;
 		insertSorted(w, weapons);
 		generateList();
@@ -265,6 +276,7 @@ public final class Inventory implements StatsModifier {
 		if(!w.isReady()) return null;
 		quickSlots[activeQuickSlot] = null;
 		w.parentInventory = null;
+		w.weaponUnSelected();
 		parent.recalculateCards();
 		return w;
 	}
@@ -273,6 +285,7 @@ public final class Inventory implements StatsModifier {
 		if(index < 0 || index >= quickSlots.length) return null;
 		Weapon w = quickSlots[index];
 		if(!w.isReady()) return null;
+		w.weaponUnSelected();
 		quickSlots[index] = null;
 		w.parentInventory = null;
 		parent.recalculateCards();

@@ -109,6 +109,8 @@ public abstract class Weapon extends InventoryItem {
 	
 	public float getScreenShakeAmount(){ return 0.1f; };
 	public float getScreenRecoilAmount(){ return 0.2f; };
+	public void weaponSelected(){};
+	public void weaponUnSelected(){};
 	
 	public Weapon(float angle, PointF position) {
 		super(position);

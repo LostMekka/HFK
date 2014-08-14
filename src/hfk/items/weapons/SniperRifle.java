@@ -48,6 +48,16 @@ public class SniperRifle extends Weapon {
 	}
 
 	@Override
+	public void weaponUnSelected() {
+		Mob m = getParentMob();
+		if(m == null || !zoom) return;
+		zoom = false;
+		effects.remove(zoomEffect);
+		m.recalculateCards();
+		if(m == GameController.get().player) GameController.get().recalcVisibleTiles = true;
+	}
+
+	@Override
 	public void pullAlternativeTriggerInternal() {
 		Mob m = getParentMob();
 		if(m == null) return;
