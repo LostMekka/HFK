@@ -195,6 +195,7 @@ public class SkillSet implements StatsModifier {
 	}
 	
 	public boolean canAltFire(Weapon w){
+		if(w.type == Weapon.WeaponType.sniperRifle) return true;
 		if(w.type == Weapon.WeaponType.grenadeLauncher) return grenadeManual.getLevel() > 0;
 		if(w instanceof DoubleBarrelShotgun) return shotgunDouble.getLevel() > 0;
 		return false;

@@ -7,9 +7,13 @@ package hfk.items.weapons;
 
 import hfk.PointF;
 import hfk.Shot;
+import hfk.game.GameController;
 import hfk.game.Resources;
+import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
+import hfk.stats.ItemEffect;
+import hfk.stats.MobStatsCard;
 import hfk.stats.WeaponStatsCard;
 
 /**
@@ -18,11 +22,43 @@ import hfk.stats.WeaponStatsCard;
  */
 public class SniperRifle extends Weapon {
 
+	private ItemEffect zoomEffect;
+	private boolean zoom = false;
+	
 	public SniperRifle(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
 		setImg("w_sniperrifle.png");
 		type = WeaponType.sniperRifle;
+		zoomEffect = new ItemEffect() {
+			@Override
+			public String[] getDisplayStrings() {
+				return new String[]{"sniper zoom"};
+			}
+			@Override
+			public long getRarity() {
+				return 1;
+			}
+		};
+		zoomEffect.msc = MobStatsCard.createBonus();
+		zoomEffect.msc.setVisionAngle(-300f);
+		zoomEffect.msc.setSightRange(5f);
+		zoomEffect.wsc = WeaponStatsCard.createBonus();
+		zoomEffect.wsc.weaponZoom = 6f;
+	}
+
+	@Override
+	public void pullAlternativeTriggerInternal() {
+		Mob m = getParentMob();
+		if(m == null) return;
+		if(zoom){
+			effects.remove(zoomEffect);
+		} else {
+			effects.add(zoomEffect);
+		}
+		zoom = !zoom;
+		m.recalculateCards();
+		if(m == GameController.get().player) GameController.get().recalcVisibleTiles = true;
 	}
 
 	@Override
@@ -46,8 +82,8 @@ public class SniperRifle extends Weapon {
 		s.maxScatter = 10f;
 		s.scatterCoolRate = 10f;
 		s.scatterPerShot = 6f;
-		s.shotVel = 12f;
-		s.weaponZoom = 5f;
+		s.shotVel = 20f;
+		s.weaponZoom = 1f;
 		s.isAutomatic = false;
 		return s;
 	}
@@ -56,8 +92,9 @@ public class SniperRifle extends Weapon {
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
-		d.setDieCount(physical, 7);
-		d.setEyeCount(physical, 7);
+		d.setDieCount(physical, 10);
+		d.setEyeCount(physical, 5);
+		d.setDmgBonus(physical, 0.2f);
 		return d;
 	}
 

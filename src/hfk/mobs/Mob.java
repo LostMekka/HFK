@@ -33,7 +33,7 @@ public abstract class Mob implements StatsModifier {
 
 	//stuff that can be set by extending classes
 	public PointF pos;
-	public boolean showCollisionDebug = false;
+	public boolean showCollisionDebug = true;
 	public boolean showPathDebug = false;
 	
 	public int xp = 0;
@@ -230,7 +230,7 @@ public abstract class Mob implements StatsModifier {
 	private void tryToShoot(){
 		Weapon w = getActiveWeapon();
 		if(w == null) return;
-		if(Math.abs(getAngleDiff(lookAngle, desiredLookAngle)) <= (float)Math.PI/8f && 
+		if(Math.abs(GameController.getAngleDiff(lookAngle, desiredLookAngle)) <= (float)Math.PI/8f && 
 				(w.totalStats.isAutomatic || pullTriggerDelayTimer <= 0)){
 			boolean b = w.pullTrigger();
 			if(b){
@@ -240,13 +240,6 @@ public abstract class Mob implements StatsModifier {
 				}
 			}
 		}
-	}
-	
-	private float getAngleDiff(float a1, float a2){
-		float diff = (a2 - a1) % (2f * (float)Math.PI);
-		if(diff > (float)Math.PI) diff -= 2f * (float)Math.PI;
-		if(diff < -(float)Math.PI) diff += 2f * (float)Math.PI;
-		return diff;
 	}
 	
 	public final void update(int time){
@@ -267,7 +260,7 @@ public abstract class Mob implements StatsModifier {
 		float angleToPlayer = pos.angleTo(ctrl.player.pos);
 		boolean playerWasVisible = playerVisible;
 		playerVisible = ctrl.playerIsAlive() && 
-				Math.abs(getAngleDiff(lookAngle, angleToPlayer)) <= totalStats.getVisionAngle()/2f &&
+				Math.abs(GameController.getAngleDiff(lookAngle, angleToPlayer)) <= totalStats.getVisionAngle()/2f &&
 				ctrl.level.isVisibleFrom(this, ctrl.player, totalStats.getSightRange());
 		if(playerVisible){
 			lastPlayerPos = ctrl.player.pos.clone();
@@ -314,7 +307,7 @@ public abstract class Mob implements StatsModifier {
 		}
 		// look
 		if(!(this instanceof Player) && lookAngle != desiredLookAngle){
-			float diff = getAngleDiff(lookAngle, desiredLookAngle);
+			float diff = ctrl.getAngleDiff(lookAngle, desiredLookAngle);
 			if(Math.abs(diff) <= totalStats.getTurnRate()*time/1000f){
 				lookAngle = desiredLookAngle;
 			} else {

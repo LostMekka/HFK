@@ -43,12 +43,22 @@ public class Player extends Mob {
 	public String getDisplayName() {
 		return "Player";
 	}
-	
+
+	@Override
+	public void lookInDirection(float angle) {
+		float a = getLookAngle();
+		super.lookInDirection(angle);
+		if(a != angle && totalStats.getVisionAngle() < (float)Math.PI * 2f){
+			GameController.get().recalcVisibleTiles = true;
+		}
+	}
+
 	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setMaxHP(100);
 		c.setSightRange(5.5f);
+		c.setVisionAngle(360f);
 		c.setMaxSpeed(4f);
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
 		c.setAmmoSlotSize(Weapon.AmmoType.shell.ordinal(), 50);

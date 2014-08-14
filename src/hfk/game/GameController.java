@@ -113,6 +113,17 @@ public class GameController {
 	private long nextID = 0, timeStamp = 0;
 	private HashMap<Long, NetStateObject> objectMap = new HashMap<>();
 
+	public static float getAngleDiff(float a1, float a2) {
+		float diff = (a2 - a1) % (2.0F * (float) Math.PI);
+		if (diff > (float) Math.PI) {
+			diff -= 2.0F * (float) Math.PI;
+		}
+		if (diff < -(float) Math.PI) {
+			diff += 2.0F * (float) Math.PI;
+		}
+		return diff;
+	}
+	
 	public GameController(GameContainer gc, GameSettings s) {
 		settings = s;
 		inputMap = new InputMap(gc.getInput());
@@ -235,8 +246,8 @@ public class GameController {
 		levelCount = 0;
 		PointF pp = new PointF();
 		player = new Player(pp);
-		player.inventory.equipWeaponFromGround(new Pistol(0, pp));
-		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
+		player.inventory.equipWeaponFromGround(new SniperRifle(0, pp));
+		player.inventory.addAmmo(Weapon.AmmoType.sniperRound, 50);
 		//for(int i=0; i<20; i++) player.inventory.addItem(InventoryItem.create(pp, 99999999));
 		if(musicIsOn) startMusic();
 		currSubState = gameplaySubState;
@@ -530,5 +541,5 @@ public class GameController {
 	public void setNetState(NetState state){
 		// TODO: set state of every object, create new ones, remove old ones not contained in state
 	}
-	
+
 }

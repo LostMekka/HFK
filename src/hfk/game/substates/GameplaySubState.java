@@ -98,6 +98,9 @@ public class GameplaySubState extends GameSubState{
 				for(int y=ppi.y-ir; y<=ppi.y+ir; y++){
 					PointF p = new PointF(x, y);
 					if(p.squaredDistanceTo(ctrl.player.pos) <= r*r){
+						float angle = ctrl.player.pos.angleTo(p);
+						angle = GameController.getAngleDiff(angle, ctrl.player.getLookAngle());
+						if(Math.abs(angle) > ctrl.player.totalStats.getVisionAngle() / 2f) continue;
 						LinkedList<PointI> tiles = ctrl.level.getTilesOnLine(ctrl.player.pos, p, r);
 						for(PointI pi : tiles){
 							if(!ctrl.visibleTiles.contains(pi)) ctrl.visibleTiles.add(pi);

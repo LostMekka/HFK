@@ -326,7 +326,7 @@ public abstract class Weapon extends InventoryItem {
 				&& (parentInventory == null || parentInventory.hasAmmo(AmmoType.values()[i])));
 	}
 	
-	public void pullAlternativeTrigger(){
+	public final void pullAlternativeTrigger(){
 		Mob m = getParentMob();
 		if(m == null || m.skills.canAltFire(this)) pullAlternativeTriggerInternal();
 	}

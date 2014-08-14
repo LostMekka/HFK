@@ -92,7 +92,7 @@ public class MobStatsCard {
 		inventorySize += c.inventorySize;
 		quickSlotCount += c.quickSlotCount;
 		turnRate += c.turnRate;
-		visionAngle += visionAngle;
+		visionAngle = Math.max(45f, visionAngle + c.visionAngle);
 		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
 		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
 	}

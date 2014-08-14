@@ -28,7 +28,7 @@ public class Main {
 		System.setProperty("mode", "normal");
 		for(String arg : args) {
 			System.out.println(arg);
-			//if(arg.equalsIgnoreCase("-windowed")) fullscreen = false;
+			if(arg.equalsIgnoreCase("-windowed")) fullscreen = false;
 			if(arg.equalsIgnoreCase("-nomusic")) System.setProperty("nomusic", "true");
 			if(arg.equalsIgnoreCase("-server")) System.setProperty("mode", "server");
 			if(arg.equalsIgnoreCase("-client")) System.setProperty("mode", "client");
