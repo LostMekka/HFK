@@ -7,10 +7,6 @@
 package hfk;
 
 import hfk.game.HFKGame;
-import hfk.net.NetState;
-import hfk.net.NetStateObject;
-import hfk.net.NetStatePart;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -28,15 +24,24 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		//printFontStuff();
+		boolean fullscreen = true;
 		System.setProperty("mode", "normal");
 		for(String arg : args) {
 			System.out.println(arg);
+			//if(arg.equalsIgnoreCase("-windowed")) fullscreen = false;
 			if(arg.equalsIgnoreCase("-nomusic")) System.setProperty("nomusic", "true");
 			if(arg.equalsIgnoreCase("-server")) System.setProperty("mode", "server");
 			if(arg.equalsIgnoreCase("-client")) System.setProperty("mode", "client");
 		}
 		try {
 			AppGameContainer c = new AppGameContainer(new HFKGame(), 1024, 768, false);
+			int w = c.getScreenWidth();
+			int h = c.getScreenHeight();
+			if(fullscreen){
+				c.setDisplayMode(w, h, true);
+			} else {
+				c.setDisplayMode(w-20, h-140, false);
+			}
 			c.setShowFPS(false);
 			c.setAlwaysRender(true);
 			c.start();

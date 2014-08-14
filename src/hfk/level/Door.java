@@ -6,6 +6,7 @@
 package hfk.level;
 
 import hfk.PointI;
+import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.mobs.Player;
 import hfk.net.NetState;
@@ -62,6 +63,7 @@ public class Door extends UsableLevelItem {
 	@Override
 	public boolean use(Player p) {
 		if(damaged) return false;
+		GameController.get().recalcVisibleTiles = true;
 		open = !open;
 		updateImg();
 		return true;

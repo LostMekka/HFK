@@ -68,7 +68,7 @@ public abstract class Mob implements StatsModifier {
 	public Inventory inventory;
 	private PointF lastPlayerPos = null;
 	private int lastPlayerTime = -1;
-	private float lookAngle = 0f;
+	private float lookAngle = 0f, desiredLookAngle = 0f;
 	private int barrageTimer = 0;
 	private int pullTriggerDelayTimer = 0;
 	private int safetyTimer = 0;
@@ -162,9 +162,13 @@ public abstract class Mob implements StatsModifier {
 	}
 	
 	public void lookInDirection(float angle){
-		lookAngle = angle;
-		Weapon w = getActiveWeapon();
-		if(w != null) w.angle = angle;
+		if(this instanceof Player){
+			lookAngle = angle;
+			Weapon w = getActiveWeapon();
+			if(w != null) w.angle = angle;
+		} else {
+			desiredLookAngle = angle;
+		}
 	}
 	
 	public boolean reloadActiveWeapon(){
@@ -226,7 +230,8 @@ public abstract class Mob implements StatsModifier {
 	private void tryToShoot(){
 		Weapon w = getActiveWeapon();
 		if(w == null) return;
-		if(w.totalStats.isAutomatic || pullTriggerDelayTimer <= 0){
+		if(Math.abs(getAngleDiff(lookAngle, desiredLookAngle)) <= (float)Math.PI/8f && 
+				(w.totalStats.isAutomatic || pullTriggerDelayTimer <= 0)){
 			boolean b = w.pullTrigger();
 			if(b){
 				pullTriggerDelayTimer = minPullTriggerDelay;
@@ -235,6 +240,13 @@ public abstract class Mob implements StatsModifier {
 				}
 			}
 		}
+	}
+	
+	private float getAngleDiff(float a1, float a2){
+		float diff = (a2 - a1) % (2f * (float)Math.PI);
+		if(diff > (float)Math.PI) diff -= 2f * (float)Math.PI;
+		if(diff < -(float)Math.PI) diff += 2f * (float)Math.PI;
+		return diff;
 	}
 	
 	public final void update(int time){
@@ -250,9 +262,13 @@ public abstract class Mob implements StatsModifier {
 			// reload if: clip empty or not quite empty but feeling safe
 			if(autoReloadWeapon && (w.mustReload() || (safetyTimer >= timeToFeelSafe && w.canReload()))) w.reload();
 		}
-		if(this == ctrl.player) return;
+		// non players only from here on
+		if(this instanceof Player) return;
+		float angleToPlayer = pos.angleTo(ctrl.player.pos);
 		boolean playerWasVisible = playerVisible;
-		playerVisible = ctrl.playerIsAlive() && ctrl.level.isVisibleFrom(this, ctrl.player, totalStats.getSightRange());
+		playerVisible = ctrl.playerIsAlive() && 
+				Math.abs(getAngleDiff(lookAngle, angleToPlayer)) <= totalStats.getVisionAngle()/2f &&
+				ctrl.level.isVisibleFrom(this, ctrl.player, totalStats.getSightRange());
 		if(playerVisible){
 			lastPlayerPos = ctrl.player.pos.clone();
 			if(!playerWasVisible){
@@ -263,7 +279,7 @@ public abstract class Mob implements StatsModifier {
 			barrageTimer = 0;
 			safetyTimer = 0;
 			if(autoLockOnPlayer){
-				lookInDirection(pos.angleTo(ctrl.player.pos));
+				lookInDirection(angleToPlayer);
 				path.clear();
 				if(moveWhilePlayerVisible) path.add(ctrl.player.pos.clone());
 				if(autoUseWeapon) tryToShoot();
@@ -295,6 +311,16 @@ public abstract class Mob implements StatsModifier {
 					mobOnLostMemoryOfPlayer();
 				}
 			}
+		}
+		// look
+		if(!(this instanceof Player) && lookAngle != desiredLookAngle){
+			float diff = getAngleDiff(lookAngle, desiredLookAngle);
+			if(Math.abs(diff) <= totalStats.getTurnRate()*time/1000f){
+				lookAngle = desiredLookAngle;
+			} else {
+				lookAngle += Math.signum(diff) * totalStats.getTurnRate()*time/1000f;
+			}
+			if(w != null) w.angle = lookAngle;
 		}
 		// move
 		if((moveWhileShooting || (barrageTimer <= 0 && (w == null || w.isReady()))) && 
@@ -343,7 +369,11 @@ public abstract class Mob implements StatsModifier {
 		PointF p = ctrl.transformTilesToScreen(new PointF(pos.x - size/2f, pos.y - size/2f));
 		g.drawOval(p.x, p.y, s, s);
 		PointF p1 = ctrl.transformTilesToScreen(pos);
-		PointF p2 = new PointF(getLookAngle());
+		PointF p2 = new PointF(getLookAngle() + totalStats.getVisionAngle() / 2f);
+		p2.add(pos);
+		p2 = ctrl.transformTilesToScreen(p2);
+		g.drawLine(p1.x, p1.y, p2.x, p2.y);
+		p2 = new PointF(getLookAngle() - totalStats.getVisionAngle() / 2f);
 		p2.add(pos);
 		p2 = ctrl.transformTilesToScreen(p2);
 		g.drawLine(p1.x, p1.y, p2.x, p2.y);
@@ -351,7 +381,7 @@ public abstract class Mob implements StatsModifier {
 	
 	public void draw(){
 		GameController ctrl = GameController.get();
-		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos);
+		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos, false);
 		Weapon w = getActiveWeapon();
 		if(w != null && w != bionicWeapon) w.render();
 		// reloading progress bar

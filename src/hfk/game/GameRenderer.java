@@ -7,6 +7,7 @@
 package hfk.game;
 
 import hfk.PointF;
+import hfk.PointI;
 import hfk.items.InventoryItem;
 import hfk.level.Door;
 import hfk.level.Stairs;
@@ -58,6 +59,7 @@ public class GameRenderer {
 	
 	private static final Color MM_BACK = new Color(0f, 0f, 0f);
 	private static final Color MM_WALL = new Color(1f, 1f, 1f);
+	private static final Color MM_FLOOR = new Color(1f, 1f, 1f, 0.2f);
 	private static final Color MM_STAIRS = new Color(1f, 0.5f, 0f);
 	private static final Color MM_DOOR_O = new Color(1f, 1f, 0f);
 	private static final Color MM_DOOR_C = new Color(1f, 1f, 0f);
@@ -90,47 +92,52 @@ public class GameRenderer {
 		int ir = Math.round(fr)+1;
 		int it = Math.round(ft)-1;
 		int ib = Math.round(fb)+1;
+		PointF spf;
 		g.clear();
 		g.setColor(MM_BACK);
 		g.fillRect(pos.x, pos.y, size.x, size.y);
 		g.setColor(MM_LOOT);
 		for(InventoryItem i : ctrl.items){
-			float x = size.x/2f + (i.pos.x - mid.x)*zoom;
-			float y = size.y/2f + (i.pos.y - mid.y)*zoom;
-			g.fillRect(x, y, zoom, zoom);
+			if(!ctrl.scoutedTiles.contains(i.pos.round())) continue;
+			spf = getMMPos(mid, size, i.pos, zoom);
+			g.fillRect(spf.x, spf.y, zoom, zoom);
 		}
 		g.setColor(MM_ENEMY);
 		for(Mob m : ctrl.mobs){
-			if(m instanceof Player) continue;
-			float x = size.x/2f + (m.pos.x - mid.x)*zoom;
-			float y = size.y/2f + (m.pos.y - mid.y)*zoom;
-			g.fillRect(x, y, zoom, zoom);
+			if(m instanceof Player || !ctrl.visibleTiles.contains(m.pos.round())) continue;
+			spf = getMMPos(mid, size, m.pos, zoom);
+			g.fillRect(spf.x, spf.y, zoom, zoom);
 		}
 		g.setColor(MM_PLAYER);
-		float x = size.x/2f + (ctrl.player.pos.x - mid.x)*zoom;
-		float y = size.y/2f + (ctrl.player.pos.y - mid.y)*zoom;
-		g.fillRect(x, y, zoom, zoom);
+		spf = getMMPos(mid, size, ctrl.player.pos, zoom);
+		g.fillRect(spf.x, spf.y, zoom, zoom);
 		g.setColor(MM_WALL);
-		for(int ix=il; ix<=ir; ix++){
-			x = size.x/2f + (ix - mid.x)*zoom;
-			for(int iy=it; iy<=ib; iy++){
-				y = size.y/2f + (iy - mid.y)*zoom;
-				UsableLevelItem i = ctrl.level.getUsableLevelItem(new PointF(ix, iy));
-				if(i != null){
-					if(i instanceof Stairs){
-						g.setColor(MM_STAIRS);
-					} else if(i instanceof Door){
-						g.setColor(((Door)i).isOpen() ? MM_DOOR_O : MM_DOOR_C);
-					}
-					g.fillRect(x, y, zoom, zoom);
-					g.setColor(MM_WALL);
-				} else if(ctrl.level.isWall(ix, iy)){
-					g.fillRect(x, y, zoom, zoom);
+		for(PointI pi : ctrl.scoutedTiles){
+			PointF pf = pi.toFloat();
+			spf = getMMPos(mid, size, pf, zoom);
+			UsableLevelItem i = ctrl.level.getUsableLevelItem(pf);
+			if(i != null){
+				if(i instanceof Stairs){
+					g.setColor(MM_STAIRS);
+				} else if(i instanceof Door){
+					g.setColor(((Door)i).isOpen() ? MM_DOOR_O : MM_DOOR_C);
 				}
+				g.fillRect(spf.x, spf.y, zoom, zoom);
+			} else if(ctrl.level.isWall(pi.x, pi.y)){
+				g.setColor(MM_WALL);
+				g.fillRect(spf.x, spf.y, zoom, zoom);
+			} else {
+				g.setColor(MM_FLOOR);
+				g.fillRect(spf.x, spf.y, zoom, zoom);
 			}
 		}
 		MM_FINAL.a = alpha;
 		getGraphics().drawImage(mmImg, pos.x, pos.y, MM_FINAL);
+	}
+	private PointF getMMPos(PointF mmMid, PointF mmSize, PointF pos, float zoom){
+		return new PointF(
+				mmSize.x/2f + (pos.x - mmMid.x)*zoom,
+				mmSize.y/2f + (pos.y - mmMid.y)*zoom);
 	}
 	
 	public void drawMenuBox(float x, float y, float w, float h, Color backgroundColor, Color lineColor){
@@ -239,27 +246,51 @@ public class GameRenderer {
 		return lines.toArray(new String[lines.size()]);
 	}
 	
-	public void drawImage(Image i, PointF pos){
-		drawImage(i, pos, 1f);
+	public void drawImage(Image i, PointF pos, boolean ignoreVisionRange){
+		drawImage(i, pos, 1f, ignoreVisionRange);
 	}
 	
-	public void drawImage(Image i, PointF pos, float scale){
-		GameController gc = GameController.get();
-		float zoom = gc.getZoom();
-		PointF screenPos = gc.getScreenPos();
+	private static final Color RENDER_FOG = new Color(0.3f, 0.3f, 0.3f);
+	public void drawImage(Image i, PointF pos, float scale, boolean ignoreVisionRange){
 		float sx = i.getWidth() / GameController.SPRITE_SIZE;
 		float sy = i.getHeight() / GameController.SPRITE_SIZE;
-		i.draw( gc.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
-				gc.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
-				zoom * scale);
+		GameController ctrl = GameController.get();
+		LinkedList<PointI> tiles = new LinkedList<>();
+		for(int x=Math.round(pos.x - scale * sx * 0.499f); x<=Math.round(pos.x + scale * sx * 0.499f); x++){
+			for(int y=Math.round(pos.y - scale * sy * 0.499f); y<=Math.round(pos.y + scale * sy * 0.499f); y++){
+				tiles.add(new PointI(x, y));
+			}
+		}
+		float zoom = ctrl.getZoom();
+		PointF screenPos = ctrl.getScreenPos();
+		int one = Math.round(ctrl.transformTilesToScreen(1));
+		for(PointI p : tiles){
+			boolean bright = ctrl.visibleTiles.contains(p);
+			if(bright || (ignoreVisionRange && ctrl.scoutedTiles.contains(p))){
+				getGraphics().setClip(
+						Math.round(ctrl.transformTilesToScreen(p.x - screenPos.x - 0.5f)), 
+						Math.round(ctrl.transformTilesToScreen(p.y - screenPos.y - 0.5f)), 
+						one, one);
+				if(bright){
+					i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
+							ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
+							zoom * scale);
+				} else {
+					i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
+							ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
+							zoom * scale, RENDER_FOG);
+				}
+			}
+		}
+		getGraphics().clearClip();
 	}
 	
-	public void drawImage(Image i, PointF pos, float scale, float angle){
-		GameController gc = GameController.get();
-		float zoom = gc.getZoom();
+	public void drawImage(Image i, PointF pos, float scale, float angle, boolean ignoreVisionRange){
+		GameController ctrl = GameController.get();
+		float zoom = ctrl.getZoom();
 		i.setCenterOfRotation(scale * zoom * i.getWidth() / 2f, scale * zoom * i.getHeight() / 2f);
 		i.setRotation(angle / (float)Math.PI * 180f);
-		drawImage(i, pos, scale);
+		drawImage(i, pos, scale, ignoreVisionRange);
 	}
 	
 	public void drawDebugPath(PointF start, LinkedList<PointF> path){

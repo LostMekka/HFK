@@ -55,7 +55,7 @@ public class HealthPack extends InventoryItem {
 
 	@Override
 	public void render() {
-		GameController.get().renderer.drawImage(image, pos);
+		GameController.get().renderer.drawImage(image, pos, true);
 	}
 	
 }

@@ -7,7 +7,6 @@
 package hfk;
 
 import hfk.game.GameController;
-import hfk.game.GameRenderer;
 import org.newdawn.slick.Image;
 
 /**
@@ -54,7 +53,7 @@ public class Particle {
 	}
 	
 	public void draw(){
-		GameController.get().renderer.drawImage(img, pos, 1f, rotation);
+		GameController.get().renderer.drawImage(img, pos, 1f, rotation, true);
 //		float s = GameController.get().transformTilesToScreen(size);
 //		PointF p = GameController.get().transformTilesToScreen(pos);
 //		GameController.get().renderer.getGraphics().drawOval(p.x-s/2f, p.y-s/2f, s, s);

@@ -60,11 +60,17 @@ public class Level implements NetStateObject{
 			int min = ran.nextInt(10)+3;
 			int max = ran.nextInt(20)+10;
 			generateRoomLevel(l, new Box(border, border, sx, sy), min, max, min, max);
-			PointI plp = PointI.random(sx, sy);
-			ctrl.player.pos = l.getNextFreeField(plp, null).toFloat();
-			l.items.add(new Stairs(l.getNextFreeField(PointI.random(sx, sy), null)));
+			
+			LinkedList<PointI> ex = addItems(itemScore, l);
+			PointI stairsPos = l.getNextFreeField(PointI.random(sx, sy), ex);
+			ex.add(stairsPos);
+			l.items.add(new Stairs(stairsPos));
+			
+			PointI plp = l.getNextFreeField(PointI.random(sx, sy), null);
+			ex.add(plp);
+			ctrl.player.pos = plp.toFloat();
+			
 			addMobs(difficulty, ctrl.player.pos.round(), l, 8f);
-			addItems(itemScore, l);
 			l.defaultTile = new Tile(new PointI(0, 0), Tile.TileType.blueWall);
 			return l;
 		}
@@ -230,7 +236,7 @@ public class Level implements NetStateObject{
 				ctrl.mobs.add(m);
 			}
 		}
-		private static void addItems(int rar, Level l){
+		private static LinkedList<PointI> addItems(int rar, Level l){
 			GameController ctrl = GameController.get();
 			LinkedList<PointI> ex = new LinkedList<>();
 			InventoryItem i;
@@ -252,6 +258,7 @@ public class Level implements NetStateObject{
 				ex.add(p2);
 				ctrl.addItem(i);
 			}
+			return ex;
 		}
 	}
 	
@@ -313,6 +320,7 @@ public class Level implements NetStateObject{
 			Tile t = tiles[pos.x][pos.y].damage(dmg);
 			if(tiles[pos.x][pos.y] != t){
 				GameController.get().createDebris(pos.toFloat(), tiles[pos.x][pos.y].getImage(), 1);
+				GameController.get().recalcVisibleTiles = true;
 				tiles[pos.x][pos.y] = t;
 			}
 		} else {
@@ -323,6 +331,7 @@ public class Level implements NetStateObject{
 					if(i.damage(dmg)){
 						itemIter.remove();
 						GameController.get().createDebris(pos.toFloat(), i.img, 4);
+						GameController.get().recalcVisibleTiles = true;
 					}
 				}
 			}

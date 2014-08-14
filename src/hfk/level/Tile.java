@@ -118,7 +118,7 @@ public class Tile implements NetStateObject{
 	}
 	
 	public void draw(){
-		GameController.get().renderer.drawImage(getImage(), pos.toFloat());
+		GameController.get().renderer.drawImage(getImage(), pos.toFloat(), true);
 	}
 	
 	public void moveTo(int x, int y){

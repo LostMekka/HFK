@@ -115,7 +115,7 @@ public abstract class InventoryItem implements StatsModifier {
 	
 	public void render(){
 		if(image != null){
-			GameController.get().renderer.drawImage(image, pos, 1f, angle);
+			GameController.get().renderer.drawImage(image, pos, 1f, angle, true);
 		}
 	}
 	

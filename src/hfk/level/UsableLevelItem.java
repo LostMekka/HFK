@@ -42,7 +42,7 @@ public abstract class UsableLevelItem implements NetStateObject{
 	public abstract String getDisplayName();
 	
 	public void draw(){
-		if(img != null) GameController.get().renderer.drawImage(img, pos.toFloat());
+		if(img != null) GameController.get().renderer.drawImage(img, pos.toFloat(), true);
 	}
 	
 	public void drawNameBox(){

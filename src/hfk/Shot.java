@@ -56,7 +56,7 @@ public class Shot {
 	}
 	
 	public void draw(){
-		GameController.get().renderer.drawImage(img, pos, 1f, angle);
+		GameController.get().renderer.drawImage(img, pos, 1f, angle, false);
 	}
 	
 	public void update(int time){

@@ -79,7 +79,9 @@ public class GameController {
 	public final LinkedList<Mob> mobs = new LinkedList<>(), mobsToRemove = new LinkedList<>();
 	public final LinkedList<InventoryItem> items = new LinkedList<>(), itemsToRemove = new LinkedList<>();
 	public final LinkedList<IngameText> texts = new LinkedList<>();
-	public final LinkedList<Particle> particles = new LinkedList<Particle>();
+	public final LinkedList<Particle> particles = new LinkedList<>();
+	public final LinkedList<PointI> visibleTiles = new LinkedList<>();
+	public final LinkedList<PointI> scoutedTiles = new LinkedList<>();
 
 	public GameOverSubState gameOverState;
 	public GameplaySubState gameplaySubState;
@@ -99,7 +101,7 @@ public class GameController {
 	public PointI mousePosInPixels = new PointI();
 	public float screenShake = 0f;
 	public int difficultyLevel = 1;
-	public boolean musicIsOn = true;
+	public boolean musicIsOn = true, recalcVisibleTiles = false;
 	
 	private final InputMap inputMap;
 	
@@ -248,6 +250,7 @@ public class GameController {
 	}
 	
 	public void nextLevel(){
+		scoutedTiles.clear();
 		particles.clear();
 		mobs.clear();
 		mobs.add(player);
@@ -379,6 +382,7 @@ public class GameController {
 	}
 	
 	public void addFallingText(String text, PointF pos, Color c, Mob parent){
+		if(!visibleTiles.contains(pos.round())) return;
 		IngameText t = new IngameText(text, c, pos, 0.5f);
 		t.vel.x = 1.9f*(random.nextFloat()-0.5f);
 		t.vel.y = -2.8f;
@@ -392,6 +396,7 @@ public class GameController {
 	}
 	
 	public void addFloatingText(String text, float scale, PointF pos, Color c, Mob parent){
+		if(!visibleTiles.contains(pos.round())) return;
 		IngameText t = new IngameText(text, c, pos, scale);
 		t.lifeTime = 800;
 		t.vel.x = 0.2f*(random.nextFloat()-0.5f);

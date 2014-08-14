@@ -48,6 +48,7 @@ public class Player extends Mob {
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setMaxHP(100);
+		c.setSightRange(5.5f);
 		c.setMaxSpeed(4f);
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
 		c.setAmmoSlotSize(Weapon.AmmoType.shell.ordinal(), 50);

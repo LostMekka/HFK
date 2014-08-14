@@ -7,6 +7,7 @@
 package hfk.game.substates;
 
 import hfk.PointF;
+import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
@@ -16,6 +17,7 @@ import hfk.level.UsableLevelItem;
 import hfk.mobs.Player;
 import hfk.stats.Damage;
 import java.util.Iterator;
+import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -83,7 +85,32 @@ public class GameplaySubState extends GameSubState{
 		if(in.isKeyDown(InputMap.A_MOVE_UP)) vy--;
 		float s = player.totalStats.getMaxSpeed();
 		if(vx != 0 && vy != 0) s /= GameController.SQRT2;
+		PointF oldPlayerPos = ctrl.player.pos.clone();
 		ctrl.moveMob(player, vx * s, vy * s, time, true);
+		if(ctrl.recalcVisibleTiles || !oldPlayerPos.equals(ctrl.player.pos) || ctrl.scoutedTiles.isEmpty()){
+			ctrl.recalcVisibleTiles = false;
+			// update visible tiles
+			ctrl.visibleTiles.clear();
+			float r = ctrl.player.totalStats.getSightRange();
+			int ir = (int)Math.ceil(r) + 1;
+			PointI ppi = ctrl.player.pos.round();
+			for(int x=ppi.x-ir; x<=ppi.x+ir; x++){
+				for(int y=ppi.y-ir; y<=ppi.y+ir; y++){
+					PointF p = new PointF(x, y);
+					if(p.squaredDistanceTo(ctrl.player.pos) <= r*r){
+						LinkedList<PointI> tiles = ctrl.level.getTilesOnLine(ctrl.player.pos, p, r);
+						for(PointI pi : tiles){
+							if(!ctrl.visibleTiles.contains(pi)) ctrl.visibleTiles.add(pi);
+							if(ctrl.level.isWall(pi.x, pi.y)) break;
+						}
+					}
+				}
+			}
+			// update scouted tiles
+			for(PointI p : ctrl.visibleTiles){
+				if(!ctrl.scoutedTiles.contains(p)) ctrl.scoutedTiles.add(p);
+			}
+		}
 		// camera
 		ctrl.screenPosOriginal.x = player.pos.x - ctrl.transformScreenToTiles(gc.getWidth()) / 2f;
 		ctrl.screenPosOriginal.y = player.pos.y - ctrl.transformScreenToTiles(gc.getHeight()) / 2f;

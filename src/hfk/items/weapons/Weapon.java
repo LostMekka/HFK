@@ -465,9 +465,9 @@ public abstract class Weapon extends InventoryItem {
 		p.x += lengthOffset * Math.cos(angle);
 		p.y += lengthOffset * Math.sin(angle);
 		if(Math.abs(angle) > Math.PI/2){
-			GameController.get().renderer.drawImage(flippedImg, p, 1f, angle);
+			GameController.get().renderer.drawImage(flippedImg, p, 1f, angle, getParentMob() == null);
 		} else {
-			GameController.get().renderer.drawImage(img, p, 1f, angle);
+			GameController.get().renderer.drawImage(img, p, 1f, angle, getParentMob() == null);
 		}
 	}
 	

@@ -20,14 +20,16 @@ public class MobStatsCard {
 	private float maxPickupRange;		// multiplied on applyBonus
 	private float sightRange;			// multiplied on applyBonus
 	private float hearRange;			// multiplied on applyBonus
-	private float maxHP;				// multiplied on applyBonus
 	private float memoryTime;			// multiplied on applyBonus
+	private float turnRate;
+	private float visionAngle;
+	private int maxHP;
 	private int inventorySize;
 	private int quickSlotCount;
 
 	private boolean isBonusCard;
 	
-	public static final MobStatsCard createNormal(){
+	public static MobStatsCard createNormal(){
 		MobStatsCard ans = new MobStatsCard();
 		ans.isBonusCard = false;
 		ans.maxSpeed = 1f;
@@ -38,10 +40,12 @@ public class MobStatsCard {
 		ans.inventorySize = 10;
 		ans.quickSlotCount = 2;
 		ans.memoryTime = 5000;
+		ans.visionAngle = (float)Math.PI / 4f;
+		ans.turnRate = (float)Math.PI * 2f;
 		return ans;
 	}
 	
-	public static final MobStatsCard createBonus(){
+	public static MobStatsCard createBonus(){
 		MobStatsCard ans = new MobStatsCard();
 		ans.isBonusCard = true;
 		return ans;
@@ -64,6 +68,8 @@ public class MobStatsCard {
 		memoryTime += c.memoryTime;
 		sightRange += c.sightRange;
 		hearRange += c.hearRange;
+		turnRate += c.turnRate;
+		visionAngle += visionAngle;
 		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
 		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
 	}
@@ -76,15 +82,17 @@ public class MobStatsCard {
 				(isBonusCard ? "bonus" : "normal") + 
 				" card!");
 		// apply by multiplication
-		maxHP *= 1f + c.maxHP;
 		maxSpeed *= 1f + c.maxSpeed;
 		maxPickupRange *= 1f + c.maxPickupRange;
 		memoryTime *= 1f + c.memoryTime;
 		sightRange *= 1f + c.sightRange;
 		hearRange *= 1f + c.hearRange;
 		// apply by addition
+		maxHP += c.maxHP;
 		inventorySize += c.inventorySize;
 		quickSlotCount += c.quickSlotCount;
+		turnRate += c.turnRate;
+		visionAngle += visionAngle;
 		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
 		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
 	}
@@ -101,9 +109,27 @@ public class MobStatsCard {
 		ans.memoryTime = memoryTime;
 		ans.sightRange = sightRange;
 		ans.hearRange = hearRange;
+		ans.turnRate = turnRate;
+		ans.visionAngle = visionAngle;
 		System.arraycopy(resistances, 0, ans.resistances, 0, Damage.DAMAGE_TYPE_COUNT);
 		System.arraycopy(ammoSlotSizes, 0, ans.ammoSlotSizes, 0, Weapon.AMMO_TYPE_COUNT);
 		return ans;
+	}
+
+	public float getTurnRate() {
+		return turnRate;
+	}
+
+	public void setTurnRate(float turnRate) {
+		this.turnRate = turnRate;
+	}
+
+	public float getVisionAngle() {
+		return visionAngle;
+	}
+
+	public void setVisionAngle(float visionAngle) {
+		this.visionAngle = visionAngle;
 	}
 
 	public int getResistance(int damageType) {
@@ -155,7 +181,7 @@ public class MobStatsCard {
 	}
 
 	public int getMaxHP() {
-		return Math.round(maxHP);
+		return maxHP;
 	}
 
 	public void setMaxHP(int maxHP) {
