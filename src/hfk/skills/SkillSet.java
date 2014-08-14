@@ -27,6 +27,7 @@ public class SkillSet implements StatsModifier {
 	private int superCount = 0, superMax = 1, levelCount = 0;
 	private final Mob parent;
 	private final LinkedList<Skill> skills = new LinkedList<>();
+	private int totalXpSpent = 0;
 	
 	// special skills (need special handling)
 	private Skill pistolVel, pistolAuto;
@@ -119,6 +120,14 @@ public class SkillSet implements StatsModifier {
 	public int size(){
 		return skills.size();
 	}
+
+	public int getTotalXpSpent() {
+		return totalXpSpent;
+	}
+	
+	public int getSkillLearnedCount() {
+		return levelCount;
+	}
 	
 	public boolean canAddSuperSkill(){
 		return superCount < superMax;
@@ -138,8 +147,13 @@ public class SkillSet implements StatsModifier {
 			superCount++;
 			if(superCount > superMax) throw new RuntimeException("super skill limit exceeded");
 		}
+		totalXpSpent = 0;
 		levelCount = 0;
-		for(Skill s : skills) levelCount += s.getLevel();
+		for(Skill s : skills){
+			int l = s.getLevel();
+			levelCount += l;
+			for(int i=0; i<l; i++) totalXpSpent += s.costs[i];
+		}
 	}
 	
 	public LinkedList<Skill> getSkillList(){

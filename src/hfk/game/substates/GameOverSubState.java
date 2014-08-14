@@ -6,6 +6,7 @@
 
 package hfk.game.substates;
 
+import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
@@ -47,18 +48,35 @@ public class GameOverSubState extends GameSubState {
 	public void render(GameController ctrl, GameRenderer r, GameContainer gc) throws SlickException {
 		mb.render();
 		int w = gc.getWidth(), h = gc.getHeight();
+		int y = h/2 - 100;
 		String s = "game over";
 		int scale = 4;
-		int tw = r.getStringWidth(s);
-		int th = r.getStringHeight(s) + 4;
-		r.drawStringOnScreen(s, (w-tw*scale)/2, (h-th*scale)/2-th*scale, Color.yellow, scale);
-		s = "space : retry";
+		PointI size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
 		scale = 2;
-		tw = r.getStringWidth(s);
-		r.drawStringOnScreen(s, (w-tw*scale)/2, (h-th*scale)/2, Color.yellow, scale);
+
+		s = "-------------------------------";
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		s = "level reached: " + ctrl.getLevelCount();
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		s = "xp gathered: " + (ctrl.player.xp + ctrl.player.skills.getTotalXpSpent());
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		s = "skills learned: " + ctrl.player.skills.getSkillLearnedCount();
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		s = "-------------------------------";
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
+		
+		s = "space : retry";
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
 		s = "q : quit";
-		tw = r.getStringWidth(s);
-		r.drawStringOnScreen(s, (w-tw*scale)/2, (h-th*scale)/2+th*scale, Color.yellow, scale);
+		size = r.getStringSize(s);
+		r.drawStringOnScreen(s, (w-size.x*scale)/2, y, Color.yellow, scale); y += size.y * scale + 4;
 	}
 
 }

@@ -202,6 +202,10 @@ public class GameRenderer {
 		return font.getHeight(string)-1;
 	}
 	
+	public PointI getStringSize(String s){
+		return new PointI(getStringWidth(s), getStringHeight(s));
+	}
+	
 	public String[] wordWrapString(String s, int maxWidth){
 		if(s.contains("\n")){
 			String[] parts = s.split("\n");
