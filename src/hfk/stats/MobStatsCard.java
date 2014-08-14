@@ -40,7 +40,7 @@ public class MobStatsCard {
 		ans.inventorySize = 10;
 		ans.quickSlotCount = 2;
 		ans.memoryTime = 5000;
-		ans.visionAngle = (float)Math.PI / 4f;
+		ans.visionAngle = 90f;
 		ans.turnRate = (float)Math.PI * 2f;
 		return ans;
 	}
@@ -69,7 +69,7 @@ public class MobStatsCard {
 		sightRange += c.sightRange;
 		hearRange += c.hearRange;
 		turnRate += c.turnRate;
-		visionAngle += visionAngle;
+		visionAngle += c.visionAngle;
 		for(int i=0; i<resistances.length; i++) resistances[i] += c.resistances[i];
 		for(int i=0; i<ammoSlotSizes.length; i++) ammoSlotSizes[i] += c.ammoSlotSizes[i];
 	}
@@ -125,7 +125,7 @@ public class MobStatsCard {
 	}
 
 	public float getVisionAngle() {
-		return visionAngle;
+		return visionAngle / 180f * (float)Math.PI;
 	}
 
 	public void setVisionAngle(float visionAngle) {
