@@ -9,10 +9,6 @@ import hfk.PointF;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.Resources;
-import hfk.items.weapons.EnergyPistol;
-import hfk.items.weapons.Pistol;
-import hfk.items.weapons.PlasmaMachinegun;
-import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.Weapon;
 import hfk.skills.Skill;
 import hfk.stats.Damage;
@@ -114,7 +110,7 @@ public class Grunt extends Mob {
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
 		c.setAmmoSlotSize(Weapon.AmmoType.grenade.ordinal(), 20);
-		c.setMaxHP(150);
+		c.setMaxHP(300);
 		c.setSightRange(4.6f);
 		c.setMaxSpeed(0.5f);
 		c.setResistance(Damage.DamageType.physical.ordinal(), 4);
