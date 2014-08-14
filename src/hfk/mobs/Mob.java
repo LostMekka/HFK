@@ -33,7 +33,7 @@ public abstract class Mob implements StatsModifier {
 
 	//stuff that can be set by extending classes
 	public PointF pos;
-	public boolean showCollisionDebug = true;
+	public boolean showCollisionDebug = false;
 	public boolean showPathDebug = false;
 	
 	public int xp = 0;

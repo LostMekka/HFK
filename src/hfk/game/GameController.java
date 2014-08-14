@@ -55,7 +55,7 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class GameController {
 	
-	public static final String VERSION = "0.0.13";
+	public static final String VERSION = "0.1.1";
 	
 	public static final float SQRT2 = (float)Math.sqrt(2);
 	public static final Random random = new Random();
