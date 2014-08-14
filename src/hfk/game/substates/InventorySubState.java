@@ -145,8 +145,8 @@ public class InventorySubState extends GameSubState{
 	private void updateGearWindow(int mx, int my, InputMap in, GameController ctrl){
 		// test for weapon selection
 		selectedGear = null;
-		if(mx >= GEAR_TAB && my >= GEAR_HEADLINE_HEIGHT){
-			int i = (my - GEAR_HEADLINE_HEIGHT) / INV_LINE_HEIGHT;
+		if(mx >= GEAR_TAB && my >= 2*GEAR_HEADLINE_HEIGHT){
+			int i = (my - 2*GEAR_HEADLINE_HEIGHT) / INV_LINE_HEIGHT;
 			if(i < inventory.getQuickSlotCount()) selectedGear = inventory.getQuickslot(i);
 			if(selectedGear != null){
 				if(in.isMouseDown(InputMap.A_INV_USE)) inventory.unequipWeapon(i);
