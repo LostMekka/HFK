@@ -202,6 +202,7 @@ public class GameplaySubState extends GameSubState{
 			r.getGraphics().setColor(new Color(1f, 1f, 1f, 0.4f));
 			r.getGraphics().drawOval(pp.x-rad, pp.y-rad, 2*rad, 2*rad);
 			for(InventoryItem i : ctrl.items){
+				if(!ctrl.scoutedTiles.contains(i.pos.round())) continue;
 				int hl = 0;
 				if(i.pos.squaredDistanceTo(ctrl.player.pos) <= ctrl.player.totalStats.getMaxPickupRange()) hl++;
 				if(i == selectedLoot) hl++;
