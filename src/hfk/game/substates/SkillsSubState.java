@@ -164,7 +164,8 @@ public class SkillsSubState extends GameSubState {
 		int w = r.getStringWidth(str);
 		r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
 		int ssc = set.getSuperSkillCount(), ssm = set.getSuperSkillMax();
-		r.drawStringOnScreen("" + ssc + "/" + ssm, x+w, y, ssc<ssm ? Color.green : Color.red, 1f); y += 2*DESC_LINE_HEIGHT;
+		r.drawStringOnScreen("" + ssc + "/" + ssm, x+w, y, ssc<ssm ? Color.green : Color.red, 1f); y += DESC_LINE_HEIGHT;
+		r.drawStringOnScreen("xp available: " + set.getParent().xp, x, y, Color.green, 1f); y += 2*DESC_LINE_HEIGHT;
 		
 		if(selectedSkill == null){
 			String[] sa = r.wordWrapString("hover over a skill to see a detailed description.", mbDescr.getInsideWidth());
