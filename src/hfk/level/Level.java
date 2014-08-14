@@ -44,6 +44,9 @@ public class Level implements NetStateObject{
 				this.w = b.w;
 				this.h = b.h;
 			}
+			public PointI getRandomPoint(){
+				return new PointI(GameController.random.nextInt(h)+x, GameController.random.nextInt(h)+y);
+			}
 		}
 		private static boolean boxesTouch(Box b1, Box b2){
 			return	b1.x+b1.w >= b2.x && 
@@ -59,19 +62,20 @@ public class Level implements NetStateObject{
 			generateBorder(l, new Box(0, 0, sx+2*border, sy+2*border), border);
 			int min = ran.nextInt(10)+3;
 			int max = ran.nextInt(20)+10;
-			generateRoomLevel(l, new Box(border, border, sx, sy), min, max, min, max);
+			Box inside = new Box(border, border, sx, sy);
+			generateRoomLevel(l, inside, min, max, min, max);
 			
-			LinkedList<PointI> ex = addItems(itemScore, l);
-			PointI stairsPos = l.getNextFreeField(PointI.random(sx, sy), ex);
+			LinkedList<PointI> ex = addItems(l, inside, itemScore);
+			PointI stairsPos = l.getNextFreeField(inside.getRandomPoint(), ex);
 			ex.add(stairsPos);
 			l.items.add(new Stairs(stairsPos));
 			
-			PointI plp = l.getNextFreeField(PointI.random(sx, sy), null);
+			PointI plp = l.getNextFreeField(inside.getRandomPoint(), null);
 			ex.add(plp);
 			ctrl.player.pos = plp.toFloat();
 			
-			addMobs(difficulty, ctrl.player.pos.round(), l, 8f);
-			l.defaultTile = new Tile(new PointI(0, 0), Tile.TileType.blueWall);
+			addMobs(l, inside, difficulty, ctrl.player.pos.round(), 8f);
+			l.defaultTile = new Tile(new PointI(), Tile.TileType.blueWall);
 			return l;
 		}
 		private static void generateBorder(Level l, Box b, int border){
@@ -204,7 +208,7 @@ public class Level implements NetStateObject{
 				}
 			}
 		}
-		private static void addMobs(int diff, PointI plp, Level l, float minMobDistance){
+		private static void addMobs(Level l, Box box, int diff, PointI plp, float minMobDistance){
 //			System.out.println("\n--- level ----------------");
 			GameController ctrl = GameController.get();
 			LinkedList<PointI> ex = new LinkedList<>();
@@ -221,7 +225,7 @@ public class Level implements NetStateObject{
 			for(;;){
 				if(mc >= stack){
 					mc = 0;
-					p = PointI.random(l.getWidth(), l.getHeight());
+					p = box.getRandomPoint();
 					stack = ran.nextInt(ran.nextInt(ran.nextInt(12)+1)+1);
 				}
 				m = Mob.createMob(new PointF(), Math.min(d, Math.round(diff/6f)), ctrl.getLevelCount());
@@ -236,7 +240,7 @@ public class Level implements NetStateObject{
 				ctrl.mobs.add(m);
 			}
 		}
-		private static LinkedList<PointI> addItems(int rar, Level l){
+		private static LinkedList<PointI> addItems(Level l, Box box, int rar){
 			GameController ctrl = GameController.get();
 			LinkedList<PointI> ex = new LinkedList<>();
 			InventoryItem i;
@@ -245,7 +249,7 @@ public class Level implements NetStateObject{
 			for(;;){
 				if(mc >= stack){
 					mc = 0;
-					p = PointI.random(l.getWidth(), l.getHeight());
+					p = box.getRandomPoint();
 					stack = ran.nextInt(ran.nextInt(8)+1);
 				}
 				i = InventoryItem.create(new PointF(), r);
