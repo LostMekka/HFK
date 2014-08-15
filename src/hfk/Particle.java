@@ -22,15 +22,18 @@ public class Particle {
 	private final float size, acc = -0.1f;
 
 	public Particle(Image img, int border, PointF pos, float r) {
+		this(img, border, pos, GameController.random.nextFloat() * 2f * (float)Math.PI, r);
+	}
+
+	public Particle(Image img, int border, PointF pos, float dir, float r) {
 		setImg(img, border);
 		this.pos = pos.clone();
 		rotation = GameController.random.nextFloat() * 2f * (float)Math.PI;
-		float a = GameController.random.nextFloat() * 2f * (float)Math.PI;
 		r *= GameController.random.nextFloat();
-		pos.x += r * Math.cos(a);
-		pos.y += r * Math.sin(a);
-		vel = new PointF(a);
-		vel.multiply(GameController.random.nextFloat() * 5f + 1f);
+		pos.x += r * Math.cos(dir);
+		pos.y += r * Math.sin(dir);
+		vel = new PointF(dir);
+		vel.multiply(GameController.random.nextFloat() * 6f + 0.5f);
 		size = Math.max(img.getWidth(), img.getHeight()) / GameController.SPRITE_SIZE;
 	}
 

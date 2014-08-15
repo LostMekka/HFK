@@ -108,7 +108,7 @@ public class Shot {
 		GameController ctrl = GameController.get();
 		ctrl.shotsToRemove.add(this);
 		if(hitSound != null) ctrl.playSoundAt(hitSound, pos);
-		ctrl.level.damageTile(tilePos, dmg.calcFinalDamage());
+		ctrl.level.damageTile(tilePos, dmg.calcFinalDamage(), pos.clone());
 	}
 	
 	public boolean onCollideWithMob(Mob m){
@@ -143,7 +143,7 @@ public class Shot {
 			PointF bounceAns = vel.bounce(corr, 0.4f);
 			angle += bounceAns.y;
 			if(!isGrenade && manualDetonateLevel <= 0){
-				ctrl.level.damageTile(tilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()));
+				ctrl.level.damageTile(tilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()), pos.clone());
 			}
 			bounceCount--;
 			if(bounceSound != null) ctrl.playSoundAt(bounceSound, pos);

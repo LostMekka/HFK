@@ -445,7 +445,7 @@ public class GameController {
 				float d = Math.max(0f, p.DistanceTo(pi.toFloat()) - 0.5f);
 				if(d >= 1) continue;
 				int dmg = getAreaDamage(r, d, normalDmg);
-				level.damageTile(pi, dmg);
+				level.damageTile(pi, dmg, s.pos.clone());
 			}
 		}
 		for(InventoryItem i : items){
@@ -469,14 +469,27 @@ public class GameController {
 		}
 	}
 	
-	public void createDebris(PointF pos, Image i, int border){
-		createDebris(pos, i, border, 3, 8);
+	public void createDebris(PointF pos, Image i, int border, float r){
+		createDebris(pos, i, border, 3, 8, r);
 	}
 	
-	public void createDebris(PointF pos, Image origImage, int border, int min, int max){
-		int n = GameController.random.nextInt(5) + 4;
+	public void createDebris(PointF pos, Image origImage, int border, int min, int max, float r){
+		int n = min;
+		if(max > min) n += GameController.random.nextInt(max - min);
 		for(int i=0; i<n; i++){
-			Particle p = new Particle(origImage, border, pos, 0.4f);
+			Particle p = new Particle(origImage, border, pos, r);
+			//p.lifeTime = 40000 + random.nextInt(20000);
+			GameController.get().particles.add(p);
+		}
+	}
+	
+	public void createDebris(PointF pos, float dir, Image origImage, int border, int min, int max, float r){
+		int n = min;
+		if(max > min) n += GameController.random.nextInt(max - min);
+		for(int i=0; i<n; i++){
+			Particle p = new Particle(origImage, border, pos, r);
+			
+			//p.lifeTime = 40000 + random.nextInt(20000);
 			GameController.get().particles.add(p);
 		}
 	}

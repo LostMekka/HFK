@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
+import org.newdawn.slick.Image;
 
 /**
  *
@@ -91,6 +92,7 @@ public class Level implements NetStateObject{
 			}
 		}
 		private static void generateRoomLevel(Level l, Box b, int minW, int maxW, int minH, int maxH){
+			// split every box into sub boxes until they are small enough
 			LinkedList<Box> roomsToSplit = new LinkedList<>();
 			LinkedList<Box> finalRooms = new LinkedList<>();
 			roomsToSplit.add(new Box(b));
@@ -120,16 +122,20 @@ public class Level implements NetStateObject{
 					roomsToSplit.add(r2);
 				}
 			}
+			// fill everything with walls
 			for(int x=b.x; x<b.x+b.w; x++){
 				for(int y=b.y; y<b.y+b.h; y++){
 					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueWall : Tile.TileType.blueWallB;
 					l.tiles[x][y] = new Tile(new PointI(x, y), t);
 				}
 			}
+			// generate rooms
 			for(Box b1 : finalRooms){
 				if(b1.w * b1.h > 40){
+					// box level generator will clear the room for us
 					generateBoxLevel(l, b1, 2, 3, 2, 3, 0.04f);
 				} else {
+					// do not generate boxes. clear room instead
 					for(int x=b1.x; x<b1.x+b1.w; x++){
 						for(int y=b1.y; y<b1.y+b1.h; y++){
 							Tile.TileType t = ran.nextFloat()>0.4 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
@@ -138,6 +144,7 @@ public class Level implements NetStateObject{
 					}
 				}
 			}
+			// create doors
 			int n = finalRooms.size();
 			for(int i1=0; i1<n; i1++){
 				Box r1 = finalRooms.get(i1);
@@ -172,7 +179,16 @@ public class Level implements NetStateObject{
 			}
 		}
 		private static void generateBoxLevel(Level l, Box b, int minW, int maxW, int minH, int maxH, float rate){
+			// clear area
+			for(int x=b.x; x<b.x+b.w; x++){
+				for(int y=b.y; y<b.y+b.h; y++){
+					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
+					l.tiles[x][y] = new Tile(new PointI(x, y), t);
+				}
+			}
+			// do the boxes fit?
 			if(minW > b.w-2 || minH > b.h-2) return; // boxes do not fit!
+			// create boxes
 			LinkedList<Box> bl = new LinkedList<>();
 			for(int i=0; i<b.w*b.h*rate; i++){
 				Box b1 = new Box();
@@ -187,12 +203,7 @@ public class Level implements NetStateObject{
 				}
 				if(!touch) bl.add(b1);
 			}
-			for(int x=b.x; x<b.x+b.w; x++){
-				for(int y=b.y; y<b.y+b.h; y++){
-					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
-					l.tiles[x][y] = new Tile(new PointI(x, y), t);
-				}
-			}
+			// fill boxes
 			for(Box b1 : bl){
 				Tile.TileType t = null;
 				switch(ran.nextInt(4)){
@@ -318,14 +329,16 @@ public class Level implements NetStateObject{
 		return p.x >= 0 && p.x < getWidth() && p.y >= 0 && p.y < getHeight();
 	}
 	
-	public void damageTile(PointI pos, int dmg){
+	public void damageTile(PointI pos, int dmg, PointF shotPos){
 		if(!isInLevel(pos)) return;
 		if(tiles[pos.x][pos.y].isWall()){
 			Tile t = tiles[pos.x][pos.y].damage(dmg);
 			if(tiles[pos.x][pos.y] != t){
-				GameController.get().createDebris(pos.toFloat(), tiles[pos.x][pos.y].getImage(), 1);
+				GameController.get().createDebris(pos.toFloat(), tiles[pos.x][pos.y].getImage(), 1, 0.5f);
 				GameController.get().recalcVisibleTiles = true;
 				tiles[pos.x][pos.y] = t;
+			} else {
+				addDebrisFromDamage(pos, shotPos, dmg, 2, tiles[pos.x][pos.y].getImage());
 			}
 		} else {
 			ListIterator<UsableLevelItem> itemIter = items.listIterator();
@@ -334,12 +347,60 @@ public class Level implements NetStateObject{
 				if(i.pos.equals(pos)){
 					if(i.damage(dmg)){
 						itemIter.remove();
-						GameController.get().createDebris(pos.toFloat(), i.img, 4);
+						GameController.get().createDebris(pos.toFloat(), i.img, 4, 0.5f);
 						GameController.get().recalcVisibleTiles = true;
+					} else {
+						addDebrisFromDamage(pos, shotPos, dmg, 4, i.img);
 					}
 				}
 			}
 		}
+	}
+	private static final float DEBRIS_POINT_DISTANCE = 0.52f;
+	private void addDebrisFromDamage(PointI pos, PointF shotPos, int dmg, int border, Image img){
+		int n = getDebrisCountOnDamage(dmg);
+		if(n <= 0) return;
+		PointF diff = shotPos;
+		diff.subtract(pos.toFloat());
+		PointF p = diff.clone();
+		Float dir;
+		float pi = (float)Math.PI;
+		float sdx = Math.signum(diff.x);
+		float sdy = Math.signum(diff.y);
+		if(Math.abs(diff.x) > Math.abs(diff.y)){
+			p.x = DEBRIS_POINT_DISTANCE * sdx;
+			p.y = p.x * diff.y / diff.x;
+			dir = GameController.random.nextFloat() * pi*0.6f + pi*0.2f - sdx * pi/2f;
+		} else if(Math.abs(diff.x) < Math.abs(diff.y)){
+			p.y = DEBRIS_POINT_DISTANCE * sdy;
+			p.x = p.y * diff.x / diff.y;
+			dir = GameController.random.nextFloat() * pi*0.6f + pi*0.2f + (sdx+1) / 2f * pi;
+		} else {
+			p.x = DEBRIS_POINT_DISTANCE * sdx;
+			p.y = DEBRIS_POINT_DISTANCE * sdy;
+			if(diff.x == 0f){
+				dir = null;
+			} else {
+				dir = GameController.random.nextFloat() * pi;
+				dir += pi/4f * sdx * sdy;
+				dir -= (sdy+1) / 2f * pi/2f * sdx;
+			}
+		}
+		p.add(pos.toFloat());
+		if(dir == null){
+			GameController.get().createDebris(p, img, border, n, n, 0f);
+		} else {
+			GameController.get().createDebris(p, (float)dir, img, border, n, n, 0f);
+		}
+	}
+	private int getDebrisCountOnDamage(int dmg){
+		int n = 0;
+		float f = 7f;
+		for(int i=0; i<10; i++){
+			if(GameController.random.nextFloat() * dmg > f) n++;
+			f *= 1.8f;
+		}
+		return n;
 	}
 	
 	public boolean isWall(int x, int y){
