@@ -60,6 +60,7 @@ public class GameController {
 	public static final float SQRT2 = (float)Math.sqrt(2);
 	public static final Random random = new Random();
 	public static final float SPRITE_SIZE = 32f;
+	public static final float EXPLODE_SHAKE_MULTIPLIER = 0.2f;
 	
 	private static GameController currGC = null;
 	
@@ -74,14 +75,18 @@ public class GameController {
 		if(gc.musicIsOn && gc.music != null) gc.startMusic();
 	}
 	
-	public final LinkedList<Explosion> explosions = new LinkedList<>(), explosionsToRemove = new LinkedList<>();
-	public final LinkedList<Shot> shots = new LinkedList<>(), shotsToRemove = new LinkedList<>();
-	public final LinkedList<Mob> mobs = new LinkedList<>(), mobsToRemove = new LinkedList<>();
-	public final LinkedList<InventoryItem> items = new LinkedList<>(), itemsToRemove = new LinkedList<>();
+	public final LinkedList<Explosion> explosions = new LinkedList<>();
+	public final LinkedList<Shot> shots = new LinkedList<>();
+	public final LinkedList<Mob> mobs = new LinkedList<>();
+	public final LinkedList<InventoryItem> items = new LinkedList<>();
 	public final LinkedList<IngameText> texts = new LinkedList<>();
 	public final LinkedList<Particle> particles = new LinkedList<>();
 	public final LinkedList<PointI> visibleTiles = new LinkedList<>();
 	public final LinkedList<PointI> scoutedTiles = new LinkedList<>();
+	private final LinkedList<Explosion> explosionsToRemove = new LinkedList<>();
+	private final LinkedList<Shot> shotsToRemove = new LinkedList<>();
+	private final LinkedList<Mob> mobsToRemove = new LinkedList<>();
+	private final LinkedList<InventoryItem> itemsToRemove = new LinkedList<>();
 
 	public GameOverSubState gameOverState;
 	public GameplaySubState gameplaySubState;
@@ -417,6 +422,13 @@ public class GameController {
 		texts.add(t);
 	}
 	
+	public void addExplosion(PointF pos, Damage d, Shot shot, Sound sound){
+		explosions.add(new Explosion(pos, d.getAreaRadius()));
+		dealAreaDamage(pos, d, shot);
+		cameraShake(EXPLODE_SHAKE_MULTIPLIER * d.getAreaRadius());
+		if(sound != null) playSoundAt(sound, pos);
+	}
+	
 	private int getAreaDamage(float r, float d, int dmg){
 		// ratio : x = 1 - d/r
 		// quadratic function: y = 1 - (x - 1)^2
@@ -445,7 +457,7 @@ public class GameController {
 				float d = Math.max(0f, p.DistanceTo(pi.toFloat()) - 0.5f);
 				if(d >= 1) continue;
 				int dmg = getAreaDamage(r, d, normalDmg);
-				level.damageTile(pi, dmg, s.pos.clone());
+				level.damageTile(pi, dmg, s == null ? p : s.pos);
 			}
 		}
 		for(InventoryItem i : items){
@@ -507,6 +519,38 @@ public class GameController {
 		}
 	}
 	
+	public void requestDeleteMob(Mob m) {
+		mobsToRemove.add(m);
+	}
+	
+	public void requestDeleteShot(Shot s) {
+		shotsToRemove.add(s);
+	}
+	
+	public void requestDeleteExplosion(Explosion e) {
+		explosionsToRemove.add(e);
+	}
+	
+	public void requestDeleteItem(InventoryItem i) {
+		itemsToRemove.add(i);
+	}
+	
+	public boolean isMarkedForRemoval(Mob m){
+		return mobsToRemove.contains(m);
+	}
+	
+	public boolean isMarkedForRemoval(Shot s){
+		return shotsToRemove.contains(s);
+	}
+	
+	public boolean isMarkedForRemoval(Explosion e){
+		return explosionsToRemove.contains(e);
+	}
+	
+	public boolean isMarkedForRemoval(InventoryItem i){
+		return itemsToRemove.contains(i);
+	}
+	
 	public void update(GameContainer gc, StateBasedGame sbg, int time) throws SlickException{
 //		if(inputMap.isKeyPressed(InputMap.A_CLOSE_INVENTORY)) nextLevel();
 		timeStamp += time;
@@ -515,6 +559,7 @@ public class GameController {
 		// update of states
 		if(!isPaused()) omniSubState.update(this, gc, sbg, time);
 		currSubState.update(this, gc, sbg, time);
+		level.update(time);
 		// remove marked stuff
 		mobs.removeAll(mobsToRemove);
 		shots.removeAll(shotsToRemove);

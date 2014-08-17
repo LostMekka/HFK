@@ -32,6 +32,7 @@ public class Resources {
 		"e_scout.png",
 		"e_grunt.png",
 		"door.png",
+		"barrel.png",
 		"ex_001.png",
 	};
 	private static final String[] imageNames = {

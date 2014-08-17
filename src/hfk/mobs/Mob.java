@@ -31,11 +31,12 @@ import org.newdawn.slick.Sound;
  */
 public abstract class Mob implements StatsModifier {
 
+	public static final boolean showCollisionDebug = false;
+	public static final boolean showPathDebug = false;
+	public static final boolean debugBlind = false;
+	
 	//stuff that can be set by extending classes
 	public PointF pos;
-	public boolean showCollisionDebug = false;
-	public boolean showPathDebug = false;
-	
 	public int xp = 0;
 	public SkillSet skills = new SkillSet(this);
 	
@@ -57,7 +58,8 @@ public abstract class Mob implements StatsModifier {
 	public int barrageTimeOnLost = 0;
 	public int barrageTimeOnNotify = 0;
 	public int timeToFeelSafe = 15000;
-	public int pathLength = 5;
+	public int minPathLength = 2;
+	public int maxPathLength = 7;
 	public float size = 0.8f;
 	public Animation animation = null;
 	public Sound hitSound = null, deathSound = null, alertSound = null;
@@ -204,7 +206,6 @@ public abstract class Mob implements StatsModifier {
 		if(barrageTimeOnNotify > 0) startBarrage(null, barrageTimeOnNotify);
 		if(autoFollowPlayerOnNotify){
 			path = GameController.get().level.getPathTo(this.pos, playerPos, 20, true);
-			path.removeFirst();
 		}
 	}
 	
@@ -263,7 +264,7 @@ public abstract class Mob implements StatsModifier {
 		if(this instanceof Player) return;
 		float angleToPlayer = pos.angleTo(ctrl.player.pos);
 		boolean playerWasVisible = playerVisible;
-		playerVisible = ctrl.playerIsAlive() && 
+		playerVisible = !debugBlind && ctrl.playerIsAlive() && 
 				Math.abs(GameController.getAngleDiff(lookAngle, angleToPlayer)) <= totalStats.getVisionAngle()/2f &&
 				ctrl.level.isVisibleFrom(this, ctrl.player, totalStats.getSightRange());
 		if(playerVisible){
@@ -286,7 +287,6 @@ public abstract class Mob implements StatsModifier {
 			if(lastPlayerTime == 0){
 				if(autoFollowPlayer){
 					path = ctrl.level.getPathTo(pos, lastPlayerPos, 30, true);
-					path.removeFirst();
 					startBarrage(null, barrageTimeOnLost);
 				}
 				mobOnLostSightOfPlayer(lastPlayerPos);
@@ -322,12 +322,18 @@ public abstract class Mob implements StatsModifier {
 		// move
 		if((moveWhileShooting || (barrageTimer <= 0 && (w == null || w.isReady()))) && 
 			 (moveWhilePlayerVisible || !playerVisible || lastPlayerPos.squaredDistanceTo(pos) < minDistanceToPlayer*minDistanceToPlayer)){
-			if(autoSetPath && path.isEmpty()) path = ctrl.level.getRandomPath(pos, pathLength, true);
+			if(autoSetPath && path.isEmpty()) createNewRandomPath();
 			if(autoFollowPath && !path.isEmpty()){
 				if(goInDirectionOf(path.getFirst(), time)) path.removeFirst();
 			}
 		}
 		mobUpdate(time, playerVisible);
+	}
+	
+	public void createNewRandomPath(){
+		int n = minPathLength;
+		if(maxPathLength > minPathLength) n += GameController.random.nextInt(maxPathLength - minPathLength);
+		path = GameController.get().level.getRandomPath(pos, n, true);
 	}
 	
 	public boolean goInDirectionOf(PointF target, int time){

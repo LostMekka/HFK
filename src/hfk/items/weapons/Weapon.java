@@ -337,7 +337,7 @@ public abstract class Weapon extends InventoryItem {
 		if(type == WeaponType.grenadeLauncher){
 			boolean foundLevel2Shot = false;
 			for(Shot shot : GameController.get().shots){
-				if(!GameController.get().shotsToRemove.contains(shot) && shot.parent == this){
+				if(!GameController.get().isMarkedForRemoval(shot) && shot.parent == this){
 					if(shot.manualDetonateLevel == 1) shot.hit();
 					if(shot.manualDetonateLevel == 2 && ! foundLevel2Shot){
 						shot.hit();

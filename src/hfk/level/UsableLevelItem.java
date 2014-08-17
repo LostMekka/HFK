@@ -59,7 +59,7 @@ public abstract class UsableLevelItem implements NetStateObject{
 		return false;
 	}
 	
-	public void update(GameplayState gs, int time){}
+	public void update(int time){}
 
 	@Override
 	public long getID() {

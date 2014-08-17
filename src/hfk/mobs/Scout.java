@@ -69,7 +69,6 @@ public class Scout extends Mob {
 		notifyMode = true;
 		playerPos = p;
 		path = GameController.get().level.getPathAwayFrom(pos, p, 8, true);
-		path.removeFirst();
 	}
 
 	@Override
@@ -93,8 +92,7 @@ public class Scout extends Mob {
 			if(notifyMode){
 				flee(playerPos, false);
 			} else {
-				path = GameController.get().level.getRandomPath(pos, pathLength, true);
-				path.removeFirst();
+				createNewRandomPath();
 			}
 		}
 	}

@@ -10,14 +10,12 @@ import hfk.Explosion;
 import hfk.IngameText;
 import hfk.Particle;
 import hfk.PointF;
-import hfk.PointI;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
 import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
-import java.util.LinkedList;
 import java.util.ListIterator;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -68,17 +66,17 @@ public class OmniSubState extends GameSubState {
 			}
 			i1.labelPos.add(corr);
 		}
-		for(Mob m : ctrl.mobs) if(!ctrl.mobsToRemove.contains(m)) m.update(time);
-		for(Explosion e : ctrl.explosions) if(!ctrl.explosionsToRemove.contains(e)) e.update(time);
+		for(Mob m : ctrl.mobs) if(!ctrl.isMarkedForRemoval(m)) m.update(time);
+		for(Explosion e : ctrl.explosions) if(!ctrl.isMarkedForRemoval(e)) e.update(time);
 		
-		for(Shot s : ctrl.shots) if(!ctrl.shotsToRemove.contains(s)){
+		for(Shot s : ctrl.shots) if(!ctrl.isMarkedForRemoval(s)){
 			s.update(time);
 			PointF corr = ctrl.level.doCollision(s.pos, s.size);
 			if(!corr.isZero()){
 				s.onCollideWithLevel(corr);
 				continue;
 			}
-			for(Mob m : ctrl.mobs) if(!ctrl.mobsToRemove.contains(m)){
+			for(Mob m : ctrl.mobs) if(!ctrl.isMarkedForRemoval(m)){
 				if(m.pos.squaredDistanceTo(s.pos) <= (m.size + s.size) / 2f){
 					if(s.onCollideWithMob(m)) break;
 				}

@@ -9,6 +9,7 @@ package hfk.level;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
+import hfk.game.slickstates.GameplayState;
 import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
 import hfk.net.NetState;
@@ -66,16 +67,19 @@ public class Level implements NetStateObject{
 			Box inside = new Box(border, border, sx, sy);
 			generateRoomLevel(l, inside, min, max, min, max);
 			
-			LinkedList<PointI> ex = addItems(l, inside, itemScore);
+			LinkedList<PointI> ex = new LinkedList<>();
+			PointI plp = l.getNextFreeField(inside.getRandomPoint(), null);
+			ex.add(plp);
+			ctrl.player.pos = plp.toFloat();
 			PointI stairsPos = l.getNextFreeField(inside.getRandomPoint(), ex);
 			ex.add(stairsPos);
 			l.items.add(new Stairs(stairsPos));
 			
-			PointI plp = l.getNextFreeField(inside.getRandomPoint(), null);
-			ex.add(plp);
-			ctrl.player.pos = plp.toFloat();
+			addMobs(l, inside, difficulty, ctrl.player.pos.round(), 8f, ex);
+			addItems(l, inside, itemScore, ex);
+			float barr = GameController.random.nextFloat() * GameController.random.nextFloat();
+			addBarrels(l, inside, (int)(sx * sy * 0.08f * barr), ex);
 			
-			addMobs(l, inside, difficulty, ctrl.player.pos.round(), 8f);
 			l.defaultTile = new Tile(new PointI(), Tile.TileType.blueWall);
 			return l;
 		}
@@ -219,15 +223,16 @@ public class Level implements NetStateObject{
 				}
 			}
 		}
-		private static void addMobs(Level l, Box box, int diff, PointI plp, float minMobDistance){
+		private static void addMobs(Level l, Box box, int diff, PointI plp, float minMobDistance, LinkedList<PointI> ex){
 //			System.out.println("\n--- level ----------------");
 			GameController ctrl = GameController.get();
-			LinkedList<PointI> ex = new LinkedList<>();
 			PointF plpF = plp.toFloat();
+			LinkedList<PointI> ex2 = new LinkedList<>();
+			ex2.addAll(ex);
 			for(int x=0; x<l.getWidth(); x++){
 				for(int y=0; y<l.getHeight(); y++){
 					PointF p = new PointF(x, y);
-					if(p.squaredDistanceTo(plpF) <= minMobDistance*minMobDistance) ex.add(p.round());
+					if(p.squaredDistanceTo(plpF) <= minMobDistance*minMobDistance) ex2.add(p.round());
 				}
 			}
 			Mob m;
@@ -237,23 +242,23 @@ public class Level implements NetStateObject{
 				if(mc >= stack){
 					mc = 0;
 					p = box.getRandomPoint();
-					stack = ran.nextInt(ran.nextInt(ran.nextInt(12)+1)+1);
+					stack = ran.nextInt(ran.nextInt(ran.nextInt(10)+1)+1);
 				}
 				m = Mob.createMob(new PointF(), Math.min(d, Math.round(diff/6f)), ctrl.getLevelCount());
 				if(m == null) break;
 //				System.out.println("   mob: " + m.getDisplayName());
 				mc++;
 				d -= m.getDifficultyScore();
-				PointI p2 = l.getNextFreeField(p, ex);
+				PointI p2 = l.getNextFreeField(p, ex2);
 				if(p2 == null) break;
 				m.pos = p2.toFloat();
 				ex.add(p2);
+				ex2.add(p2);
 				ctrl.mobs.add(m);
 			}
 		}
-		private static LinkedList<PointI> addItems(Level l, Box box, int rar){
+		private static void addItems(Level l, Box box, int rar, LinkedList<PointI> ex){
 			GameController ctrl = GameController.get();
-			LinkedList<PointI> ex = new LinkedList<>();
 			InventoryItem i;
 			int r = rar, mc = Integer.MAX_VALUE, stack = 0;
 			PointI p = null;
@@ -273,15 +278,36 @@ public class Level implements NetStateObject{
 				ex.add(p2);
 				ctrl.addItem(i);
 			}
-			return ex;
+		}
+		private static void addBarrels(Level l, Box box, int count, LinkedList<PointI> ex){
+			for(int i=0; i<count; i++){
+				PointI p = l.getNextFreeField(box.getRandomPoint(), ex);
+				if(p == null) break;
+				l.items.add(new ExplosiveBarrel(p));
+				ex.add(p);
+			}
 		}
 	}
 	
 	private Tile[][] tiles;
 	private Tile defaultTile;
-	private LinkedList<UsableLevelItem> items = new LinkedList<>();
+	private LinkedList<UsableLevelItem> items = new LinkedList<>(), itemsToRemove = new LinkedList<>();
 	
 	private Level(){}
+	
+	public void update(int time){
+		for(UsableLevelItem i : items) i.update(time);
+		items.removeAll(itemsToRemove);
+		itemsToRemove.clear();
+	}
+
+	public void requestDeleteItem(UsableLevelItem i) {
+		itemsToRemove.add(i);
+	}
+	
+	public boolean isMarkedForRemoval(UsableLevelItem i){
+		return itemsToRemove.contains(i);
+	}
 	
 	public int getWidth(){
 		return tiles.length;
@@ -300,12 +326,12 @@ public class Level implements NetStateObject{
 	}
 	
 	public PointI getNextFreeField(PointI source, List<PointI> exclusions){
-		if(!isWall(source.x, source.y) && (exclusions == null || !exclusions.contains(source))) return source;
+		if(!isImpassable(source.x, source.y) && (exclusions == null || !exclusions.contains(source))) return source;
 		int d = Integer.MAX_VALUE;
 		LinkedList<PointI> l = new LinkedList<>();
 		for(int x=0; x<getWidth(); x++){
 			for(int y=0; y<getHeight(); y++){
-				if(!isWall(x, y)){
+				if(!isImpassable(x, y)){
 					PointI p = new PointI(x, y);
 					if(exclusions != null && exclusions.contains(p)) continue;
 					int d2 = p.hammingDistanceTo(source);
@@ -321,7 +347,7 @@ public class Level implements NetStateObject{
 		}
 		if(l.isEmpty()) return null;
 		PointI ans = l.get(GameController.random.nextInt(l.size()));
-		if(isWall(ans.x, ans.y)) System.out.println("WARNING: getnextfreefield returned a wall tile!");
+		if(isImpassable(ans.x, ans.y)) System.out.println("WARNING: getnextfreefield returned a wall tile!");
 		return ans;
 	}
 	
@@ -341,12 +367,10 @@ public class Level implements NetStateObject{
 				addDebrisFromDamage(pos, shotPos, dmg, 2, tiles[pos.x][pos.y].getImage());
 			}
 		} else {
-			ListIterator<UsableLevelItem> itemIter = items.listIterator();
-			while(itemIter.hasNext()){
-				UsableLevelItem i = itemIter.next();
+			for(UsableLevelItem i : items) if(!isMarkedForRemoval(i)){
 				if(i.pos.equals(pos)){
 					if(i.damage(dmg)){
-						itemIter.remove();
+						requestDeleteItem(i);
 						GameController.get().createDebris(pos.toFloat(), i.img, 4, 0.5f);
 						GameController.get().recalcVisibleTiles = true;
 					} else {
@@ -360,7 +384,7 @@ public class Level implements NetStateObject{
 	private void addDebrisFromDamage(PointI pos, PointF shotPos, int dmg, int border, Image img){
 		int n = getDebrisCountOnDamage(dmg);
 		if(n <= 0) return;
-		PointF diff = shotPos;
+		PointF diff = shotPos.clone();
 		diff.subtract(pos.toFloat());
 		PointF p = diff.clone();
 		Float dir;
@@ -403,10 +427,31 @@ public class Level implements NetStateObject{
 		return n;
 	}
 	
-	public boolean isWall(int x, int y){
+	public boolean isImpassable(int x, int y){
+		return isImpassable(x, y, false);
+	}
+	
+	public boolean isImpassable(int x, int y, boolean canOpenDoors){
 		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
 		if(tiles[x][y].isWall()) return true;
-		for(UsableLevelItem i : items) if(i instanceof Door && i.pos.x == x && i.pos.y == y && !((Door)i).isOpen()) return true;
+		for(UsableLevelItem i : items) if(i.pos.x == x && i.pos.y == y){
+			if(i instanceof Door){
+				return canOpenDoors || !((Door)i).isOpen();
+			} else if(i instanceof ExplosiveBarrel){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isSightBlocking(int x, int y){
+		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
+		if(tiles[x][y].isWall()) return true;
+		for(UsableLevelItem i : items) if(i.pos.x == x && i.pos.y == y){
+			if(i instanceof Door){
+				return !((Door)i).isOpen();
+			}
+		}
 		return false;
 	}
 	
@@ -426,10 +471,10 @@ public class Level implements NetStateObject{
 	
 	private LinkedList<PointI> getDirectlyReachableTiles(PointI p){
 		LinkedList<PointI> ans = new LinkedList<>();
-		if(!isWall(p.x+1, p.y)) ans.add(new PointI(p.x+1, p.y));
-		if(!isWall(p.x-1, p.y)) ans.add(new PointI(p.x-1, p.y));
-		if(!isWall(p.x, p.y+1)) ans.add(new PointI(p.x, p.y+1));
-		if(!isWall(p.x, p.y-1)) ans.add(new PointI(p.x, p.y-1));
+		if(!isImpassable(p.x+1, p.y)) ans.add(new PointI(p.x+1, p.y));
+		if(!isImpassable(p.x-1, p.y)) ans.add(new PointI(p.x-1, p.y));
+		if(!isImpassable(p.x, p.y+1)) ans.add(new PointI(p.x, p.y+1));
+		if(!isImpassable(p.x, p.y-1)) ans.add(new PointI(p.x, p.y-1));
 		return ans;
 	}
 	
@@ -509,7 +554,10 @@ public class Level implements NetStateObject{
 			p = getRandom(flowField[p.x][p.y]);
 		}
 		ans.set(0, start);
-		if(shorten) removeTrivialWaypoints(ans);
+		if(shorten){
+			removeTrivialWaypoints(ans);
+			ans.removeFirst();
+		}
 		return ans;
 	}
 	
@@ -572,7 +620,10 @@ public class Level implements NetStateObject{
 			w = getRandom(flowField[w.p.x][w.p.y]);
 		}
 		ans.set(0, start);
-		if(shorten) removeTrivialWaypoints(ans);
+		if(shorten){
+			removeTrivialWaypoints(ans);
+			ans.removeFirst();
+		}
 		return ans;
 	}
 	
@@ -628,7 +679,10 @@ public class Level implements NetStateObject{
 			w = getRandom(flowField[w.p.x][w.p.y]);
 		}
 		ans.set(0, start);
-		if(shorten) removeTrivialWaypoints(ans);
+		if(shorten){
+			removeTrivialWaypoints(ans);
+			ans.removeFirst();
+		}
 		return ans;
 	}
 	
@@ -654,18 +708,18 @@ public class Level implements NetStateObject{
 		while(iter.hasNext()){
 			iter.next();
 			int len = 0;
-			boolean visible = true;
-			while(visible && iter.hasNext()){
+			boolean walkable = true;
+			while(walkable && iter.hasNext()){
 				PointF p2 = iter.next();
 				if(Float.isNaN(p2.x)) throw new RuntimeException("p2 x is NaN");
 				if(Float.isNaN(p2.y)) throw new RuntimeException("p2 y is NaN");
-				if(isVisibleFrom(p, p2, Float.MAX_VALUE)){
+				if(isWalkableFrom(p, p2, Float.MAX_VALUE)){
 					len++;
 				} else {
-					visible = false;
+					walkable = false;
 				}
 			}
-			if(!visible) iter.previous();
+			if(!walkable) iter.previous();
 			iter.previous();
 			for(int i=0; i<len; i++){
 				iter.previous();
@@ -681,7 +735,7 @@ public class Level implements NetStateObject{
 		int cap = (int)Math.ceil(size);
 		for(int x=-cap; x<=cap; x++){
 			for(int y=-cap; y<=cap; y++){
-				if(isWall(x+ix, y+iy)){
+				if(isImpassable(x+ix, y+iy)){
 					PointI p = new PointI(x+ix, y+iy);
 					if(testSingleWallCollision(center, size/2f, p)){
 						return p;
@@ -700,9 +754,28 @@ public class Level implements NetStateObject{
 		LinkedList<PointF> history = new LinkedList<>();
 		int collisionCount = 0;
 		ColAns ans = new ColAns();
+		// collide with special objects
+		for(UsableLevelItem i : items){
+			if(i instanceof ExplosiveBarrel){
+				ExplosiveBarrel eb = (ExplosiveBarrel)i;
+				PointF ebPos = eb.pos.toFloat();
+				float maxD = (eb.size + size) / 2f;
+				float dd = center.squaredDistanceTo(ebPos);
+				if(dd < maxD*maxD){
+					float d = (float)Math.sqrt(dd);
+					PointF newCorr = center.clone();
+					newCorr.subtract(ebPos);
+					newCorr.multiply((maxD - d) / newCorr.length());
+					history.add(newCorr);
+					collisionCount++;
+					addCollisionEffect(ans, newCorr, center, history);
+				}
+			}
+		}
+		// collide with walls
 		for(int x=-1; x<=1; x++){
 			for(int y=-1; y<=1; y++){
-				if(isWall(x+ix, y+iy)){
+				if(isImpassable(x+ix, y+iy)){
 					PointF newCorr = doSingleWallCollision(center, size/2f, new PointI(x+ix, y+iy));
 					if(newCorr.x != 0 || newCorr.y != 0){
 						// new collision
@@ -717,7 +790,9 @@ public class Level implements NetStateObject{
 			// some collisions were discarded to avoid false correction.
 			// recalculate correction vector from history!
 			ans = new ColAns();
-			for(PointF newCorr : history) addCollisionEffect(ans, newCorr, center, history);
+			LinkedList<PointF> oldHistory = history;
+			history = new LinkedList<>();
+			for(PointF newCorr : oldHistory) addCollisionEffect(ans, newCorr, center, history);
 		}
 		// if stuck, ignore any noclip axis (may be both)
 		if(ans.noClipX) ans.oldCorr.x = 0f;
@@ -868,7 +943,7 @@ public class Level implements NetStateObject{
 				if(!(i instanceof Stairs)) return i;
 				if(ans == null) ans = i;
 			}
-			if(isWall(p.x, p.y) && !ignoreWalls) return ans;
+			if(isSightBlocking(p.x, p.y) && !ignoreWalls) return ans;
 		}
 		return ans;
 	}
@@ -916,40 +991,30 @@ public class Level implements NetStateObject{
 		return ans;
 	}
 	
-	public boolean isVisibleFrom(PointF p1, PointF p2, float maxDistance){
-		float dx = p2.x - p1.x;
-		float dy = p2.y - p1.y;
-		int sx = (int)Math.signum(dx);
-		int sy = (int)Math.signum(dy);
-		if(Math.round(p1.x) == Math.round(p2.x) && Math.round(p1.y) == Math.round(p2.y)) return true;
-		if(dx*dx + dy*dy > maxDistance*maxDistance) return false;
-		if(dx == 0){
-			int y1 = Math.round(p1.y);
-			int y2 = Math.round(p2.y);
-			int x = Math.round(p1.x);
-			for(int y=y1; y*sy<=y2*sy; y+=sy) if(isWall(x, y)) return false;
-			return true;
-		}
-		float m = dy / dx;
-		float n = p1.y - m * p1.x;
-		int x1 = Math.round(p1.x);
-		int x2 = Math.round(p2.x);
-		for(int x=x1; x*sx<=x2*sx; x+=sx){
-			if(dy == 0){
-				if(isWall(x, Math.round(p1.y))) return false;
-			} else {
-				int y1 = x == x1 ? Math.round(p1.y) : Math.round(m * (x - sx * 0.5f) + n - sy*0.001f);
-				int y2 = x == x2 ? Math.round(p2.y) : Math.round(m * (x + sx * 0.5f) + n + sy*0.001f);
-				for(int y=y1; y*sy<=y2*sy; y+=sy) if(isWall(x, y)) return false;
-			}
-		}
-		return true;
-	}
-	
 	public boolean isVisibleFrom(Mob m1, Mob m2, float maxDistance){
 		return isVisibleFrom(m1.pos, m2.pos, maxDistance);
 	}
 
+	public boolean isVisibleFrom(PointF p1, PointF p2, float maxDistance){
+		if(p1.squaredDistanceTo(p2) > maxDistance * maxDistance) return false;
+		for(PointI p : getTilesOnLine(p1, p2, maxDistance)){
+			if(isSightBlocking(p.x, p.y)) return false;
+		}
+		return true;
+	}
+	
+	public boolean isWalkableFrom(Mob m1, Mob m2, float maxDistance){
+		return isWalkableFrom(m1.pos, m2.pos, maxDistance);
+	}
+
+	public boolean isWalkableFrom(PointF p1, PointF p2, float maxDistance){
+		if(p1.squaredDistanceTo(p2) > maxDistance * maxDistance) return false;
+		for(PointI p : getTilesOnLine(p1, p2, maxDistance)){
+			if(isImpassable(p.x, p.y)) return false;
+		}
+		return true;
+	}
+	
 	private long id;
 	@Override
 	public long getID() {

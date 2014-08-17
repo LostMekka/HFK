@@ -123,7 +123,7 @@ public class GameRenderer {
 					g.setColor(((Door)i).isOpen() ? MM_DOOR_O : MM_DOOR_C);
 				}
 				g.fillRect(spf.x, spf.y, zoom, zoom);
-			} else if(ctrl.level.isWall(pi.x, pi.y)){
+			} else if(ctrl.level.isImpassable(pi.x, pi.y)){
 				g.setColor(MM_WALL);
 				g.fillRect(spf.x, spf.y, zoom, zoom);
 			} else {

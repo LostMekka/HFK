@@ -21,8 +21,6 @@ public class Shot {
 	
 	public enum Team { friendly, hostile, dontcare }
 	
-	public static final float EXPLODE_SHAKE_MULTIPLIER = 0.2f;
-	
 	public int lifetime = -1;
 	public float friction = 0f;
 	public PointF pos, vel, origin;
@@ -66,7 +64,7 @@ public class Shot {
 		if(lifetime >= 0){
 			lifetime -= time;
 			if(lifetime <= 0 && manualDetonateLevel <= 0){
-				GameController.get().shotsToRemove.add(this);
+				GameController.get().requestDeleteShot(this);
 				if(isGrenade){
 					GameController.get().dealAreaDamage(pos, dmg, this);
 					GameController.get().playSoundAt(hitSound, pos);
@@ -88,25 +86,24 @@ public class Shot {
 	
 	public void hit(){
 		GameController ctrl = GameController.get();
-		ctrl.shotsToRemove.add(this);
-		if(hitSound != null) ctrl.playSoundAt(hitSound, pos);
+		ctrl.requestDeleteShot(this);
 		if(dmg.getAreaRadius() > 0){
-			ctrl.dealAreaDamage(pos, dmg, this);
-			ctrl.explosions.add(new Explosion(pos, dmg.getAreaRadius()));
-			ctrl.cameraShake(EXPLODE_SHAKE_MULTIPLIER * dmg.getAreaRadius());
+			ctrl.addExplosion(pos, dmg, this, hitSound);
+		} else {
+			if(hitSound != null) ctrl.playSoundAt(hitSound, pos);
 		}
 	}
 	
 	public void hitSingle(Mob m){
 		GameController ctrl = GameController.get();
-		ctrl.shotsToRemove.add(this);
+		ctrl.requestDeleteShot(this);
 		if(hitSound != null) ctrl.playSoundAt(hitSound, pos);
 		ctrl.damageMob(m, dmg.calcFinalDamage(m.totalStats), pos, this);
 	}
 	
 	public void hitSingle(PointI tilePos){
 		GameController ctrl = GameController.get();
-		ctrl.shotsToRemove.add(this);
+		ctrl.requestDeleteShot(this);
 		if(hitSound != null) ctrl.playSoundAt(hitSound, pos);
 		ctrl.level.damageTile(tilePos, dmg.calcFinalDamage(), pos.clone());
 	}

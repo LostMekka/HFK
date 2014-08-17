@@ -104,7 +104,7 @@ public class GameplaySubState extends GameSubState{
 						LinkedList<PointI> tiles = ctrl.level.getTilesOnLine(ctrl.player.pos, p, r);
 						for(PointI pi : tiles){
 							if(!ctrl.visibleTiles.contains(pi)) ctrl.visibleTiles.add(pi);
-							if(ctrl.level.isWall(pi.x, pi.y)) break;
+							if(ctrl.level.isSightBlocking(pi.x, pi.y)) break;
 						}
 					}
 				}

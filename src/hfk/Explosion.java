@@ -41,7 +41,7 @@ public class Explosion {
 		animation.update(time);
 		if(lifeTime > maxLifeTime){
 			radius = maxRadius;
-			GameController.get().explosionsToRemove.add(this);
+			GameController.get().requestDeleteExplosion(this);
 		} else {
 			radius = maxRadius * (float)Math.sin(Math.PI / 2 * lifeTime / maxLifeTime);
 		}
