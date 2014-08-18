@@ -70,7 +70,7 @@ public class AmmoItem extends InventoryItem {
 		switch(ammoType){
 			case bullet: r = 10; break;
 			case shell: r = 20; break;
-			case sniperRound: r = 20; break;
+			case sniperRound: r = 50; break;
 			case grenade: r = 200; break;
 			case rocket: r = 400; break;
 			case plasmaRound: r = 30; break;

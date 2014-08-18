@@ -85,7 +85,7 @@ public class SniperRifle extends Weapon {
 		int sniper = Weapon.AmmoType.sniperRound.ordinal();
 		s.clipSize[sniper] = 5;
 		s.reloadCount[sniper] = 1;
-		s.reloadTimes[sniper] = 800;
+		s.reloadTimes[sniper] = 1100;
 		s.ammoPerShot[sniper] = 1;
 		s.shotsPerBurst = 1;
 		s.burstInterval = 1000;

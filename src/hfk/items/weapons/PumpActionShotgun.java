@@ -47,7 +47,7 @@ public class PumpActionShotgun extends Weapon {
 		int shells = Weapon.AmmoType.shell.ordinal();
 		s.clipSize[shells] = 8;
 		s.reloadCount[shells] = 1;
-		s.reloadTimes[shells] = 500;
+		s.reloadTimes[shells] = 900;
 		s.ammoPerShot[shells] = 1;
 		s.shotsPerBurst = 1;
 		s.projectilesPerShot = 8;
