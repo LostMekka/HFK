@@ -46,6 +46,7 @@ public class InputMap implements MouseListener {
 	public static final String A_TOGGLEMUSIC = "togglemusic";
 	public static final String A_PAUSE = "pausegame";
 	public static final String A_RESUMEGAME = "resumegame";
+	public static final String A_RESTARTGAME = "restartgame";
 	
 	public static final String A_SELECTSKILL = "selectskill";
 	
