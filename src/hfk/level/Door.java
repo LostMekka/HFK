@@ -24,7 +24,7 @@ public class Door extends UsableLevelItem {
 	private static SpriteSheet sheet = null;
 	private static Sound sound = null;
 	private boolean vertical;
-	private boolean open = false, damaged = false, blockSight = true, blockMove = true;
+	private boolean open = false, damaged = false;
 	private int timer = -1;
 	
 	public Door(PointI pos, boolean isVertical) {
@@ -74,7 +74,7 @@ public class Door extends UsableLevelItem {
 		if(destroyed){
 			if((timer < 0 && open) || 
 					(open && timer >= ANIMATION_TIME * 3 / 2) ||
-					(!open && timer < ANIMATION_TIME * 3 / 2)) return true;
+					(!open && timer >= 0 && timer < ANIMATION_TIME * 3 / 2)) return true;
 			hp = 200;
 			open = false;
 			damaged = true;
