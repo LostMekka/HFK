@@ -40,6 +40,7 @@ public class OmniSubState extends GameSubState {
 		ctrl.reduceScreenShake(time);
 		if(getInputMap().isKeyPressed(InputMap.A_TOGGLEMUSIC)) ctrl.toggleMusic();
 		// updates
+		ctrl.level.update(time);
 		for(InventoryItem i1 : ctrl.items){
 			i1.update(time);
 			if(!i1.vel.isZero()) i1.pos.add(ctrl.level.doCollision(i1.pos, i1.size));

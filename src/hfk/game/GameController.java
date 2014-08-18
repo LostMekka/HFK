@@ -559,7 +559,6 @@ public class GameController {
 		// update of states
 		if(!isPaused()) omniSubState.update(this, gc, sbg, time);
 		currSubState.update(this, gc, sbg, time);
-		level.update(time);
 		// remove marked stuff
 		mobs.removeAll(mobsToRemove);
 		shots.removeAll(shotsToRemove);
