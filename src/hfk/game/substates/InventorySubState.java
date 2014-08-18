@@ -210,7 +210,7 @@ public class InventorySubState extends GameSubState{
 		String str = "health: ";
 		int strW = r.getStringWidth(str);
 		r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
-		r.drawStringOnScreen("" + inventory.getParent().hp, x+strW, y, Color.red, 1f); y += GEAR_HEADLINE_HEIGHT;
+		r.drawStringOnScreen("" + inventory.getParent().hp + " / " + inventory.getParent().totalStats.getMaxHP(), x+strW, y, Color.red, 1f); y += GEAR_HEADLINE_HEIGHT;
 		r.drawStringOnScreen("weapons:", x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += GEAR_HEADLINE_HEIGHT;
 		for(int i=0; i<inventory.getQuickSlotCount(); i++){
 			Weapon w = inventory.getQuickslot(i);

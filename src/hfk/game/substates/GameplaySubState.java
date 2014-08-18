@@ -225,7 +225,7 @@ public class GameplaySubState extends GameSubState{
 		int sh = r.getStringHeight("a") + 4;
 		int y = 20;
 		int x = 20;
-		r.drawStringOnScreen("hp : " + ctrl.player.hp, x, y, Color.white, 1f); y += sh;
+		r.drawStringOnScreen("hp : " + ctrl.player.hp + " / " + ctrl.player.totalStats.getMaxHP(), x, y, Color.white, 1f); y += sh;
 		r.drawStringOnScreen("xp : " + ctrl.player.xp, x, y, Color.white, 1f); y += sh;
 		r.drawStringOnScreen("level : " + ctrl.getLevelCount(), x, y, Color.white, 1f); y += sh;
 		r.drawStringOnScreen("enemies left : " + (ctrl.mobs.size()-1), x, y, Color.white, 1f); y += sh;
