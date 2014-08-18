@@ -275,7 +275,7 @@ public class GameController {
 		shots.clear();
 		texts.clear();
 		levelCount++;
-		int s = 25 + 2*levelCount;
+		int s = 25 + levelCount;
 		int d = getLevelDifficultyLimit(levelCount);
 		int r = getLevelRarityLimit(levelCount);
 		level = Level.Factory.createTestArena(s, s, d, r);
