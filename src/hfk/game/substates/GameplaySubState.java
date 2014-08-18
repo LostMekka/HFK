@@ -111,7 +111,13 @@ public class GameplaySubState extends GameSubState{
 			}
 			// update scouted tiles
 			for(PointI p : ctrl.visibleTiles){
-				if(!ctrl.scoutedTiles.contains(p)) ctrl.scoutedTiles.add(p);
+				if(!ctrl.scoutedTiles.contains(p)){
+					ctrl.scoutedTiles.add(p);
+					ctrl.miniMapMin.x = Math.min(p.x, ctrl.miniMapMin.x);
+					ctrl.miniMapMax.x = Math.max(p.x, ctrl.miniMapMax.x);
+					ctrl.miniMapMin.y = Math.min(p.y, ctrl.miniMapMin.y);
+					ctrl.miniMapMax.y = Math.max(p.y, ctrl.miniMapMax.y);
+				}
 			}
 		}
 		// camera
@@ -230,14 +236,15 @@ public class GameplaySubState extends GameSubState{
 		}
 		if(drawMap){
 			r.drawMiniMap(new PointF(10, 10), 
-				new PointF(gc.getWidth()-20, gc.getHeight()-20), 25, 
-				new PointF(ctrl.level.getWidth()/2f, ctrl.level.getHeight()/2f), 0.5f);
+				new PointF(gc.getWidth()-20, gc.getHeight()-20), 
+				ctrl.miniMapMin, ctrl.miniMapMax, 0.5f);
 		} else {
-			int w = 400;
-			h = 200;
-			r.drawMiniMap(new PointF(gc.getWidth()-w, gc.getHeight()-h), 
-				new PointF(w, h), 8, 
-				ctrl.player.pos, 0.3f);
+			int w = 300;
+			h = 300;
+			PointF mmPos = new PointF(gc.getWidth()-w-1, gc.getHeight()-h-1);
+			r.drawMiniMap(mmPos, new PointF(w, h), 10, ctrl.player.pos, 0.3f);
+			r.getGraphics().setColor(new Color(0f, 0.8f, 1f, 0.1f));
+			r.getGraphics().drawRect(mmPos.x, mmPos.y, w, h);
 		}
 	}
 	

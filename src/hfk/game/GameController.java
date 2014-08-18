@@ -104,6 +104,7 @@ public class GameController {
 	public PointF screenPosOriginal = screenPos.clone();
 	public PointF screenPosOffset = new PointF();
 	public PointI mousePosInPixels = new PointI();
+	public PointI miniMapMin, miniMapMax;
 	public float screenShake = 0f;
 	public int difficultyLevel = 1;
 	public boolean musicIsOn = true, recalcVisibleTiles = false;
@@ -278,6 +279,8 @@ public class GameController {
 		int d = getLevelDifficultyLimit(levelCount);
 		int r = getLevelRarityLimit(levelCount);
 		level = Level.Factory.createTestArena(s, s, d, r);
+		miniMapMin = player.pos.round();
+		miniMapMax = miniMapMin.clone();
 	}
 	
 	public int getLevelDifficultyLimit(int level){

@@ -58,16 +58,28 @@ public class GameRenderer {
 	}
 	
 	private static final Color MM_BACK = new Color(0f, 0f, 0f);
-	private static final Color MM_WALL = new Color(1f, 1f, 1f);
-	private static final Color MM_FLOOR = new Color(1f, 1f, 1f, 0.2f);
+	private static final Color MM_WALL_INSIGHT = new Color(1f, 1f, 1f);
+	private static final Color MM_WALL_SCOUTED = new Color(0.7f, 0.7f, 0.7f);
+	private static final Color MM_FLOOR_INSIGHT = new Color(1f, 1f, 1f, 0.55f);
+	private static final Color MM_FLOOR_SCOUTED = new Color(0.7f, 0.7f, 0.7f, 0.55f);
 	private static final Color MM_STAIRS = new Color(1f, 0.5f, 0f);
-	private static final Color MM_DOOR_O = new Color(1f, 1f, 0f);
+	private static final Color MM_DOOR_O = new Color(0.5f, 0.5f, 0f);
 	private static final Color MM_DOOR_C = new Color(1f, 1f, 0f);
 	private static final Color MM_PLAYER = new Color(0f, 1f, 0f);
 	private static final Color MM_ENEMY = new Color(1f, 0f, 0f);
 	private static final Color MM_LOOT = new Color(0f, 0f, 1f);
 	private static final Color MM_FINAL = new Color(1f, 1f, 1f, 0.5f);
 	private HashMap<PointF, Image> mmImages = new HashMap<>();
+	
+	public void drawMiniMap(PointF pos, PointF size, PointI min, PointI max, float alpha){
+		PointI s = new PointI(max.x - min.x + 1, max.y - min.y + 1);
+		float zoom = Math.min(
+				(float)Math.floor(size.x / s.x), 
+				(float)Math.floor(size.y / s.y));
+		PointF mid = new PointF((min.x + max.x)/2f, (min.y + max.y)/2f);
+		drawMiniMap(pos, size, zoom, mid, alpha);
+	}
+	
 	public void drawMiniMap(PointF pos, PointF size, float zoom, PointF mid, float alpha){
 		GameController ctrl = GameController.get();
 		Graphics g = null;
@@ -82,62 +94,68 @@ public class GameRenderer {
 			}
 			g = mmImg.getGraphics();
 		} catch (SlickException ex) {
-			throw new RuntimeException();
+			throw new RuntimeException(ex);
 		}
-		float fl = mid.x - size.x/2f/zoom;
-		float fr = mid.x + size.x/2f/zoom;
-		float ft = mid.y - size.y/2f/zoom;
-		float fb = mid.y + size.y/2f/zoom;
-		int il = Math.round(fl)-1;
-		int ir = Math.round(fr)+1;
-		int it = Math.round(ft)-1;
-		int ib = Math.round(fb)+1;
-		PointF spf;
+		// clear area
 		g.clear();
 		g.setColor(MM_BACK);
 		g.fillRect(pos.x, pos.y, size.x, size.y);
-		g.setColor(MM_LOOT);
+		// draw tiles and level items first
+		for(PointI pi : ctrl.scoutedTiles){
+			PointF pf = pi.toFloat();
+			boolean inSight = ctrl.visibleTiles.contains(pi);
+			// fisrt draw tiles
+			if(ctrl.level.isWallTile(pi.x, pi.y)){
+				drawMMRect(g, inSight ? MM_WALL_INSIGHT : MM_WALL_SCOUTED, pf, 1f, mid, size, zoom);
+			} else {
+				drawMMRect(g, inSight ? MM_FLOOR_INSIGHT : MM_FLOOR_SCOUTED, pf, 1f, mid, size, zoom);
+			}
+			// then, if necessary, draw level item on top of tile
+			UsableLevelItem i = ctrl.level.getUsableLevelItem(pf);
+			if(i != null){
+				Color c;
+				float sx = i.size;
+				float sy = i.size;
+				if(i instanceof Stairs){
+					c = MM_STAIRS;
+				} else if(i instanceof Door){
+					Door d = (Door)i;
+					c = d.isOpen() ? MM_DOOR_O : MM_DOOR_C;
+					if(d.isVertical()){
+						sy = 1f;
+					} else {
+						sx = 1f;
+					}
+				} else {
+					c = inSight ? MM_WALL_INSIGHT : MM_WALL_SCOUTED;
+				}
+				drawMMRect(g, c, pf, sx, sy, mid, size, zoom);
+			}
+		}
+		// draw other things on top
 		for(InventoryItem i : ctrl.items){
 			if(!ctrl.scoutedTiles.contains(i.pos.round())) continue;
-			spf = getMMPos(mid, size, i.pos, zoom);
-			g.fillRect(spf.x, spf.y, zoom, zoom);
+			drawMMRect(g, MM_LOOT, i.pos, i.size, mid, size, zoom);
 		}
 		g.setColor(MM_ENEMY);
 		for(Mob m : ctrl.mobs){
 			if(m instanceof Player || !ctrl.visibleTiles.contains(m.pos.round())) continue;
-			spf = getMMPos(mid, size, m.pos, zoom);
-			g.fillRect(spf.x, spf.y, zoom, zoom);
+			drawMMRect(g, MM_ENEMY, m.pos, m.size, mid, size, zoom);
 		}
-		g.setColor(MM_PLAYER);
-		spf = getMMPos(mid, size, ctrl.player.pos, zoom);
-		g.fillRect(spf.x, spf.y, zoom, zoom);
-		g.setColor(MM_WALL);
-		for(PointI pi : ctrl.scoutedTiles){
-			PointF pf = pi.toFloat();
-			spf = getMMPos(mid, size, pf, zoom);
-			UsableLevelItem i = ctrl.level.getUsableLevelItem(pf);
-			if(i != null){
-				if(i instanceof Stairs){
-					g.setColor(MM_STAIRS);
-				} else if(i instanceof Door){
-					g.setColor(((Door)i).isOpen() ? MM_DOOR_O : MM_DOOR_C);
-				}
-				g.fillRect(spf.x, spf.y, zoom, zoom);
-			} else if(ctrl.level.isImpassable(pi.x, pi.y)){
-				g.setColor(MM_WALL);
-				g.fillRect(spf.x, spf.y, zoom, zoom);
-			} else {
-				g.setColor(MM_FLOOR);
-				g.fillRect(spf.x, spf.y, zoom, zoom);
-			}
-		}
+		drawMMRect(g, MM_PLAYER, ctrl.player.pos, ctrl.player.size, mid, size, zoom);
+		// draw final image on screen
 		MM_FINAL.a = alpha;
 		getGraphics().drawImage(mmImg, pos.x, pos.y, MM_FINAL);
 	}
-	private PointF getMMPos(PointF mmMid, PointF mmSize, PointF pos, float zoom){
-		return new PointF(
-				mmSize.x/2f + (pos.x - mmMid.x)*zoom,
-				mmSize.y/2f + (pos.y - mmMid.y)*zoom);
+	private void drawMMRect(Graphics g, Color c, PointF pos, float size, PointF mmMid, PointF mmSize, float zoom){
+		drawMMRect(g, c, pos, size, size, mmMid, mmSize, zoom);
+	}
+	private void drawMMRect(Graphics g, Color c, PointF pos, float sizeX, float sizeY, PointF mmMid, PointF mmSize, float zoom){
+		g.setColor(c);
+		g.fillRect(
+				mmSize.x/2f + (pos.x - sizeX/2f - mmMid.x)*zoom, 
+				mmSize.y/2f + (pos.y - sizeY/2f - mmMid.y)*zoom, 
+				sizeX * zoom, sizeY * zoom);
 	}
 	
 	public void drawMenuBox(float x, float y, float w, float h, Color backgroundColor, Color lineColor){

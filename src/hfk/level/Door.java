@@ -36,7 +36,7 @@ public class Door extends UsableLevelItem {
 		vertical = isVertical;
 		updateImg();
 		hp = 70;
-		size = 1f;
+		size = 0.6f;
 	}
 	
 	private void updateImg(){
@@ -82,6 +82,10 @@ public class Door extends UsableLevelItem {
 			updateImg();
 		}
 		return false;
+	}
+
+	public boolean isVertical() {
+		return vertical;
 	}
 
 	public boolean isOpen(){
