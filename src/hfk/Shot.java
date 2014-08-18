@@ -66,11 +66,7 @@ public class Shot {
 			lifetime -= time;
 			if(lifetime <= 0 && manualDetonateLevel <= 0){
 				GameController.get().requestDeleteShot(this);
-				if(isGrenade){
-					GameController.get().dealAreaDamage(pos, dmg, this);
-					GameController.get().playSoundAt(hitSound, pos);
-					hit();
-				}
+				if(isGrenade) hit();
 			}
 		}
 		if(friction != 0f){
