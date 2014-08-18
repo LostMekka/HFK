@@ -34,6 +34,21 @@ public class Stairs extends UsableLevelItem {
 	}
 
 	@Override
+	public boolean isSquare() {
+		return false;
+	}
+
+	@Override
+	public boolean blocksSight() {
+		return false;
+	}
+
+	@Override
+	public boolean blocksMovement() {
+		return false;
+	}
+
+	@Override
 	public boolean canUse(Mob m) {
 		return m instanceof Player;
 	}

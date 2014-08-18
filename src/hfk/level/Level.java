@@ -427,6 +427,11 @@ public class Level implements NetStateObject{
 		return n;
 	}
 	
+	public boolean isWallTile(int x, int y){
+		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
+		return tiles[x][y].isWall();
+	}
+	
 	public boolean isImpassable(int x, int y){
 		return isImpassable(x, y, false);
 	}
@@ -435,11 +440,8 @@ public class Level implements NetStateObject{
 		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
 		if(tiles[x][y].isWall()) return true;
 		for(UsableLevelItem i : items) if(i.pos.x == x && i.pos.y == y){
-			if(i instanceof Door){
-				return !(ignoreDoors || ((Door)i).isOpen());
-			} else if(i instanceof ExplosiveBarrel){
-				return true;
-			}
+			if(ignoreDoors && i instanceof Door) return false;
+			return i.blocksMovement();
 		}
 		return false;
 	}
@@ -448,9 +450,7 @@ public class Level implements NetStateObject{
 		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
 		if(tiles[x][y].isWall()) return true;
 		for(UsableLevelItem i : items) if(i.pos.x == x && i.pos.y == y){
-			if(i instanceof Door){
-				return !((Door)i).isOpen();
-			}
+			return i.blocksSight();
 		}
 		return false;
 	}
@@ -627,7 +627,7 @@ public class Level implements NetStateObject{
 		return ans;
 	}
 	
-	public LinkedList<PointF> getPathTo(PointF start, PointF end, int maxLength, boolean shorten, boolean canOpenDoors){
+	public LinkedList<PointF> getPathTo(PointF start, PointF end, int maxLength, boolean shorten, boolean canOpenDoors, boolean nullIfUnreachable){
 		PointI s = start.round();
 		PointI e = end.round();
 		WayPoint[][][] flowField = new WayPoint[getWidth()][getHeight()][4];
@@ -656,6 +656,7 @@ public class Level implements NetStateObject{
 			}
 		}
 		if(!done){
+			if(nullIfUnreachable) return null;
 			// point is not reachable. go to nearest point instead!
 			LinkedList<PointI> best = new LinkedList<>();
 			int d = Integer.MIN_VALUE;
@@ -735,6 +736,7 @@ public class Level implements NetStateObject{
 	}
 	// --- !!! --- SIMPLE COLLISION! SIZE MUST NOT BE GREATER THAN 1 !!!
 	public CollisionAnswer doCollision(PointF center, float size){
+		// TODO: rewrite collision to make use ofaith size > 1
 		if(size > 1) throw new IllegalArgumentException("size is greater than 1. this algorithm cannot handle that!!!");
 		CollisionAnswer answer = new CollisionAnswer();
 		float ansLen = -1f;
@@ -743,23 +745,16 @@ public class Level implements NetStateObject{
 		LinkedList<PointF> history = new LinkedList<>();
 		int collisionCount = 0;
 		ColAns ans = new ColAns();
-		// collide with special objects
+		// collide with level items
 		for(UsableLevelItem i : items){
-			if(i instanceof ExplosiveBarrel){
-				ExplosiveBarrel eb = (ExplosiveBarrel)i;
-				PointF ebPos = eb.pos.toFloat();
-				float maxD = (eb.size + size) / 2f;
-				float dd = center.squaredDistanceTo(ebPos);
-				if(dd < maxD*maxD){
-					float d = (float)Math.sqrt(dd);
-					float len = maxD - d;
+			if(i.blocksMovement()){
+				PointF newCorr = doSingleWallCollision(center, size/2f, i.pos, i.size);
+				if(!newCorr.isZero()){
+					float len = newCorr.length();
 					if(ansLen < len){
 						answer.collidingTilePos = i.pos.clone();
 						ansLen = len;
 					}
-					PointF newCorr = center.clone();
-					newCorr.subtract(ebPos);
-					newCorr.multiply(len / newCorr.length());
 					history.add(newCorr);
 					collisionCount++;
 					addCollisionEffect(ans, newCorr, center, history);
@@ -769,7 +764,7 @@ public class Level implements NetStateObject{
 		// collide with walls
 		for(int x=-1; x<=1; x++){
 			for(int y=-1; y<=1; y++){
-				if(isImpassable(x+ix, y+iy)){
+				if(isWallTile(x+ix, y+iy)){
 					PointI pi = new PointI(x+ix, y+iy);
 					PointF newCorr = doSingleWallCollision(center, size/2f, pi);
 					if(newCorr.x != 0 || newCorr.y != 0){
@@ -876,14 +871,19 @@ public class Level implements NetStateObject{
 	}
 	
 	private PointF doSingleWallCollision(PointF cp, float cr, PointI sp){
+		return doSingleWallCollision(cp, cr, sp, 1f);
+	}
+	
+	private PointF doSingleWallCollision(PointF cp, float cr, PointI sp, float wallSize){
+		wallSize /= 2f;
 		float dx = cp.x - sp.x;
 		float dy = cp.y - sp.y;
 		float sx = Math.signum(dx);
 		float sy = Math.signum(dy);
-		float mx = (0.5f - Math.abs(dx) + cr) * sx;
-		float my = (0.5f - Math.abs(dy) + cr) * sy;
-		boolean inX = (Math.abs(dx) < 0.5f);
-		boolean inY = (Math.abs(dy) < 0.5f);
+		float mx = (wallSize - Math.abs(dx) + cr) * sx;
+		float my = (wallSize - Math.abs(dy) + cr) * sy;
+		boolean inX = (Math.abs(dx) < wallSize);
+		boolean inY = (Math.abs(dy) < wallSize);
 		if(inX && inY){
 			// circle center is in the square.
 			// move in direction that has smallest move distance
@@ -893,17 +893,17 @@ public class Level implements NetStateObject{
 				return new PointF(0f, my);
 			}
 		}
-		if(inX && Math.abs(dy) < 0.5f+cr){
+		if(inX && Math.abs(dy) < wallSize+cr){
 			// needs to move vertically
 			return new PointF(0f, my);
 		}
-		if(inY && Math.abs(dx) < 0.5f+cr){
+		if(inY && Math.abs(dx) < wallSize+cr){
 			// needs to move horizontally
 			return new PointF(mx, 0f);
 		}
 		// test for collision with one corner
-		dx -= 0.5f * Math.signum(dx);
-		dy -= 0.5f * Math.signum(dy);
+		dx -= wallSize * Math.signum(dx);
+		dy -= wallSize * Math.signum(dy);
 		float d = dx*dx + dy*dy;
 		if(d == 0f) return new PointF(sx * cr / GameController.SQRT2, sy * cr / GameController.SQRT2);
 		if(d < cr*cr){

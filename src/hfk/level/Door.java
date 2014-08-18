@@ -11,6 +11,7 @@ import hfk.game.Resources;
 import hfk.mobs.Mob;
 import hfk.net.NetState;
 import hfk.net.NetStatePart;
+import org.newdawn.slick.Sound;
 import org.newdawn.slick.SpriteSheet;
 
 /**
@@ -19,23 +20,51 @@ import org.newdawn.slick.SpriteSheet;
  */
 public class Door extends UsableLevelItem {
 
+	private static final int ANIMATION_TIME = 200;
 	private static SpriteSheet sheet = null;
+	private static Sound sound = null;
 	private boolean vertical;
-	private boolean open = false, damaged = false;
+	private boolean open = false, damaged = false, blockSight = true, blockMove = true;
+	private int timer = -1;
 	
 	public Door(PointI pos, boolean isVertical) {
 		super(pos);
+		if(sheet == null){
+			sheet = Resources.getSpriteSheet("door.png");
+			sound = Resources.getSound("door.wav");
+		}
 		vertical = isVertical;
-		if(sheet == null) sheet = Resources.getSpriteSheet("door.png");
 		updateImg();
 		hp = 70;
+		size = 1f;
 	}
 	
 	private void updateImg(){
-		int x = open ? 1 : 0;
-		int y = vertical ? 0 : 1;
-		if(damaged) x = 2;
+		int x, y = vertical ? 0 : 2;
+		if(damaged){
+			x = 2;
+		} else {
+			if(timer < 0){
+				x = open ? 1 : 0;
+			} else {
+				y++;
+				x = open ? 2-timer/ANIMATION_TIME : timer/ANIMATION_TIME;
+			}
+		}
 		img = sheet.getSprite(x, y);
+	}
+
+	@Override
+	public void update(int time) {
+		if(timer >= 0){
+			timer += time;
+			if(timer >= ANIMATION_TIME * 3){
+				timer = -1;
+				open = !open;
+			}
+			GameController.get().recalcVisibleTiles = true;
+			updateImg();
+		}
 	}
 
 	@Override
@@ -43,16 +72,36 @@ public class Door extends UsableLevelItem {
 		boolean destroyed = super.damage(dmg);
 		if(damaged) return destroyed;
 		if(destroyed){
-			if(open) return true;
+			if((timer < 0 && open) || 
+					(open && timer >= ANIMATION_TIME * 3 / 2) ||
+					(!open && timer < ANIMATION_TIME * 3 / 2)) return true;
 			hp = 200;
+			open = false;
 			damaged = true;
+			timer = -1;
 			updateImg();
 		}
 		return false;
 	}
 
 	public boolean isOpen(){
-		return open;
+		return open && timer < 0;
+	}
+	
+	public boolean isOpening(){
+		return !open && timer >= 0;
+	}
+	
+	public boolean isClosing(){
+		return open && timer >= 0;
+	}
+
+	public boolean isMoving(){
+		return timer >= 0;
+	}
+
+	public boolean isDamaged() {
+		return damaged;
 	}
 	
 	@Override
@@ -61,14 +110,32 @@ public class Door extends UsableLevelItem {
 	}
 
 	@Override
+	public boolean isSquare() {
+		return true;
+	}
+
+	@Override
+	public boolean blocksSight() {
+		// sight is blocked only if closed
+		return timer < 0 ? !open : false;
+	}
+
+	@Override
+	public boolean blocksMovement() {
+		// movement is blocked if closed, closing or opening
+		return timer < 0 ? !open : true;
+	}
+
+	@Override
 	public boolean canUse(Mob m) {
-		return !damaged;
+		return !damaged && timer < 0;
 	}
 
 	@Override
 	public boolean useInternal(Mob m) {
 		GameController.get().recalcVisibleTiles = true;
-		open = !open;
+		GameController.get().playSoundAt(sound, pos.toFloat());
+		timer = 0;
 		updateImg();
 		return true;
 	}

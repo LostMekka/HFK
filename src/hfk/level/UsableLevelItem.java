@@ -36,6 +36,10 @@ public abstract class UsableLevelItem implements NetStateObject{
 		id = GameController.get().createIdFor(this);
 	}
 	
+	public void update(int time){};
+	public abstract boolean isSquare();
+	public abstract boolean blocksSight();
+	public abstract boolean blocksMovement();
 	public abstract boolean canUse(Mob m);
 	public abstract boolean useInternal(Mob m);
 	public abstract String getDisplayName();
@@ -66,8 +70,6 @@ public abstract class UsableLevelItem implements NetStateObject{
 		return false;
 	}
 	
-	public void update(int time){}
-
 	@Override
 	public long getID() {
 		return id;

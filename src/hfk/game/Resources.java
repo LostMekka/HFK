@@ -73,6 +73,7 @@ public class Resources {
 		"e_scout_alert.wav",
 		"reload_s_pr.wav",
 		"reload_e_pr.wav",
+		"door.wav",
 	};
 	private static final String[] musicNames = {
 		"creepy_006.ogg",
