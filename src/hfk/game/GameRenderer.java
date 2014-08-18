@@ -272,7 +272,7 @@ public class GameRenderer {
 		drawImage(i, pos, 1f, ignoreVisionRange);
 	}
 	
-	private static final Color RENDER_FOG = new Color(0.3f, 0.3f, 0.3f);
+	private static final Color RENDER_FOG = new Color(0.5f, 0.5f, 0.5f);
 	public void drawImage(Image i, PointF pos, float scale, boolean ignoreVisionRange){
 		float sx = i.getWidth() / GameController.SPRITE_SIZE;
 		float sy = i.getHeight() / GameController.SPRITE_SIZE;
