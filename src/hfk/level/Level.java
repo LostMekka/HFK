@@ -62,10 +62,8 @@ public class Level implements NetStateObject{
 			Level l = new Level();
 			l.tiles = new Tile[sx+2*border][sy+2*border];
 			generateBorder(l, new Box(0, 0, sx+2*border, sy+2*border), border);
-			//int min = ran.nextInt(10)+3;
-			//int max = ran.nextInt(20)+10;
-			int min = 3;
-			int max = 5;
+			int min = ran.nextInt(10)+4;
+			int max = ran.nextInt(20)+10;
 			Box inside = new Box(border, border, sx, sy);
 			generateRoomLevel(l, inside, min, max, min, max);
 			
