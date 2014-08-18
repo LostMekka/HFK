@@ -8,6 +8,7 @@ package hfk;
 
 import hfk.game.GameController;
 import hfk.items.weapons.Weapon;
+import hfk.level.Level;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import org.newdawn.slick.Image;
@@ -124,23 +125,15 @@ public class Shot {
 		return true;
 	}
 	
-	public void onCollideWithLevel(PointF corr){
+	public void onCollideWithLevel(Level.CollisionAnswer collAns){
 		GameController ctrl = GameController.get();
-		// get the position of the colliding tile
-		PointF tmp = pos.clone();
-		tmp.add(corr);						// get the corrected position
-		corr.multiply(size / corr.length());	// set corr length to shot size
-		tmp.subtract(corr);					// this should move the point right to the edge of the colliding tile
-		corr.multiply(0.1f / size);			// set corr length to something small
-		tmp.subtract(corr);					// move the point over the edge into the colliding tile
-		PointI tilePos = tmp.round();
 		// handle collision
 		if(smartGrenadeLevel > 0 || manualDetonateLevel > 0 || bounceCount > 0){
-			pos.add(corr);
-			PointF bounceAns = vel.bounce(corr, 0.4f);
+			pos.add(collAns.corr);
+			PointF bounceAns = vel.bounce(collAns.corr, 0.4f);
 			angle += bounceAns.y;
 			if(!isGrenade && manualDetonateLevel <= 0){
-				ctrl.level.damageTile(tilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()), pos.clone());
+				ctrl.level.damageTile(collAns.collidingTilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()), pos.clone());
 			}
 			bounceCount--;
 			if(bounceSound != null) ctrl.playSoundAt(bounceSound, pos);
@@ -148,7 +141,7 @@ public class Shot {
 			if(dmg.getAreaRadius() > 0){
 				hit();
 			} else {
-				hitSingle(tilePos);
+				hitSingle(collAns.collidingTilePos);
 			}
 		}
 	}

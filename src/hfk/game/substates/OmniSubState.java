@@ -15,6 +15,7 @@ import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
 import hfk.items.InventoryItem;
+import hfk.level.Level;
 import hfk.mobs.Mob;
 import java.util.ListIterator;
 import org.newdawn.slick.GameContainer;
@@ -43,7 +44,13 @@ public class OmniSubState extends GameSubState {
 		ctrl.level.update(time);
 		for(InventoryItem i1 : ctrl.items){
 			i1.update(time);
-			if(!i1.vel.isZero()) i1.pos.add(ctrl.level.doCollision(i1.pos, i1.size));
+			if(!i1.vel.isZero()){
+				PointF corr = ctrl.level.doCollision(i1.pos, i1.size).corr;
+				if(!corr.isZero()){
+					i1.pos.add(corr);
+					i1.vel.bounce(corr, 0.7f);
+				}
+			}
 			boolean blockX = false;
 			boolean blockY = false;
 			PointF corr = new PointF();
@@ -72,9 +79,9 @@ public class OmniSubState extends GameSubState {
 		
 		for(Shot s : ctrl.shots) if(!ctrl.isMarkedForRemoval(s)){
 			s.update(time);
-			PointF corr = ctrl.level.doCollision(s.pos, s.size);
-			if(!corr.isZero()){
-				s.onCollideWithLevel(corr);
+			Level.CollisionAnswer collAns = ctrl.level.doCollision(s.pos, s.size);
+			if(!collAns.corr.isZero()){
+				s.onCollideWithLevel(collAns);
 				continue;
 			}
 			for(Mob m : ctrl.mobs) if(!ctrl.isMarkedForRemoval(m)){

@@ -7,11 +7,14 @@
 package hfk.mobs;
 
 import hfk.PointF;
+import hfk.PointI;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
+import hfk.level.Door;
+import hfk.level.UsableLevelItem;
 import hfk.skills.SkillSet;
 import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
@@ -31,6 +34,7 @@ import org.newdawn.slick.Sound;
  */
 public abstract class Mob implements StatsModifier {
 
+	// debug stuff
 	public static final boolean showCollisionDebug = false;
 	public static final boolean showPathDebug = false;
 	public static final boolean debugBlind = false;
@@ -51,6 +55,8 @@ public abstract class Mob implements StatsModifier {
 	public boolean autoReloadWeapon = true;
 	public boolean moveWhilePlayerVisible = true;
 	public boolean moveWhileShooting = false;
+	public boolean canOpenDoors = false;
+	public boolean autoCloseDoors = false;
 	public float minDistanceToPlayer = 2f;
 	public int minPullTriggerDelay = 50;
 	public int maxPullTriggerDelay = 450;
@@ -80,6 +86,9 @@ public abstract class Mob implements StatsModifier {
 	private String stateText = "";
 	private boolean playerVisible = false;
 	private Weapon bionicWeapon = null;
+	private Door lastDoor = null;
+	private boolean enteredLastDoor = false;
+	private PointF lastDoorExitPoint = null;
 		
 	public static Mob createMob(PointF pos, int maxDifficulty, int level){
 		// TODO: think of a less wasteful way to do this!!!
@@ -205,7 +214,7 @@ public abstract class Mob implements StatsModifier {
 		alert(true, true);
 		if(barrageTimeOnNotify > 0) startBarrage(null, barrageTimeOnNotify);
 		if(autoFollowPlayerOnNotify){
-			path = GameController.get().level.getPathTo(this.pos, playerPos, 20, true);
+			path = GameController.get().level.getPathTo(this.pos, playerPos, 20, true, canOpenDoors);
 		}
 	}
 	
@@ -286,7 +295,7 @@ public abstract class Mob implements StatsModifier {
 			// handle last known player position
 			if(lastPlayerTime == 0){
 				if(autoFollowPlayer){
-					path = ctrl.level.getPathTo(pos, lastPlayerPos, 30, true);
+					path = ctrl.level.getPathTo(pos, lastPlayerPos, 30, true, canOpenDoors);
 					startBarrage(null, barrageTimeOnLost);
 				}
 				mobOnLostSightOfPlayer(lastPlayerPos);
@@ -333,21 +342,72 @@ public abstract class Mob implements StatsModifier {
 	public void createNewRandomPath(){
 		int n = minPathLength;
 		if(maxPathLength > minPathLength) n += GameController.random.nextInt(maxPathLength - minPathLength);
-		path = GameController.get().level.getRandomPath(pos, n, true);
+		path = GameController.get().level.getRandomPath(pos, n, true, canOpenDoors);
 	}
 	
 	public boolean goInDirectionOf(PointF target, int time){
-		lookInDirection(pos.angleTo(target));
-		PointF vel = new PointF(getLookAngle());
-		float dd = pos.squaredDistanceTo(target);
-		float speed = totalStats.getMaxSpeed();
-		float reach = speed * time / 1000f;
+		PointF newPos = pos.clone();
 		boolean arrived = false;
-		if(dd < reach*reach){
-			speed = (float)Math.sqrt(dd) / time * 1000f;
-			arrived = true;
+		boolean needToCloseDoor = lastDoorExitPoint != null && lastDoorExitPoint.squaredDistanceTo(pos) >= size*size/4f;
+		if(!needToCloseDoor){
+			lookInDirection(pos.angleTo(target));
+			// don't move if you have to turn more than 45°
+			// this prevents mobs from walking into a position where
+			// the current waypoint cannot be reached in a straight line anymore
+			if(Math.abs(GameController.getAngleDiff(lookAngle, desiredLookAngle)) > Math.PI / 4f){
+				return false;
+			}
+			float timeF = time / 1000f;
+			PointF vel = new PointF(getLookAngle());
+			float dd = pos.squaredDistanceTo(target);
+			float speed = totalStats.getMaxSpeed();
+			float reach = speed * timeF;
+			if(dd < reach*reach){
+				speed = (float)Math.sqrt(dd) / timeF;
+				arrived = true;
+			}
+			// try moving. if a collision happens, try to do something about it
+			if(GameController.get().moveThing(newPos, vel.x * speed, vel.y * speed, size, time, true)){
+				// try opening a door
+				if(canOpenDoors){
+					float range = totalStats.getMaxPickupRange() + 1f;
+					UsableLevelItem i = GameController.get().level.getUsableItemOnLine(pos, target, range, false);
+					if(i instanceof Door){
+						Door d = (Door)i;
+						if(!d.isOpen() && d.use(this)){
+							lastDoor = d;
+							enteredLastDoor = false;
+							return false;
+						}
+					}
+				}
+				// if that didnt help, continue as usual
+			}
 		}
-		GameController.get().moveMob(this, vel.x * speed, vel.y * speed, time, true);
+		// close door if necessary
+		if(autoCloseDoors && lastDoor != null){
+			PointI p = pos.round();
+			if(!enteredLastDoor && p.equals(lastDoor.pos)){
+				enteredLastDoor = true;
+			} else if(enteredLastDoor && lastDoorExitPoint == null && !p.equals(lastDoor.pos)){
+				lastDoorExitPoint = pos.clone();
+			} else if(needToCloseDoor){
+				lookAt(lastDoorExitPoint);
+				if(Math.abs(GameController.getAngleDiff(lookAngle, desiredLookAngle)) > Math.PI/6){
+					// need to turn towards the door first before using it
+					return false;
+				}
+				lastDoor.use(this);
+				lastDoor = null;
+				enteredLastDoor = false;
+				lastDoorExitPoint = null;
+				PointF nextWP = path.getFirst();
+				if(pos.squaredDistanceTo(nextWP) < 0.2f*0.2f) path.removeFirst();
+				// dont move now, do it next frame
+				return false;
+			}
+		}
+		pos = newPos;
 		return arrived;
 	}
 	

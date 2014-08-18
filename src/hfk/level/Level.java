@@ -62,8 +62,10 @@ public class Level implements NetStateObject{
 			Level l = new Level();
 			l.tiles = new Tile[sx+2*border][sy+2*border];
 			generateBorder(l, new Box(0, 0, sx+2*border, sy+2*border), border);
-			int min = ran.nextInt(10)+3;
-			int max = ran.nextInt(20)+10;
+			//int min = ran.nextInt(10)+3;
+			//int max = ran.nextInt(20)+10;
+			int min = 3;
+			int max = 5;
 			Box inside = new Box(border, border, sx, sy);
 			generateRoomLevel(l, inside, min, max, min, max);
 			
@@ -431,12 +433,12 @@ public class Level implements NetStateObject{
 		return isImpassable(x, y, false);
 	}
 	
-	public boolean isImpassable(int x, int y, boolean canOpenDoors){
+	public boolean isImpassable(int x, int y, boolean ignoreDoors){
 		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
 		if(tiles[x][y].isWall()) return true;
 		for(UsableLevelItem i : items) if(i.pos.x == x && i.pos.y == y){
 			if(i instanceof Door){
-				return canOpenDoors || !((Door)i).isOpen();
+				return !(ignoreDoors || ((Door)i).isOpen());
 			} else if(i instanceof ExplosiveBarrel){
 				return true;
 			}
@@ -469,12 +471,12 @@ public class Level implements NetStateObject{
 		for(UsableLevelItem i : items) i.draw();
 	}
 	
-	private LinkedList<PointI> getDirectlyReachableTiles(PointI p){
+	private LinkedList<PointI> getDirectlyReachableTiles(PointI p, boolean ignoreDoors){
 		LinkedList<PointI> ans = new LinkedList<>();
-		if(!isImpassable(p.x+1, p.y)) ans.add(new PointI(p.x+1, p.y));
-		if(!isImpassable(p.x-1, p.y)) ans.add(new PointI(p.x-1, p.y));
-		if(!isImpassable(p.x, p.y+1)) ans.add(new PointI(p.x, p.y+1));
-		if(!isImpassable(p.x, p.y-1)) ans.add(new PointI(p.x, p.y-1));
+		if(!isImpassable(p.x+1, p.y, ignoreDoors)) ans.add(new PointI(p.x+1, p.y));
+		if(!isImpassable(p.x-1, p.y, ignoreDoors)) ans.add(new PointI(p.x-1, p.y));
+		if(!isImpassable(p.x, p.y+1, ignoreDoors)) ans.add(new PointI(p.x, p.y+1));
+		if(!isImpassable(p.x, p.y-1, ignoreDoors)) ans.add(new PointI(p.x, p.y-1));
 		return ans;
 	}
 	
@@ -523,7 +525,7 @@ public class Level implements NetStateObject{
 		return a[GameController.random.nextInt(i)];
 	}
 	
-	public LinkedList<PointF> getRandomPath(PointF start, int len, boolean shorten){
+	public LinkedList<PointF> getRandomPath(PointF start, int len, boolean shorten, boolean canOpenDoors){
 		PointI[][][] flowField = new PointI[getWidth()][getHeight()][4];
 		LinkedList<PointI> expanded = new LinkedList<>();
 		LinkedList<PointI> toExpand = new LinkedList<>();
@@ -533,7 +535,7 @@ public class Level implements NetStateObject{
 		for(int i=0; i<=len; i++){
 			justExpanded.clear();
 			expanded.addAll(toExpand);
-			for(PointI p1 : toExpand) for(PointI p2 : getDirectlyReachableTiles(p1)){
+			for(PointI p1 : toExpand) for(PointI p2 : getDirectlyReachableTiles(p1, canOpenDoors)){
 				if(expanded.contains(p2)) continue;
 				if(!justExpanded.contains(p2)) justExpanded.add(p2);
 				insert(p1, flowField[p2.x][p2.y]);
@@ -555,7 +557,7 @@ public class Level implements NetStateObject{
 		}
 		ans.set(0, start);
 		if(shorten){
-			removeTrivialWaypoints(ans);
+			removeTrivialWaypoints(ans, canOpenDoors);
 			ans.removeFirst();
 		}
 		return ans;
@@ -575,7 +577,7 @@ public class Level implements NetStateObject{
 		}
 	}
 	
-	public LinkedList<PointF> getPathAwayFrom(PointF start, PointF target, int maxLength, boolean shorten){
+	public LinkedList<PointF> getPathAwayFrom(PointF start, PointF target, int maxLength, boolean shorten, boolean canOpenDoors){
 		PointI s = start.round();
 		PointI e = target.round();
 		WayPoint[][][] flowField = new WayPoint[getWidth()][getHeight()][4];
@@ -591,7 +593,7 @@ public class Level implements NetStateObject{
 				break;
 			}
 			expanded.add(wp1);
-			for(PointI p2 : getDirectlyReachableTiles(wp1.p)){
+			for(PointI p2 : getDirectlyReachableTiles(wp1.p, canOpenDoors)){
 				if(contains(p2, expanded)) continue;
 				WayPoint wp2 = new WayPoint(p2, wp1.dist + 1 - p2.hammingDistanceTo(e), wp1.dist + 1);
 				if(!contains(p2, toExpand)) insertSorted(wp2, toExpand);
@@ -621,13 +623,13 @@ public class Level implements NetStateObject{
 		}
 		ans.set(0, start);
 		if(shorten){
-			removeTrivialWaypoints(ans);
+			removeTrivialWaypoints(ans, canOpenDoors);
 			ans.removeFirst();
 		}
 		return ans;
 	}
 	
-	public LinkedList<PointF> getPathTo(PointF start, PointF end, int maxLength, boolean shorten){
+	public LinkedList<PointF> getPathTo(PointF start, PointF end, int maxLength, boolean shorten, boolean canOpenDoors){
 		PointI s = start.round();
 		PointI e = end.round();
 		WayPoint[][][] flowField = new WayPoint[getWidth()][getHeight()][4];
@@ -644,7 +646,7 @@ public class Level implements NetStateObject{
 				break;
 			}
 			expanded.add(wp1);
-			for(PointI p2 : getDirectlyReachableTiles(wp1.p)){
+			for(PointI p2 : getDirectlyReachableTiles(wp1.p, canOpenDoors)){
 				if(contains(p2, expanded)) continue;
 				WayPoint wp2 = new WayPoint(p2, wp1.dist + 1 + p2.hammingDistanceTo(e), wp1.dist + 1);
 				if(!contains(p2, toExpand)) insertSorted(wp2, toExpand);
@@ -680,7 +682,7 @@ public class Level implements NetStateObject{
 		}
 		ans.set(0, start);
 		if(shorten){
-			removeTrivialWaypoints(ans);
+			removeTrivialWaypoints(ans, canOpenDoors);
 			ans.removeFirst();
 		}
 		return ans;
@@ -701,7 +703,7 @@ public class Level implements NetStateObject{
 		l.add(i, p);
 	}
 	
-	public void removeTrivialWaypoints(LinkedList<PointF> path){
+	public void removeTrivialWaypoints(LinkedList<PointF> path, boolean ignoreDoors){
 		if(path.size() <= 2) return;
 		ListIterator<PointF> iter = path.listIterator();
 		PointF p = iter.next();
@@ -713,7 +715,7 @@ public class Level implements NetStateObject{
 				PointF p2 = iter.next();
 				if(Float.isNaN(p2.x)) throw new RuntimeException("p2 x is NaN");
 				if(Float.isNaN(p2.y)) throw new RuntimeException("p2 y is NaN");
-				if(isWalkableFrom(p, p2, Float.MAX_VALUE)){
+				if(isWalkableFrom(p, p2, Float.MAX_VALUE, ignoreDoors)){
 					len++;
 				} else {
 					walkable = false;
@@ -729,26 +731,15 @@ public class Level implements NetStateObject{
 		}
 	}
 	
-	public PointI testCollision(PointF center, float size){
-		int ix = Math.round(center.x);
-		int iy = Math.round(center.y);
-		int cap = (int)Math.ceil(size);
-		for(int x=-cap; x<=cap; x++){
-			for(int y=-cap; y<=cap; y++){
-				if(isImpassable(x+ix, y+iy)){
-					PointI p = new PointI(x+ix, y+iy);
-					if(testSingleWallCollision(center, size/2f, p)){
-						return p;
-					}
-				}
-			}
-		}
-		return null;
+	public static class CollisionAnswer{
+		public PointF corr = null;
+		public PointI collidingTilePos = null;
 	}
-	
 	// --- !!! --- SIMPLE COLLISION! SIZE MUST NOT BE GREATER THAN 1 !!!
-	public PointF doCollision(PointF center, float size){
+	public CollisionAnswer doCollision(PointF center, float size){
 		if(size > 1) throw new IllegalArgumentException("size is greater than 1. this algorithm cannot handle that!!!");
+		CollisionAnswer answer = new CollisionAnswer();
+		float ansLen = -1f;
 		int ix = Math.round(center.x);
 		int iy = Math.round(center.y);
 		LinkedList<PointF> history = new LinkedList<>();
@@ -763,9 +754,14 @@ public class Level implements NetStateObject{
 				float dd = center.squaredDistanceTo(ebPos);
 				if(dd < maxD*maxD){
 					float d = (float)Math.sqrt(dd);
+					float len = maxD - d;
+					if(ansLen < len){
+						answer.collidingTilePos = i.pos.clone();
+						ansLen = len;
+					}
 					PointF newCorr = center.clone();
 					newCorr.subtract(ebPos);
-					newCorr.multiply((maxD - d) / newCorr.length());
+					newCorr.multiply(len / newCorr.length());
 					history.add(newCorr);
 					collisionCount++;
 					addCollisionEffect(ans, newCorr, center, history);
@@ -776,9 +772,15 @@ public class Level implements NetStateObject{
 		for(int x=-1; x<=1; x++){
 			for(int y=-1; y<=1; y++){
 				if(isImpassable(x+ix, y+iy)){
-					PointF newCorr = doSingleWallCollision(center, size/2f, new PointI(x+ix, y+iy));
+					PointI pi = new PointI(x+ix, y+iy);
+					PointF newCorr = doSingleWallCollision(center, size/2f, pi);
 					if(newCorr.x != 0 || newCorr.y != 0){
 						// new collision
+						float len = newCorr.squaredLength();
+						if(ansLen < len){
+							answer.collidingTilePos = pi;
+							ansLen = len;
+						}
 						history.add(newCorr);
 						collisionCount++;
 						addCollisionEffect(ans, newCorr, center, history);
@@ -797,7 +799,8 @@ public class Level implements NetStateObject{
 		// if stuck, ignore any noclip axis (may be both)
 		if(ans.noClipX) ans.oldCorr.x = 0f;
 		if(ans.noClipY) ans.oldCorr.y = 0f;
-		return ans.oldCorr;
+		answer.corr = ans.oldCorr;
+		return answer;
 	}
 	
 	private class ColAns{
@@ -1003,14 +1006,14 @@ public class Level implements NetStateObject{
 		return true;
 	}
 	
-	public boolean isWalkableFrom(Mob m1, Mob m2, float maxDistance){
-		return isWalkableFrom(m1.pos, m2.pos, maxDistance);
+	public boolean isWalkableFrom(Mob m1, Mob m2, float maxDistance, boolean ignoreDoors){
+		return isWalkableFrom(m1.pos, m2.pos, maxDistance, ignoreDoors);
 	}
 
-	public boolean isWalkableFrom(PointF p1, PointF p2, float maxDistance){
+	public boolean isWalkableFrom(PointF p1, PointF p2, float maxDistance, boolean ignoreDoors){
 		if(p1.squaredDistanceTo(p2) > maxDistance * maxDistance) return false;
 		for(PointI p : getTilesOnLine(p1, p2, maxDistance)){
-			if(isImpassable(p.x, p.y)) return false;
+			if(isImpassable(p.x, p.y, ignoreDoors)) return false;
 		}
 		return true;
 	}

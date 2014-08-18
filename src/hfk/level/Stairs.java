@@ -7,8 +7,8 @@ package hfk.level;
 
 import hfk.PointI;
 import hfk.game.GameController;
-import hfk.game.slickstates.GameplayState;
 import hfk.game.Resources;
+import hfk.mobs.Mob;
 import hfk.mobs.Player;
 
 /**
@@ -34,7 +34,12 @@ public class Stairs extends UsableLevelItem {
 	}
 
 	@Override
-	public boolean use(Player p) {
+	public boolean canUse(Mob m) {
+		return m instanceof Player;
+	}
+
+	@Override
+	public boolean useInternal(Mob m) {
 		GameController.get().nextLevel();
 		return true;
 	}

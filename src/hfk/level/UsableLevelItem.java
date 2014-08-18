@@ -5,12 +5,10 @@
  */
 package hfk.level;
 
-import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
-import hfk.game.slickstates.GameplayState;
-import hfk.mobs.Player;
+import hfk.mobs.Mob;
 import hfk.net.NetState;
 import hfk.net.NetStateObject;
 import hfk.net.NetStatePart;
@@ -26,7 +24,7 @@ public abstract class UsableLevelItem implements NetStateObject{
 	public PointI pos;
 	public Image img = null;
 	public int hp;
-	public float size = 0.4f;
+	public float size = 1f;
 	private long id;
 
 	public UsableLevelItem() {
@@ -38,8 +36,17 @@ public abstract class UsableLevelItem implements NetStateObject{
 		id = GameController.get().createIdFor(this);
 	}
 	
-	public abstract boolean use(Player p);
+	public abstract boolean canUse(Mob m);
+	public abstract boolean useInternal(Mob m);
 	public abstract String getDisplayName();
+	
+	public final boolean use(Mob m){
+		return canUse(m) && isInRangeToUse(m) && useInternal(m);
+	}
+	
+	public final boolean isInRangeToUse(Mob m){
+		return m.pos.distanceTo(pos.toFloat()) <= m.totalStats.getMaxPickupRange()+size/2f;
+	}
 	
 	public void draw(){
 		if(img != null) GameController.get().renderer.drawImage(img, pos.toFloat(), true);

@@ -169,8 +169,7 @@ public class GameplaySubState extends GameSubState{
 					ctrl.player.pos, ctrl.mousePosInTiles, 
 					ctrl.player.totalStats.getMaxPickupRange(), lootMode);
 			if(selectedLevelItem != null){
-				float dd = selectedLevelItem.pos.toFloat().squaredDistanceTo(player.pos) - selectedLevelItem.size;
-				if(dd > player.totalStats.getMaxPickupRange()) selectedLevelItem = null;
+				if(!selectedLevelItem.isInRangeToUse(player)) selectedLevelItem = null;
 			}
 			if(selectedLevelItem != null && in.isKeyPressed(InputMap.A_USE_LEVITEM)) selectedLevelItem.use(player);
 			selectedLoot = null;

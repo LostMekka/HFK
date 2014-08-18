@@ -346,17 +346,19 @@ public class GameController {
 		return i;
 	}
 	
-	public void moveMob(Mob m, float vx, float vy, int time, boolean collide){
-		moveThing(m.pos, vx, vy, m.size, time, collide);
+	public boolean moveMob(Mob m, float vx, float vy, int time, boolean collide){
+		return moveThing(m.pos, vx, vy, m.size, time, collide);
 	}
 	
-	public void moveThing(PointF pos, float vx, float vy, float size, int time, boolean collide){
+	public boolean moveThing(PointF pos, float vx, float vy, float size, int time, boolean collide){
 		pos.x += vx * (time / 1000f);
 		pos.y += vy * (time / 1000f);
 		if(collide){
-			PointF corr = level.doCollision(pos, size);
+			PointF corr = level.doCollision(pos, size).corr;
 			pos.add(corr);
+			return !corr.isZero();
 		}
+		return false;
 	}
 	
 	public void playerDied(){
@@ -454,7 +456,7 @@ public class GameController {
 		for(int x=-border; x<=border; x++){
 			for(int y=-border; y<=border; y++){
 				PointI pi = new PointI(x + pc.x, y + pc.y);
-				float d = Math.max(0f, p.DistanceTo(pi.toFloat()) - 0.5f);
+				float d = Math.max(0f, p.distanceTo(pi.toFloat()) - 0.5f);
 				if(d >= 1) continue;
 				int dmg = getAreaDamage(r, d, normalDmg);
 				level.damageTile(pi, dmg, s == null ? p : s.pos);

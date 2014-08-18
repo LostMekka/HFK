@@ -30,6 +30,7 @@ public class Freak extends Mob {
 	
 	public Freak(PointF pos, LoadOutType t) {
 		super(pos);
+		canOpenDoors = true;
 		this.t = t;
 		SpriteSheet sheet = Resources.getSpriteSheet("e_star.png");
 		animation = new Animation(sheet, new int[]{1,0,0,0,1,1,0,0}, new int[]{300,300,300,300});

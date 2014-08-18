@@ -65,7 +65,7 @@ public class Particle {
 	public boolean update(int time){
 		// move
 		GameController.get().moveThing(pos, vel.x, vel.y, size, time, false);
-		PointF corr = GameController.get().level.doCollision(pos, size);
+		PointF corr = GameController.get().level.doCollision(pos, size).corr;
 		if(!corr.isZero()){
 			pos.add(corr);
 			vel.bounce(corr, 0.5f);

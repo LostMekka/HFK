@@ -68,7 +68,7 @@ public class Scout extends Mob {
 	public void flee(PointF p, boolean initial){
 		notifyMode = true;
 		playerPos = p;
-		path = GameController.get().level.getPathAwayFrom(pos, p, 8, true);
+		path = GameController.get().level.getPathAwayFrom(pos, p, 8, true, canOpenDoors);
 	}
 
 	@Override

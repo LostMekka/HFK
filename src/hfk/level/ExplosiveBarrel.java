@@ -9,8 +9,7 @@ package hfk.level;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.Resources;
-import hfk.game.slickstates.GameplayState;
-import hfk.mobs.Player;
+import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
 import org.newdawn.slick.Animation;
@@ -67,7 +66,12 @@ public class ExplosiveBarrel extends UsableLevelItem {
 	}
 
 	@Override
-	public boolean use(Player p) {
+	public boolean canUse(Mob m) {
+		return false;
+	}
+
+	@Override
+	public boolean useInternal(Mob m) {
 		return false;
 	}
 

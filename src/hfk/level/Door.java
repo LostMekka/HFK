@@ -8,7 +8,7 @@ package hfk.level;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.Resources;
-import hfk.mobs.Player;
+import hfk.mobs.Mob;
 import hfk.net.NetState;
 import hfk.net.NetStatePart;
 import org.newdawn.slick.SpriteSheet;
@@ -61,8 +61,12 @@ public class Door extends UsableLevelItem {
 	}
 
 	@Override
-	public boolean use(Player p) {
-		if(damaged) return false;
+	public boolean canUse(Mob m) {
+		return !damaged;
+	}
+
+	@Override
+	public boolean useInternal(Mob m) {
 		GameController.get().recalcVisibleTiles = true;
 		open = !open;
 		updateImg();

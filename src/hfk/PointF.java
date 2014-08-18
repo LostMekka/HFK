@@ -97,7 +97,7 @@ public class PointF {
 		return (p.x-x)*(p.x-x) + (p.y-y)*(p.y-y);
 	}
 
-	public float DistanceTo(PointF p){
+	public float distanceTo(PointF p){
 		return (float)Math.sqrt((p.x-x)*(p.x-x) + (p.y-y)*(p.y-y));
 	}
 
