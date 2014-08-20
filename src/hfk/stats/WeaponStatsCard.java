@@ -32,6 +32,8 @@ public class WeaponStatsCard {
 	public float shotVel;
 	public float weaponZoom;
 	public float overDamageSplashRadius;
+	public float maxEnergyLossOnBounce;
+	public float bounceProbability;
 	public boolean isAutomatic;
 	
 	private boolean isBonusCard;
@@ -49,6 +51,8 @@ public class WeaponStatsCard {
 		ans.scatterCoolRate = 5f;
 		ans.shotVel = 9f;
 		ans.weaponZoom = 1f;
+		ans.maxEnergyLossOnBounce = 0.4f;
+		ans.bounceProbability = 0.01f;
 		return ans;
 	}
 	
@@ -61,14 +65,13 @@ public class WeaponStatsCard {
 	private WeaponStatsCard(){}
 	
 	public void add(WeaponStatsCard c){
-		isAutomatic |= c.isAutomatic;
-		// multiply
-		minScatter *= 1f + c.minScatter;
-		maxScatter *= 1f + c.maxScatter;
-		scatterPerShot *= 1f + c.scatterPerShot;
-		scatterCoolRate *= 1f + c.scatterCoolRate;
-		shotVel *= 1f + c.shotVel;
+		if(!isBonusCard || !c.isBonusCard) throw new RuntimeException("add on non bonus card!");
 		// add
+		minScatter += c.minScatter;
+		maxScatter += c.maxScatter;
+		scatterPerShot += c.scatterPerShot;
+		scatterCoolRate += c.scatterCoolRate;
+		shotVel += c.shotVel;
 		projectilesPerShot += c.projectilesPerShot;
 		shotsPerBurst += c.shotsPerBurst;
 		burstInterval += c.burstInterval;
@@ -76,6 +79,10 @@ public class WeaponStatsCard {
 		weaponZoom += c.weaponZoom;
 		shotBounces += c.shotBounces;
 		overDamageSplashRadius += c.overDamageSplashRadius;
+		maxEnergyLossOnBounce += c.maxEnergyLossOnBounce;
+		bounceProbability += c.bounceProbability;
+		// other
+		isAutomatic |= c.isAutomatic;
 		for(int i=0; i<Weapon.AMMO_TYPE_COUNT; i++){
 			clipSize[i] += c.clipSize[i];
 			reloadTimes[i] += c.reloadTimes[i];
@@ -87,19 +94,25 @@ public class WeaponStatsCard {
 	}
 	
 	public void applyBonus(WeaponStatsCard c){
-		projectilesPerShot += c.projectilesPerShot;
-		shotsPerBurst += c.shotsPerBurst;
-		burstInterval += c.burstInterval;
-		shotInterval += c.shotInterval;
+		if(isBonusCard || !c.isBonusCard) throw new RuntimeException("apply on bonus card or applied a non bonus card!");
+		// multiply
 		minScatter *= 1f + c.minScatter;
 		maxScatter *= 1f + c.maxScatter;
 		scatterPerShot *= 1f + c.scatterPerShot;
 		scatterCoolRate *= 1f + c.scatterCoolRate;
 		shotVel *= 1f + c.shotVel;
 		weaponZoom *= 1f + c.weaponZoom;
-		isAutomatic |= c.isAutomatic;
+		maxEnergyLossOnBounce *= 1f + c.maxEnergyLossOnBounce;
+		bounceProbability *= 1f + c.bounceProbability;
+		// add
+		projectilesPerShot += c.projectilesPerShot;
+		shotsPerBurst += c.shotsPerBurst;
+		burstInterval += c.burstInterval;
+		shotInterval += c.shotInterval;
 		shotBounces += c.shotBounces;
 		overDamageSplashRadius += c.overDamageSplashRadius;
+		// other
+		isAutomatic |= c.isAutomatic;
 		for(int i=0; i<Weapon.AMMO_TYPE_COUNT; i++){
 			clipSize[i] += c.clipSize[i];
 			reloadTimes[i] -= c.reloadTimes[i];
@@ -108,6 +121,12 @@ public class WeaponStatsCard {
 			ammoPerBurst[i] += c.ammoPerBurst[i];
 			ammoRegenerationRates[i] *= 1f + c.ammoRegenerationRates[i];
 		}
+		// limit
+		minScatter = Math.max(0f, minScatter);
+		maxScatter = Math.max(minScatter, maxScatter);
+		shotVel = Math.max(2f, shotVel);
+		maxEnergyLossOnBounce = Math.min(1f, Math.max(0f, maxEnergyLossOnBounce));
+		bounceProbability = Math.min(1f, Math.max(0f, bounceProbability));
 	}
 	
 	@Override

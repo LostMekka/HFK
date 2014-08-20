@@ -15,6 +15,7 @@ import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
+import hfk.stats.ItemEffect;
 import hfk.stats.WeaponStatsCard;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -26,30 +27,75 @@ import org.newdawn.slick.Sound;
  */
 public abstract class Weapon extends InventoryItem {
 
-	public static enum WeaponType{
-		pistol,
-		machinegun,
-		shotgun,
-		plasmaWeapon{
-			@Override
-			public String toString() {
-				return "plasma weapon";
-			}},
-		sniperRifle{
-			@Override
-			public String toString() {
-				return "sniper rifle";
-			}},
-		rocketLauncher{
-			@Override
-			public String toString() {
-				return "rocket launcher";
-			}},
-		grenadeLauncher{
-			@Override
-			public String toString() {
-				return "grenade launcher";
-			}},
+	public static class WeaponType{
+		// generic types
+		public static final WeaponType none = new WeaponType("!!no type!!");
+		public static final WeaponType explosiveWeapon = new WeaponType("explosive weapon");
+		public static final WeaponType energyWeapon = new WeaponType("energy weapon");
+		public static final WeaponType plasmaWeapon = new WeaponType("plasma weapon");
+		public static final WeaponType zoomable = new WeaponType("zoomable");
+		public static final WeaponType shotgun = new WeaponType("shotgun");
+		public static final WeaponType machinegun = new WeaponType("machinegun");
+		// concrete types
+		public static final WeaponType cheatRifle = new WeaponType("cheat rifle");
+		public static final WeaponType doubleBarrelShotgun = new WeaponType("double barrel shotgun");
+		public static final WeaponType energyPistol = new WeaponType("energy pistol");
+		public static final WeaponType grenadeLauncher = new WeaponType("grenade launcher");
+		public static final WeaponType pistol = new WeaponType("pistol");
+		public static final WeaponType plasmaMachinegun = new WeaponType("plasma machinegun");
+		public static final WeaponType pumpActionShotgun = new WeaponType("pump action shotgun");
+		public static final WeaponType rocketLauncher = new WeaponType("rocket launcher");
+		public static final WeaponType sniperRifle = new WeaponType("sniper rifle");
+		// init parents
+		static { 
+			doubleBarrelShotgun.setParents(new WeaponType[]{shotgun});
+			energyPistol.setParents(new WeaponType[]{pistol, energyWeapon});
+			grenadeLauncher.setParents(new WeaponType[]{explosiveWeapon});
+			plasmaMachinegun.setParents(new WeaponType[]{machinegun, plasmaWeapon});
+			pumpActionShotgun.setParents(new WeaponType[]{shotgun});
+			rocketLauncher.setParents(new WeaponType[]{explosiveWeapon});
+			sniperRifle.setParents(new WeaponType[]{zoomable});
+		}
+		
+		private final String name;
+		private WeaponType[] parents = null;
+		private WeaponType(String name){ 
+			this.name = name;
+		}
+		private void setParents(WeaponType[] parents) {
+			this.parents = parents;
+			// test for cycles in parent relations
+			for(WeaponType parent : parents){
+				WeaponType[] path = parent.detectCycles(this, new WeaponType[0]);
+				if(path != null){
+					String s = "cycle in weapon type parent relation detected: ";
+					s += toString() + " -> ";
+					for(WeaponType t : path) s += t.toString() + " -> ";
+					s += toString();
+					throw new RuntimeException(s);
+				}
+			}
+		}
+		public WeaponType[] detectCycles(WeaponType t, WeaponType[] path){
+			if(this == t) return path;
+			if(parents != null) for(WeaponType parent : parents){
+				WeaponType[] newPath = new WeaponType[path.length+1];
+				System.arraycopy(path, 0, newPath, 0, path.length);
+				newPath[path.length] = this;
+				WeaponType[] ans = parent.detectCycles(t, newPath);
+				if(ans != null) return ans;
+			}
+			return null;
+		}
+		@Override
+		public String toString(){
+			return name;
+		}
+		public boolean isSubTypeOf(WeaponType t){
+			if(this == t) return true;
+			if(parents != null) for(WeaponType parent : parents) if(parent.isSubTypeOf(t)) return true;
+			return false;
+		}
 	}
 	
 	public static enum AmmoType {
@@ -83,7 +129,7 @@ public abstract class Weapon extends InventoryItem {
 	
 	public enum WeaponState { ready, cooldownShot, cooldownBurst, cooldownReload }
 	
-	public WeaponType type;
+	public WeaponType type = WeaponType.none;
 	public Mob bionicParent = null;
 	public float currentScatter;
 	public float weaponLength = 0.5f, lengthOffset = 0.3f;
@@ -95,12 +141,15 @@ public abstract class Weapon extends InventoryItem {
 	public Sound[] reloadStartSound = new Sound[AMMO_TYPE_COUNT];
 	public Sound[] reloadEndSound = new Sound[AMMO_TYPE_COUNT];
 	public Color displayColor = Color.yellow;
+	public ItemEffect zoomEffect = null;
 	
 	private final int[] clips = new int[AMMO_TYPE_COUNT];
 	private final float[] ammoRegenCounter = new float[AMMO_TYPE_COUNT];
 	private WeaponState state = WeaponState.ready;
-	private int clipToReload = -1, reloadAmount = 0, timer = 0, timerStart = 1, burstShotCount = 0;
+	private int clipToReload = -1, reloadAmount = 0, timer = 0, timerStart = 1, burstShotCount = 0, burstTimeBetweenShots = -1;
 	private boolean reloadAll = true;
+	private boolean zoom = false;
+	
 
 	public abstract Shot initShot(Shot s);
 	public abstract WeaponStatsCard getDefaultWeaponStats();
@@ -109,8 +158,20 @@ public abstract class Weapon extends InventoryItem {
 	
 	public float getScreenShakeAmount(){ return 0.1f; };
 	public float getScreenRecoilAmount(){ return 0.2f; };
-	public void weaponSelected(){};
-	public void weaponUnSelected(){};
+	
+	public void weaponSelected(){}
+	
+	public void weaponUnSelected(){
+		if(type.isSubTypeOf(WeaponType.zoomable)){
+			Mob m = getParentMob();
+			if(m != null && zoom){
+				zoom = false;
+				effects.remove(zoomEffect);
+				m.recalculateCards();
+				if(m == GameController.get().player) GameController.get().recalcVisibleTiles = true;
+			}
+		}
+	}
 	
 	public Weapon(float angle, PointF position) {
 		super(position);
@@ -131,9 +192,9 @@ public abstract class Weapon extends InventoryItem {
 		flippedImg = Resources.getImage(ref, true);
 	}
 	
-	private void setState(int timer, WeaponState s){
-		this.timer = timer;
-		timerStart = timer;
+	private void setState(int timer, WeaponState s, boolean absolute){
+		this.timer = absolute ? timer : (timer + this.timer);
+		timerStart = this.timer;
 		state = s;
 	}
 	
@@ -248,8 +309,12 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public boolean canFire(){
+		return canFire(totalStats.shotsPerBurst);
+	}
+	
+	private boolean canFire(int shotsPerBurst){
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
-			int a = Math.round(totalStats.ammoPerBurst[i]) + totalStats.shotsPerBurst * Math.round(totalStats.ammoPerShot[i]);
+			int a = Math.round(totalStats.ammoPerBurst[i]) + shotsPerBurst * Math.round(totalStats.ammoPerShot[i]);
 			if(clips[i] < a) return false;
 		}
 		return isReady();
@@ -296,7 +361,7 @@ public abstract class Weapon extends InventoryItem {
 			reloadAmount = Math.min(reloadAmount, parentInventory.getAmmoCount(t));
 			parentInventory.removeAmmo(AmmoType.values()[i], reloadAmount);
 		}
-		setState(Math.round(totalStats.reloadTimes[i]), WeaponState.cooldownReload);
+		setState(Math.round(totalStats.reloadTimes[i]), WeaponState.cooldownReload, true);
 		Sound sound = reloadStartSound[i];
 		if(sound != null) GameController.get().playSoundAt(sound, pos);
 	}
@@ -334,7 +399,7 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public void pullAlternativeTriggerInternal(){
-		if(type == WeaponType.grenadeLauncher){
+		if(type.isSubTypeOf(WeaponType.grenadeLauncher)){
 			boolean foundLevel2Shot = false;
 			for(Shot shot : GameController.get().shots){
 				if(!GameController.get().isMarkedForRemoval(shot) && shot.parent == this){
@@ -345,12 +410,31 @@ public abstract class Weapon extends InventoryItem {
 					}
 				}
 			}
+		} else if(type.isSubTypeOf(WeaponType.shotgun)){
+			pullTrigger(2, 100);
+		} else if(type.isSubTypeOf(WeaponType.zoomable) && zoomEffect != null){
+			Mob m = getParentMob();
+			if(m != null){
+				if(zoom){
+					effects.remove(zoomEffect);
+				} else {
+					effects.add(zoomEffect);
+				}
+				zoom = !zoom;
+				m.recalculateCards();
+				if(m == GameController.get().player) GameController.get().recalcVisibleTiles = true;
+			}
 		}
 	}
 	
 	public boolean pullTrigger(){
-		if(canFire()){
-			burstShotCount = totalStats.shotsPerBurst;
+		return pullTrigger(totalStats.shotsPerBurst, totalStats.shotInterval);
+	}
+	
+	private boolean pullTrigger(int shotsPerBurst, int shotInterval){
+		if(canFire(shotsPerBurst)){
+			burstShotCount = shotsPerBurst;
+			burstTimeBetweenShots = shotInterval;
 			for(int i=0; i<AMMO_TYPE_COUNT; i++) clips[i] -= totalStats.ammoPerBurst[i];
 			if(burstSound != null) burstSound.play();
 			shootInternal();
@@ -364,33 +448,30 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public void shootInternal(){
-		shootInternal(true);
-	}
-	
-	public void shootInternal(boolean playSound){
 		if(getParentMob() == GameController.get().player){
 			GameController.get().cameraShake(getScreenShakeAmount());
 			GameController.get().cameraRecoil(angle + (float)Math.PI, getScreenRecoilAmount());
 		}
 		burstShotCount--;
 		for(int i=0; i<AMMO_TYPE_COUNT; i++) clips[i] -= totalStats.ammoPerShot[i];
-		if(playSound && shotSound != null) GameController.get().playSoundAt(shotSound, pos);
+		if(shotSound != null) GameController.get().playSoundAt(shotSound, pos);
 		for(int i=0; i<totalStats.projectilesPerShot; i++){
 			Shot s = new Shot(this, null, null, 0.1f);
 			s = initShot(s);
 			s.dmg = totalDamageCard.createDamage();
 			s.team = shotTeam;
-			s.isGrenade = type == WeaponType.grenadeLauncher;
+			s.isGrenade = type.isSubTypeOf(WeaponType.grenadeLauncher);
 			s.bounceCount = totalStats.shotBounces;
+			s.bounceProbability = totalStats.bounceProbability;
 			s.parent = this;
 			Mob m = getParentMob();
 			if(m != null) s = m.skills.modifyShot(s, this, m);
 			GameController.get().shots.add(s);
 		}
 		if(burstShotCount > 0){
-			setState(totalStats.shotInterval, WeaponState.cooldownShot);
+			setState(burstTimeBetweenShots, WeaponState.cooldownShot, false);
 		} else {
-			setState(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst);
+			setState(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst, false);
 		}
 		currentScatter = Math.max(0, Math.min(totalStats.maxScatter, currentScatter + totalStats.scatterPerShot));
 	}

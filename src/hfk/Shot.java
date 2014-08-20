@@ -31,29 +31,32 @@ public class Shot {
 	public Damage dmg;
 	public Team team;
 	public boolean isGrenade = false;
-	public Weapon parent = null;
+	public Weapon parent;
 	// skill based extra stuff
-	public int bounceCount = 0;
 	public float overDamageSplashRadius = 0f;
+	public float maxEnergyLossOnBounce;
+	public float bounceProbability;
+	public int bounceCount = 0;
 	public int smartGrenadeLevel = 0; // 0 = explode on contact, 1 = bounce off walls, 2 = no friendly fire
 	public int manualDetonateLevel = 0;
 	
 	public Shot(Weapon w, Image img, Sound hit, float size){
-		this(w.pos, img, hit, w.getScatteredAngle(), w.totalStats.shotVel, size, w.lengthOffset + w.weaponLength);
-	}
-
-	public Shot(PointF pos, Image img, Sound hit, float angle, float vel, float size, float startDiff) {
-		float cos = (float)Math.cos(angle);
-		float sin = (float)Math.sin(angle);
-		this.pos = new PointF(pos.x + cos * startDiff, pos.y + sin * startDiff);
 		this.hitSound = hit;
 		this.img = img;
-		this.angle = angle;
 		this.size = size;
-		this.vel = new PointF(cos * vel, sin * vel);
+		maxEnergyLossOnBounce = w.totalStats.maxEnergyLossOnBounce;
+		bounceProbability = w.totalStats.bounceProbability;
+		parent = w;
+		angle = w.getScatteredAngle();
+		float cos = (float)Math.cos(angle);
+		float sin = (float)Math.sin(angle);
+		pos = new PointF(
+				w.pos.x + cos * (w.lengthOffset + w.weaponLength), 
+				w.pos.y + sin * (w.lengthOffset + w.weaponLength));
 		origin = pos.clone();
+		this.vel = new PointF(cos *  w.totalStats.shotVel, sin *  w.totalStats.shotVel);
 	}
-	
+
 	public void draw(){
 		GameController.get().renderer.drawImage(img, pos, 1f, angle, false);
 	}
@@ -124,9 +127,10 @@ public class Shot {
 	public void onCollideWithLevel(Level.CollisionAnswer collAns){
 		GameController ctrl = GameController.get();
 		// handle collision
-		if(smartGrenadeLevel > 0 || manualDetonateLevel > 0 || bounceCount > 0){
+		if(smartGrenadeLevel > 0 || manualDetonateLevel > 0 || bounceCount > 0 ||
+				GameController.random.nextFloat() < bounceProbability){
 			pos.add(collAns.corr);
-			PointF bounceAns = vel.bounce(collAns.corr, 0.4f);
+			PointF bounceAns = vel.bounce(collAns.corr, maxEnergyLossOnBounce);
 			angle += bounceAns.y;
 			if(!isGrenade && manualDetonateLevel <= 0){
 				ctrl.level.damageTile(collAns.collidingTilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()), pos.clone());

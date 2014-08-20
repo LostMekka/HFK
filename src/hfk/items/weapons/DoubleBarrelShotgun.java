@@ -23,7 +23,7 @@ public class DoubleBarrelShotgun extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("w_sg_s.wav");
 		setImg("w_shotgun.png");
-		type = WeaponType.shotgun;
+		type = WeaponType.doubleBarrelShotgun;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class DoubleBarrelShotgun extends Weapon {
 
 	@Override
 	public Shot initShot(Shot s) {
-		s.lifetime = GameController.random.nextInt(500) + 400;
+		s.lifetime = GameController.random.nextInt(550) + 450;
 		s.friction = 2f + 8f * GameController.random.nextFloat();
 		s.size = 0.09f;
 		s.img = Resources.getImage("shot.png");
@@ -54,7 +54,7 @@ public class DoubleBarrelShotgun extends Weapon {
 		s.burstInterval = 500;
 		s.minScatter = 35f;
 		s.maxScatter = s.minScatter;
-		s.shotVel = 7f;
+		s.shotVel = 6.5f;
 		s.weaponZoom = 0.2f;
 		s.isAutomatic = false;
 		return s;
@@ -64,8 +64,8 @@ public class DoubleBarrelShotgun extends Weapon {
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
-		d.setDieCount(physical, 3);
-		d.setEyeCount(physical, 4);
+		d.setDieCount(physical, 2);
+		d.setEyeCount(physical, 5);
 		return d;
 	}
 
@@ -79,11 +79,4 @@ public class DoubleBarrelShotgun extends Weapon {
 		return 7000;
 	}
 
-	@Override
-	public void pullAlternativeTriggerInternal() {
-		if(getAmmoCount(AmmoType.shell) < 2) return;
-		shootInternal(true);
-		shootInternal(false);
-	}
-	
 }

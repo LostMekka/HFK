@@ -74,8 +74,8 @@ public class Freak extends Mob {
 		switch(t){
 			case pistol: return 4;
 			case shotgun: return 6;
-			case energypistol: return 8;
-			case plasmaminigun: return 16;
+			case energypistol: return 9;
+			case plasmaminigun: return 13;
 			default: throw new RuntimeException("loadout type not recognized");
 		}
 	}
@@ -97,9 +97,9 @@ public class Freak extends Mob {
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 100);
 		c.setAmmoSlotSize(Weapon.AmmoType.plasmaRound.ordinal(), 150);
 		c.setAmmoSlotSize(Weapon.AmmoType.shell.ordinal(), 50);
-		c.setMaxHP(70);
+		c.setMaxHP(45);
 		c.setSightRange(4.6f);
-		c.setMaxSpeed(1.5f);
+		c.setMaxSpeed(1.3f);
 		c.setResistance(Damage.DamageType.physical.ordinal(), 2);
 		return c;
 	}

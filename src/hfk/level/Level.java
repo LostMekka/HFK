@@ -9,7 +9,6 @@ package hfk.level;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
-import hfk.game.slickstates.GameplayState;
 import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
 import hfk.net.NetState;
@@ -75,9 +74,9 @@ public class Level implements NetStateObject{
 			ex.add(stairsPos);
 			l.items.add(new Stairs(stairsPos));
 			
-			addMobs(l, inside, difficulty, ctrl.player.pos.round(), 8f, ex);
+			addMobs(l, inside, difficulty, ctrl.player.pos.round(), 12f, ex);
 			addItems(l, inside, itemScore, ex);
-			float barr = GameController.random.nextFloat() * GameController.random.nextFloat();
+			float barr = GameController.random.nextFloat() * GameController.random.nextFloat() * GameController.random.nextFloat();
 			addBarrels(l, inside, (int)(sx * sy * 0.08f * barr), ex);
 			
 			l.defaultTile = new Tile(new PointI(), Tile.TileType.blueWall);
@@ -244,7 +243,8 @@ public class Level implements NetStateObject{
 					p = box.getRandomPoint();
 					stack = ran.nextInt(ran.nextInt(ran.nextInt(10)+1)+1);
 				}
-				m = Mob.createMob(new PointF(), Math.min(d, Math.round(diff/6f)), ctrl.getLevelCount());
+				int maxD = Math.min(d, Math.round(diff*GameController.MOBGENERATION_MAXDIFF_FACTOR));
+				m = Mob.createMob(new PointF(), maxD, ctrl.getLevelCount());
 				if(m == null) break;
 //				System.out.println("   mob: " + m.getDisplayName());
 				mc++;
@@ -748,7 +748,15 @@ public class Level implements NetStateObject{
 		// collide with level items
 		for(UsableLevelItem i : items){
 			if(i.blocksMovement()){
-				PointF newCorr = doSingleWallCollision(center, size/2f, i.pos, i.size);
+				PointF newCorr;
+				if(i instanceof Door){
+					// limit correction movement
+					Door d = (Door)i;
+					newCorr = doSingleWallCollision(center, size/2f, i.pos, 
+							d.getSizeX(), d.getSizeY(), !d.isVertical(), d.isVertical());
+				} else {
+					newCorr = doSingleWallCollision(center, size/2f, i.pos, i.size);
+				}
 				if(!newCorr.isZero()){
 					float len = newCorr.length();
 					if(ansLen < len){
@@ -871,43 +879,56 @@ public class Level implements NetStateObject{
 	}
 	
 	private PointF doSingleWallCollision(PointF cp, float cr, PointI sp){
-		return doSingleWallCollision(cp, cr, sp, 1f);
+		return doSingleWallCollision(cp, cr, sp, 1f, 1f, false, false);
 	}
 	
 	private PointF doSingleWallCollision(PointF cp, float cr, PointI sp, float wallSize){
-		wallSize /= 2f;
+		return doSingleWallCollision(cp, cr, sp, wallSize, wallSize, false, false);
+	}
+	
+	private PointF doSingleWallCollision(PointF cp, float cr, PointI sp, float wallSizeX, float wallSizeY, 
+			boolean ignoreHorizontal, boolean ignoreVertical){
+		wallSizeX /= 2f;
+		wallSizeY /= 2f;
 		float dx = cp.x - sp.x;
 		float dy = cp.y - sp.y;
 		float sx = Math.signum(dx);
 		float sy = Math.signum(dy);
-		float mx = (wallSize - Math.abs(dx) + cr) * sx;
-		float my = (wallSize - Math.abs(dy) + cr) * sy;
-		boolean inX = (Math.abs(dx) < wallSize);
-		boolean inY = (Math.abs(dy) < wallSize);
+		float mx = (wallSizeX - Math.abs(dx) + cr) * sx;
+		float my = (wallSizeY - Math.abs(dy) + cr) * sy;
+		boolean inX = (Math.abs(dx) < wallSizeX);
+		boolean inY = (Math.abs(dy) < wallSizeY);
 		if(inX && inY){
 			// circle center is in the square.
 			// move in direction that has smallest move distance
 			if(Math.abs(mx) < Math.abs(my)){
-				return new PointF(mx, 0f);
+				return ignoreHorizontal ? new PointF(0f, my) : new PointF(mx, 0f);
 			} else {
-				return new PointF(0f, my);
+				return ignoreVertical ? new PointF(mx, 0f) : new PointF(0f, my);
 			}
 		}
-		if(inX && Math.abs(dy) < wallSize+cr){
+		if(inX && Math.abs(dy) < wallSizeY+cr){
 			// needs to move vertically
-			return new PointF(0f, my);
+			return ignoreVertical ? new PointF(mx, 0f) : new PointF(0f, my);
 		}
-		if(inY && Math.abs(dx) < wallSize+cr){
+		if(inY && Math.abs(dx) < wallSizeX+cr){
 			// needs to move horizontally
-			return new PointF(mx, 0f);
+			return ignoreHorizontal ? new PointF(0f, my) : new PointF(mx, 0f);
 		}
 		// test for collision with one corner
-		dx -= wallSize * Math.signum(dx);
-		dy -= wallSize * Math.signum(dy);
+		dx -= wallSizeX * sx;
+		dy -= wallSizeY * sy;
 		float d = dx*dx + dy*dy;
-		if(d == 0f) return new PointF(sx * cr / GameController.SQRT2, sy * cr / GameController.SQRT2);
+		if(d == 0f){
+			// point is directly on corner!
+			if(ignoreHorizontal) return new PointF(0f, sy * (float)Math.sqrt(cr*cr-dx*dx));
+			if(ignoreVertical) return new PointF(sx * (float)Math.sqrt(cr*cr-dy*dy), 0f);
+			return new PointF(sx * cr / GameController.SQRT2, sy * cr / GameController.SQRT2);
+		}
 		if(d < cr*cr){
-			// collision with corner. we need a sqrt here!
+			// point is in arc around corner. we need a sqrt here!
+			if(ignoreHorizontal) return new PointF(0f, dy);
+			if(ignoreVertical) return new PointF(dx, 0f);
 			float mul = cr / (float)Math.sqrt(d);
 			return new PointF(dx * mul - dx, dy * mul - dy);
 		}
@@ -935,14 +956,18 @@ public class Level implements NetStateObject{
 	
 	public UsableLevelItem getUsableItemOnLine(PointF p1, PointF p2, float maxDistance, boolean ignoreWalls){
 		UsableLevelItem ans = null;
+		boolean isFirstTile = true;
 		for(PointI p : getTilesOnLine(p1, p2, maxDistance + 1f)){
 			UsableLevelItem i = getUsableLevelItem(p.toFloat());
 			if(i != null){
-				// when i is something other than stairs, return it
-				// if it is stairs, save it for later.
-				// if nothing else comes up later, we return the stairs
-				if(!(i instanceof Stairs)) return i;
-				if(ans == null) ans = i;
+				// if the item is stairs or this is the first tile, save it for later.
+				// if nothing else comes up later, we return the saved item.
+				if(isFirstTile || (ans == null && i instanceof Stairs)){
+					ans = i;
+					isFirstTile = false;
+					continue;
+				}
+				return i;
 			}
 			if(isSightBlocking(p.x, p.y) && !ignoreWalls) return ans;
 		}

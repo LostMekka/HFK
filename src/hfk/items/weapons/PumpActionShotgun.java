@@ -23,7 +23,7 @@ public class PumpActionShotgun extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("w_sg_s.wav");
 		setImg("w_pumpActionShotgun.png");
-		type = WeaponType.shotgun;
+		type = WeaponType.pumpActionShotgun;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class PumpActionShotgun extends Weapon {
 
 	@Override
 	public Shot initShot(Shot s) {
-		s.lifetime = GameController.random.nextInt(500) + 400;
+		s.lifetime = GameController.random.nextInt(550) + 450;
 		s.friction = 2f + 8f * GameController.random.nextFloat();
 		s.size = 0.09f;
 		s.img = Resources.getImage("shot.png");
@@ -54,7 +54,7 @@ public class PumpActionShotgun extends Weapon {
 		s.burstInterval = 800;
 		s.minScatter = 32f;
 		s.maxScatter = s.minScatter;
-		s.shotVel = 7f;
+		s.shotVel = 6.5f;
 		s.weaponZoom = 0.2f;
 		s.isAutomatic = false;
 		return s;
@@ -64,8 +64,8 @@ public class PumpActionShotgun extends Weapon {
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
-		d.setDieCount(physical, 3);
-		d.setEyeCount(physical, 4);
+		d.setDieCount(physical, 2);
+		d.setEyeCount(physical, 5);
 		return d;
 	}
 

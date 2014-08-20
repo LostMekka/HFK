@@ -101,7 +101,7 @@ public class Skill implements StatsModifier {
 		mobStatsCards[i] = c;
 	}
 
-	public void setCustomValues(int i, int cost) {
+	public void setCost(int i, int cost) {
 		costs[i] = cost;
 	}
 
@@ -151,13 +151,13 @@ public class Skill implements StatsModifier {
 	@Override
 	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
 		DamageCard c = getDamageCard();
-		if(c != null && (weaponType == null || weaponType == w.type)) card.add(c);
+		if(c != null && (weaponType == null || w.type.isSubTypeOf(weaponType))) card.add(c);
 	}
 
 	@Override
 	public void addWeaponStatsCardEffects(WeaponStatsCard card, Weapon w, Mob m) {
 		WeaponStatsCard c = getWeaponStatsCard();
-		if(c != null && (weaponType == null || weaponType == w.type)) card.add(c);
+		if(c != null && (weaponType == null || w.type.isSubTypeOf(weaponType))) card.add(c);
 	}
 
 	@Override

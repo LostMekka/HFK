@@ -8,6 +8,7 @@ package hfk.skills;
 
 import hfk.Shot;
 import hfk.game.GameController;
+import hfk.items.weapons.CheatRifle;
 import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
@@ -57,23 +58,25 @@ public class SkillSet implements StatsModifier {
 			dc.setDieCount(Damage.DamageType.fire.ordinal(), (i+1)/2);
 			dc.setEyeCount(Damage.DamageType.fire.ordinal(), (i+2)/2);
 			s.damageCards[i] = dc;
-			s.costs[i] = 10 + (i>5 ? 10*i : 5*i);
+			s.costs[i] = i>0 ? s.costs[i-1] + (i>4 ? 14 : 10) : 15;
 		}
 		skills.add(s);
 		
-		s = new Skill(parent, 2, "ricochet shells", "nothing says \"in your face\" more than a shotgun. you modified your shells so that pellets bounce off walls and travel further, which makes you the ultimate close-quarter badass.");
+		s = new Skill(parent, 8, "ricochet shells", "nothing says \"in your face\" more than a shotgun. you modified your shells so that pellets bounce off walls and travel further, which makes you the ultimate close-quarter badass.");
 		s.weaponType = Weapon.WeaponType.shotgun;
 		for(int i=0; i<s.getMaxLevel(); i++){
 			WeaponStatsCard wsc = WeaponStatsCard.createBonus();
-			wsc.shotBounces = 2*i + 1;
-			wsc.shotVel = 1f + 0.33f * i;
+			wsc.shotBounces = i + 1;
+			wsc.shotVel = 0.04f * (i+1);
+			wsc.maxEnergyLossOnBounce = -0.1f * (i+1);
 			s.weaponStatsCards[i] = wsc;
-			s.costs[i] = 10 + 5*i;
+			s.costs[i] = i>0 ? s.costs[i-1] + (i>5 ? 8 : 6) : 10;
 		}
 		skills.add(s);
 		
-		shotgunDouble = new Skill(parent, 1, "dual barrel", "enables the alternative fire of double barrel shotguns to shoot both shells at once.");
-		shotgunDouble.costs[0] = 20;
+		shotgunDouble = new Skill(parent, 2, "dual barrel", "enables the alternative fire of double barrel shotguns to shoot both shells at once.");
+		shotgunDouble.costs[0] = 25;
+		shotgunDouble.costs[0] = 50;
 		skills.add(shotgunDouble);
 		
 		s = new Skill(parent, 5, "weapon juggler", "if surviving in a foreign universe has taught you one thing, it is that you need all the weapons you can get... at the same time! for each level of this skill you gain an extra weapon slot.");
@@ -100,6 +103,25 @@ public class SkillSet implements StatsModifier {
 		// TODO: set blocks and requirements
 		grenadeManual.addBlock(grenadeSmart);
 		grenadeSmart.addRequirement(1, spiderSenses, 2);
+	}
+	
+	public void printSkillBalanceInfo(){
+		float r = GameController.get().getSkillCostIncreaseRate();
+		for(Skill s1 : skills){
+			System.out.println(s1.name + "," + s1.getMaxLevel() + ":");
+			System.out.print("    cost:");
+			for(int i=0; i<s1.costs.length; i++){
+				Math.round(s1.costs[i] * (1f + i*r));
+				System.out.print(" " + (Math.round(s1.costs[i] * (1f + i*r))));
+			}
+			System.out.print("\n    total:");
+			int txp = 0;
+			for(int i=0; i<s1.costs.length; i++){
+				txp += Math.round(s1.costs[i] * (1f + i*r));
+				System.out.print(" " + txp);
+			}
+			System.out.println();
+		}
 	}
 
 	public Skill getSkill(String name){
@@ -177,11 +199,9 @@ public class SkillSet implements StatsModifier {
 	
 	public Shot modifyShot(Shot s, Weapon w, Mob m){
 		if(m != parent || w.type == null) return s;
-		switch(w.type){
-			case grenadeLauncher:
-				s.smartGrenadeLevel = Math.max(grenadeSmart.getLevel(), s.smartGrenadeLevel);
-				s.manualDetonateLevel = Math.max(grenadeManual.getLevel(), s.manualDetonateLevel);
-				break;
+		if(w.type.isSubTypeOf(Weapon.WeaponType.grenadeLauncher)){
+			s.smartGrenadeLevel = Math.max(grenadeSmart.getLevel(), s.smartGrenadeLevel);
+			s.manualDetonateLevel = Math.max(grenadeManual.getLevel(), s.manualDetonateLevel);
 		}
 		return s;
 	}
@@ -195,10 +215,15 @@ public class SkillSet implements StatsModifier {
 	}
 	
 	public boolean canAltFire(Weapon w){
-		if(w.type == Weapon.WeaponType.sniperRifle) return true;
-		if(w.type == Weapon.WeaponType.grenadeLauncher) return grenadeManual.getLevel() > 0;
-		if(w instanceof DoubleBarrelShotgun) return shotgunDouble.getLevel() > 0;
-		return false;
+		if(w instanceof CheatRifle) return true;
+		if(w.type.isSubTypeOf(Weapon.WeaponType.zoomable)) return true;
+		if(w.type.isSubTypeOf(Weapon.WeaponType.grenadeLauncher)) return grenadeManual.getLevel() > 0;
+		if(w.type.isSubTypeOf(Weapon.WeaponType.shotgun)) switch(shotgunDouble.getLevel()){
+			case 0: return false;
+			case 1: return w.type.isSubTypeOf(Weapon.WeaponType.doubleBarrelShotgun);
+			case 2: return true;
+		}
+		return true;
 	}
 	
 }

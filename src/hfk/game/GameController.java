@@ -26,6 +26,7 @@ import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.EnergyPistol;
 import hfk.items.weapons.GrenadeLauncher;
 import hfk.items.weapons.Pistol;
+import hfk.items.weapons.PlasmaMachinegun;
 import hfk.items.weapons.PumpActionShotgun;
 import hfk.items.weapons.RocketLauncher;
 import hfk.items.weapons.SniperRifle;
@@ -61,6 +62,8 @@ public class GameController {
 	public static final Random random = new Random();
 	public static final float SPRITE_SIZE = 32f;
 	public static final float EXPLODE_SHAKE_MULTIPLIER = 0.2f;
+	public static final float MOBGENERATION_MAXDIFF_FACTOR = 0.1f;
+	public static final float ITEMGENERATION_MAXRARITY_FACTOR = 0.166f;
 	
 	private static GameController currGC = null;
 	
@@ -252,18 +255,14 @@ public class GameController {
 		levelCount = 0;
 		PointF pp = new PointF();
 		player = new Player(pp);
+		printBalanceInfo();
 		player.inventory.equipWeaponFromGround(new Pistol(0, pp));
 		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
-		//for(int i=0; i<20; i++) player.inventory.addItem(InventoryItem.create(pp, 99999999));
+		player.xp = 9999999;
 		if(musicIsOn) startMusic();
 		currSubState = gameplaySubState;
 		playerIsAlive = true;
 		nextLevel();
-//		for(int i=1; i<30; i++){
-//			System.out.println("l: " + i + " d: " + 
-//					getLevelDifficultyLimit(i) + " r: " + 
-//					getLevelRarityLimit(i));
-//		}
 	}
 	
 	public void nextLevel(){
@@ -276,21 +275,40 @@ public class GameController {
 		texts.clear();
 		levelCount++;
 		int s = 25 + levelCount;
-		int d = getLevelDifficultyLimit(levelCount);
-		int r = getLevelRarityLimit(levelCount);
+		int d = getLevelDifficultyLimit(levelCount, true);
+		int r = getLevelRarityLimit(levelCount, true);
 		level = Level.Factory.createTestArena(s, s, d, r);
 		miniMapMin = player.pos.round();
 		miniMapMax = miniMapMin.clone();
 	}
 	
-	public int getLevelDifficultyLimit(int level){
-		// TODO: use difficultyLevel
-		return (int)(Math.pow(level+3, 1.95) * (0.85f + 0.3f * random.nextFloat()));
+	public void printBalanceInfo(){
+		player.skills.printSkillBalanceInfo();
+		int totalXp = 0;
+		for(int i=1; i<30; i++){
+			int d = getLevelDifficultyLimit(i, false);
+			totalXp += d;
+			System.out.format("l %d: diff %d (%d total), rarity %d\n", i, d, 
+					totalXp, getLevelRarityLimit(i, false));
+		}
 	}
 	
-	public int getLevelRarityLimit(int level){
+	public int getLevelDifficultyLimit(int level, boolean addRandomPart){
 		// TODO: use difficultyLevel
-		return 100*(int)(Math.pow(level+5, 2.1) * (1f + 5f*random.nextFloat()*random.nextFloat()*random.nextFloat()*random.nextFloat()));
+		double d = Math.pow(level+3.4, 2.15);
+		if(addRandomPart) d *= 0.9f + 0.2f * random.nextDouble();
+		return (int)d;
+	}
+	
+	public int getLevelRarityLimit(int level, boolean addRandomPart){
+		// TODO: use difficultyLevel
+		double r = 100 * Math.pow(level+5, 2.2);
+		if(addRandomPart){
+			double r2 = 5d;
+			for(int i=0; i<5; i++) r2 *= random.nextDouble();
+			r *= 1f + r2;
+		}
+		return (int)r;
 	}
 	
 	public float getSkillCostIncreaseRate(){
@@ -521,6 +539,32 @@ public class GameController {
 			mobsToRemove.add(m);
 		} else {
 			m.onHit(dmg, s);
+		}
+	}
+	
+	public void collisionStateChanged(PointF p1, PointF p2){
+		for(Particle p : particles){
+			if(p.pos.squareDistanceToRect(p1, p2) < p.size*p.size/4f){
+				PointF corr = level.doCollision(p.pos, p.size).corr;
+				if(!corr.isZero()){
+					p.pos.add(corr);
+					p.vel.add(corr);
+				}
+			}
+		}
+		for(InventoryItem i : items){
+			if(i.pos.squareDistanceToRect(p1, p2) < i.size*i.size/4f){
+				PointF corr = level.doCollision(i.pos, i.size).corr;
+				if(!corr.isZero()){
+					i.pos.add(corr);
+					i.vel.add(corr);
+				}
+			}
+		}
+		for(Mob m : mobs){
+			if(m.pos.squareDistanceToRect(p1, p2) < m.size*m.size/4f){
+				m.pos.add(level.doCollision(m.pos, m.size).corr);
+			}
 		}
 	}
 	

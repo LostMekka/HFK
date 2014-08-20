@@ -46,7 +46,7 @@ public class Pistol extends Weapon {
 		s.maxScatter = 30f;
 		s.scatterCoolRate = 10f;
 		s.scatterPerShot = 6f;
-		s.shotVel = 7f;
+		s.shotVel = 6f;
 		s.isAutomatic = false;
 		return s;
 	}
@@ -56,7 +56,7 @@ public class Pistol extends Weapon {
 		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
 		d.setDieCount(physical, 3);
-		d.setEyeCount(physical, 6);
+		d.setEyeCount(physical, 5);
 		return d;
 	}
 

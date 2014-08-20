@@ -22,7 +22,7 @@ public class PlasmaMachinegun extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("shot1.wav");
 		setImg("w_plasmamachinegun.png");
-		type = WeaponType.plasmaWeapon;
+		type = WeaponType.plasmaMachinegun;
 	}
 
 	@Override
@@ -51,6 +51,7 @@ public class PlasmaMachinegun extends Weapon {
 		s.maxScatter = 25f;
 		s.scatterCoolRate = 15f;
 		s.scatterPerShot = 2.2f;
+		s.shotVel = 7f;
 		s.isAutomatic = true;
 		return s;
 	}

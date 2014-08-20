@@ -39,7 +39,7 @@ public class MobStatsCard {
 		ans.maxHP = 100;
 		ans.inventorySize = 10;
 		ans.quickSlotCount = 2;
-		ans.memoryTime = 5000;
+		ans.memoryTime = 10000;
 		ans.visionAngle = 90f;
 		ans.turnRate = (float)Math.PI * 2f;
 		return ans;

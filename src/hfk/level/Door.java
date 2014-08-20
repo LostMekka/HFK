@@ -5,6 +5,7 @@
  */
 package hfk.level;
 
+import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.Resources;
@@ -53,6 +54,12 @@ public class Door extends UsableLevelItem {
 		}
 		img = sheet.getSprite(x, y);
 	}
+	
+	private void notifyController(){
+		GameController.get().collisionStateChanged(
+				new PointF(pos.x - getSizeX(), pos.y - getSizeY()), 
+				new PointF(pos.x + getSizeX(), pos.y + getSizeY()));
+	}
 
 	@Override
 	public void update(int time) {
@@ -61,8 +68,12 @@ public class Door extends UsableLevelItem {
 			if(timer >= ANIMATION_TIME * 3){
 				timer = -1;
 				open = !open;
+				if(open){
+					notifyController();
+				} else {
+					GameController.get().recalcVisibleTiles = true;
+				}
 			}
-			GameController.get().recalcVisibleTiles = true;
 			updateImg();
 		}
 	}
@@ -72,9 +83,14 @@ public class Door extends UsableLevelItem {
 		boolean destroyed = super.damage(dmg);
 		if(damaged) return destroyed;
 		if(destroyed){
-			if((timer < 0 && open) || 
-					(open && timer >= ANIMATION_TIME * 3 / 2) ||
-					(!open && timer >= 0 && timer < ANIMATION_TIME * 3 / 2)) return true;
+			if(timer < 0 && open) return true;
+			if((open && timer >= 0 && timer < ANIMATION_TIME * 3 / 2) ||
+					(!open && timer >= ANIMATION_TIME * 3 / 2)){
+				open = true;
+				timer = -1;
+				notifyController();
+				return true;
+			}
 			hp = 200;
 			open = false;
 			damaged = true;
@@ -82,6 +98,14 @@ public class Door extends UsableLevelItem {
 			updateImg();
 		}
 		return false;
+	}
+
+	public float getSizeX() {
+		return vertical ? size : 1f;
+	}
+
+	public float getSizeY() {
+		return vertical ? 1f : size;
 	}
 
 	public boolean isVertical() {
@@ -121,13 +145,13 @@ public class Door extends UsableLevelItem {
 	@Override
 	public boolean blocksSight() {
 		// sight is blocked only if closed
-		return timer < 0 ? !open : false;
+		return timer < 0 && !open;
 	}
 
 	@Override
 	public boolean blocksMovement() {
 		// movement is blocked if closed, closing or opening
-		return timer < 0 ? !open : true;
+		return timer >= 0 || !open;
 	}
 
 	@Override
@@ -137,10 +161,14 @@ public class Door extends UsableLevelItem {
 
 	@Override
 	public boolean useInternal(Mob m) {
-		GameController.get().recalcVisibleTiles = true;
-		GameController.get().playSoundAt(sound, pos.toFloat());
 		timer = 0;
 		updateImg();
+		if(open){
+			notifyController();
+		} else {
+			GameController.get().recalcVisibleTiles = true;
+		}
+		GameController.get().playSoundAt(sound, pos.toFloat());
 		return true;
 	}
 

@@ -22,9 +22,6 @@ import hfk.stats.WeaponStatsCard;
  */
 public class SniperRifle extends Weapon {
 
-	private ItemEffect zoomEffect;
-	private boolean zoom = false;
-	
 	public SniperRifle(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
@@ -45,30 +42,6 @@ public class SniperRifle extends Weapon {
 		zoomEffect.msc.setSightRange(5f);
 		zoomEffect.wsc = WeaponStatsCard.createBonus();
 		zoomEffect.wsc.weaponZoom = 6f;
-	}
-
-	@Override
-	public void weaponUnSelected() {
-		Mob m = getParentMob();
-		if(m == null || !zoom) return;
-		zoom = false;
-		effects.remove(zoomEffect);
-		m.recalculateCards();
-		if(m == GameController.get().player) GameController.get().recalcVisibleTiles = true;
-	}
-
-	@Override
-	public void pullAlternativeTriggerInternal() {
-		Mob m = getParentMob();
-		if(m == null) return;
-		if(zoom){
-			effects.remove(zoomEffect);
-		} else {
-			effects.add(zoomEffect);
-		}
-		zoom = !zoom;
-		m.recalculateCards();
-		if(m == GameController.get().player) GameController.get().recalcVisibleTiles = true;
 	}
 
 	@Override
@@ -102,9 +75,8 @@ public class SniperRifle extends Weapon {
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
-		d.setDieCount(physical, 10);
+		d.setDieCount(physical, 12);
 		d.setEyeCount(physical, 5);
-		d.setDmgBonus(physical, 0.2f);
 		return d;
 	}
 

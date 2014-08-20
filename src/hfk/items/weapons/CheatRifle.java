@@ -7,6 +7,7 @@ package hfk.items.weapons;
 
 import hfk.PointF;
 import hfk.Shot;
+import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
@@ -22,7 +23,7 @@ public class CheatRifle extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
 		setImg("w_grenadelauncher.png");
-		type = WeaponType.grenadeLauncher;
+		type = WeaponType.cheatRifle;
 	}
 
 	@Override
@@ -73,6 +74,11 @@ public class CheatRifle extends Weapon {
 	@Override
 	public long getRarityScore() {
 		return 12000;
+	}
+
+	@Override
+	public void pullAlternativeTriggerInternal() {
+		GameController.get().nextLevel();
 	}
 	
 }

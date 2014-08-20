@@ -54,7 +54,7 @@ public class Scout extends Mob {
 	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
-		c.setMaxHP(20);
+		c.setMaxHP(15);
 		c.setMaxSpeed(3f);
 		c.setSightRange(4f);
 		return c;

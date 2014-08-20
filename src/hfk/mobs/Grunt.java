@@ -113,8 +113,8 @@ public class Grunt extends Mob {
 		c.setMaxHP(300);
 		c.setSightRange(4.6f);
 		c.setMaxSpeed(0.5f);
-		c.setResistance(Damage.DamageType.physical.ordinal(), 4);
-		c.setResistance(Damage.DamageType.fire.ordinal(), 4);
+		c.setResistance(Damage.DamageType.physical.ordinal(), 3);
+		c.setResistance(Damage.DamageType.fire.ordinal(), 3);
 		return c;
 	}
 	

@@ -44,8 +44,8 @@ public class Star extends Mob {
 		shotImage = Resources.getImage("shot.png");
 		damageCard = DamageCard.createNormal();
 		int physical = Damage.DamageType.physical.ordinal();
-		damageCard.setDieCount(physical, 2);
-		damageCard.setEyeCount(physical, 3);
+		damageCard.setDieCount(physical, 1);
+		damageCard.setEyeCount(physical, 5);
 		autoUseWeapon = true;
 		barrageTimeOnLost = 500;
 		if(GameController.random.nextFloat() < 0.1){
@@ -73,7 +73,7 @@ public class Star extends Mob {
 				ans.maxScatter = 10f;
 				ans.minScatter = 10f;
 				ans.shotsPerBurst = 5;
-				ans.shotVel = 5f;
+				ans.shotVel = 4.8f;
 				return ans;
 			}
 			@Override
@@ -106,7 +106,7 @@ public class Star extends Mob {
 	@Override
 	public MobStatsCard getDefaultMobStatsCard() {
 		MobStatsCard c = MobStatsCard.createNormal();
-		c.setMaxHP(40);
+		c.setMaxHP(30);
 		c.setMaxSpeed(1f);
 		c.setSightRange(4f);
 		c.setAmmoSlotSize(Weapon.AmmoType.bullet.ordinal(), 1000);

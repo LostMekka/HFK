@@ -165,14 +165,14 @@ public abstract class InventoryItem implements StatsModifier {
 	@Override
 	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
 		for(ItemEffect e : effects){
-			if(e.dc != null && (e.weaponType == null || e.weaponType == w.type)) card.add(e.dc);
+			if(e.dc != null && (e.weaponType == null || w.type.isSubTypeOf(e.weaponType))) card.add(e.dc);
 		}
 	}
 
 	@Override
 	public void addWeaponStatsCardEffects(WeaponStatsCard card, Weapon w, Mob m) {
 		for(ItemEffect e : effects){
-			if(e.wsc != null && (e.weaponType == null || e.weaponType == w.type)) card.add(e.wsc);
+			if(e.wsc != null && (e.weaponType == null || w.type.isSubTypeOf(e.weaponType))) card.add(e.wsc);
 		}
 	}
 

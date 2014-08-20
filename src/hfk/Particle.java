@@ -17,9 +17,9 @@ public class Particle {
 	
 	public Image img;
 	public PointF pos, vel;
-	public float rotation;
+	public float size, rotation;
 	public int lifeTime = -1;
-	private final float size, acc = -0.1f;
+	private final float acc = -0.1f;
 
 	public Particle(Image img, int border, PointF pos, float r) {
 		this(img, border, pos, GameController.random.nextFloat() * 2f * (float)Math.PI, r);

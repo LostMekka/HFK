@@ -22,7 +22,7 @@ public class EnergyPistol extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
 		setImg("w_energypistol.png");
-		type = WeaponType.pistol;
+		type = WeaponType.energyPistol;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class EnergyPistol extends Weapon {
 		s.maxScatter = 30f;
 		s.scatterCoolRate = 10f;
 		s.scatterPerShot = 6f;
-		s.shotVel = 9f;
+		s.shotVel = 7.8f;
 		s.isAutomatic = false;
 		return s;
 	}
@@ -62,9 +62,9 @@ public class EnergyPistol extends Weapon {
 		int physical = Damage.DamageType.physical.ordinal();
 		int mental = Damage.DamageType.mental.ordinal();
 		d.setDieCount(physical, 3);
-		d.setEyeCount(physical, 6);
+		d.setEyeCount(physical, 5);
 		d.setDieCount(mental, 1);
-		d.setEyeCount(mental, 6);
+		d.setEyeCount(mental, 5);
 		return d;
 	}
 
