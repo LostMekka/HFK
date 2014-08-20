@@ -52,6 +52,7 @@ public class Resources {
 		"w_sniperrifle.png",
 		"w_grenadelauncher.png",
 		"w_rocketlauncher.png",
+		"w_damagedhuntinggun.png",
 		"shot.png",
 		"s_grenade.png",
 		"s_rocket.png",

@@ -258,7 +258,6 @@ public class GameController {
 		printBalanceInfo();
 		player.inventory.equipWeaponFromGround(new Pistol(0, pp));
 		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
-		player.xp = 9999999;
 		if(musicIsOn) startMusic();
 		currSubState = gameplaySubState;
 		playerIsAlive = true;

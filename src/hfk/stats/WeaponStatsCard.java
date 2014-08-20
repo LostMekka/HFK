@@ -103,8 +103,8 @@ public class WeaponStatsCard {
 		shotVel *= 1f + c.shotVel;
 		weaponZoom *= 1f + c.weaponZoom;
 		maxEnergyLossOnBounce *= 1f + c.maxEnergyLossOnBounce;
-		bounceProbability *= 1f + c.bounceProbability;
 		// add
+		bounceProbability += c.bounceProbability;
 		projectilesPerShot += c.projectilesPerShot;
 		shotsPerBurst += c.shotsPerBurst;
 		burstInterval += c.burstInterval;
@@ -145,6 +145,8 @@ public class WeaponStatsCard {
 		ans.isAutomatic = isAutomatic;
 		ans.shotBounces = shotBounces;
 		ans.overDamageSplashRadius = overDamageSplashRadius;
+		ans.bounceProbability = bounceProbability;
+		ans.maxEnergyLossOnBounce = maxEnergyLossOnBounce;
 		System.arraycopy(clipSize, 0, ans.clipSize, 0, Weapon.AMMO_TYPE_COUNT);
 		System.arraycopy(reloadTimes, 0, ans.reloadTimes, 0, Weapon.AMMO_TYPE_COUNT);
 		System.arraycopy(reloadCount, 0, ans.reloadCount, 0, Weapon.AMMO_TYPE_COUNT);

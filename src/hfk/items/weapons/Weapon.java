@@ -38,6 +38,7 @@ public abstract class Weapon extends InventoryItem {
 		public static final WeaponType machinegun = new WeaponType("machinegun");
 		// concrete types
 		public static final WeaponType cheatRifle = new WeaponType("cheat rifle");
+		public static final WeaponType damagedHuntingGun = new WeaponType("damaged hunting gun");
 		public static final WeaponType doubleBarrelShotgun = new WeaponType("double barrel shotgun");
 		public static final WeaponType energyPistol = new WeaponType("energy pistol");
 		public static final WeaponType grenadeLauncher = new WeaponType("grenade launcher");

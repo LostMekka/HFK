@@ -80,6 +80,7 @@ public class Shot {
 			} else {
 				vel.x = 0f;
 				vel.y = 0f;
+				if(!isGrenade) GameController.get().requestDeleteShot(this);
 			}
 		}
 	}
@@ -132,6 +133,7 @@ public class Shot {
 			pos.add(collAns.corr);
 			PointF bounceAns = vel.bounce(collAns.corr, maxEnergyLossOnBounce);
 			angle += bounceAns.y;
+			if(bounceCount <= 0 && friction <= 0) friction = 1f + 3f * GameController.random.nextFloat();
 			if(!isGrenade && manualDetonateLevel <= 0){
 				ctrl.level.damageTile(collAns.collidingTilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()), pos.clone());
 			}

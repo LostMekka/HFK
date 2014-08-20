@@ -95,6 +95,7 @@ public abstract class Mob implements StatsModifier {
 		LinkedList<Mob> l = new LinkedList<>();
 		l.add(new Star(pos));
 		l.add(new Scout(pos));
+		l.add(new Hunter(pos));
 		l.add(new Freak(pos, Freak.LoadOutType.pistol));
 		l.add(new Freak(pos, Freak.LoadOutType.shotgun));
 		l.add(new Freak(pos, Freak.LoadOutType.energypistol));
