@@ -73,7 +73,7 @@ public class Level implements NetStateObject{
 			PointI stairsPos = l.getNextFreeField(inside.getRandomPoint(), ex);
 			ex.add(stairsPos);
 			l.items.add(new Stairs(stairsPos));
-			
+
 			addMobs(l, inside, difficulty, ctrl.player.pos.round(), 12f, ex);
 			addItems(l, inside, itemScore, ex);
 			float barr = GameController.random.nextFloat() * GameController.random.nextFloat() * GameController.random.nextFloat();
@@ -960,15 +960,18 @@ public class Level implements NetStateObject{
 		for(PointI p : getTilesOnLine(p1, p2, maxDistance + 1f)){
 			UsableLevelItem i = getUsableLevelItem(p.toFloat());
 			if(i != null){
-				// if the item is stairs or this is the first tile, save it for later.
-				// if nothing else comes up later, we return the saved item.
-				if(isFirstTile || (ans == null && i instanceof Stairs)){
-					ans = i;
-					isFirstTile = false;
-					continue;
+				float d = maxDistance + i.size/2f;
+				if(p1.squaredDistanceTo(i.pos.toFloat()) < d*d){
+					// if the item is stairs or this is the first tile, save it for later.
+					// if nothing else comes up later, we return the saved item.
+					if(isFirstTile || (ans == null && i instanceof Stairs)){
+						ans = i;
+					} else {
+						return i;
+					}
 				}
-				return i;
 			}
+			isFirstTile = false;
 			if(isSightBlocking(p.x, p.y) && !ignoreWalls) return ans;
 		}
 		return ans;

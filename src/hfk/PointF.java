@@ -190,7 +190,7 @@ public class PointF {
 	 * @param p2 the opposite corner of the target rectangle
 	 * @return the squared distance to the closest point inside the target rectangle
 	 */
-	public float squareDistanceToRect(PointF p1, PointF p2){
+	public float squaredDistanceToRect(PointF p1, PointF p2){
 		float dx = Math.max(0f, Math.abs(x - (p1.x + p2.x) / 2f) - Math.abs(p1.x - p2.x) / 2f);
 		float dy = Math.max(0f, Math.abs(y - (p1.y + p2.y) / 2f) - Math.abs(p1.y - p2.y) / 2f);
 		// no sqrt here, so if statements are not needed

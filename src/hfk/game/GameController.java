@@ -543,7 +543,7 @@ public class GameController {
 	
 	public void collisionStateChanged(PointF p1, PointF p2){
 		for(Particle p : particles){
-			if(p.pos.squareDistanceToRect(p1, p2) < p.size*p.size/4f){
+			if(p.pos.squaredDistanceToRect(p1, p2) < p.size*p.size/4f){
 				PointF corr = level.doCollision(p.pos, p.size).corr;
 				if(!corr.isZero()){
 					p.pos.add(corr);
@@ -552,7 +552,7 @@ public class GameController {
 			}
 		}
 		for(InventoryItem i : items){
-			if(i.pos.squareDistanceToRect(p1, p2) < i.size*i.size/4f){
+			if(i.pos.squaredDistanceToRect(p1, p2) < i.size*i.size/4f){
 				PointF corr = level.doCollision(i.pos, i.size).corr;
 				if(!corr.isZero()){
 					i.pos.add(corr);
@@ -561,7 +561,7 @@ public class GameController {
 			}
 		}
 		for(Mob m : mobs){
-			if(m.pos.squareDistanceToRect(p1, p2) < m.size*m.size/4f){
+			if(m.pos.squaredDistanceToRect(p1, p2) < m.size*m.size/4f){
 				m.pos.add(level.doCollision(m.pos, m.size).corr);
 			}
 		}
