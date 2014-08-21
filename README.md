@@ -1,4 +1,4 @@
 HFK
 ===
 
-HFK(HimmelFahrtsKommando) is a rouglike-like mashup between Nuclear Throne and DoomRL
+HFK(HimmelFahrtsKommando) is a roguelike-like mashup between Nuclear Throne and DoomRL
