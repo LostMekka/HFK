@@ -11,7 +11,6 @@ import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.mobs.Mob;
 import hfk.net.NetState;
-import hfk.net.NetStatePart;
 import org.newdawn.slick.Sound;
 import org.newdawn.slick.SpriteSheet;
 
@@ -37,7 +36,13 @@ public class Door extends UsableLevelItem {
 		vertical = isVertical;
 		updateImg();
 		hp = 70;
-		size = 0.6f;
+		if(vertical){
+			size.x = 0.6f;
+			size.y = 1f;
+		} else {
+			size.x = 1f;
+			size.y = 0.6f;
+		}
 	}
 	
 	private void updateImg(){
@@ -57,8 +62,8 @@ public class Door extends UsableLevelItem {
 	
 	private void notifyController(){
 		GameController.get().collisionStateChanged(
-				new PointF(pos.x - getSizeX(), pos.y - getSizeY()), 
-				new PointF(pos.x + getSizeX(), pos.y + getSizeY()));
+				new PointF(pos.x - size.x/2f, pos.y - size.y/2f), 
+				new PointF(pos.x + size.x/2f, pos.y + size.y/2f));
 	}
 
 	@Override
@@ -98,14 +103,6 @@ public class Door extends UsableLevelItem {
 			updateImg();
 		}
 		return false;
-	}
-
-	public float getSizeX() {
-		return vertical ? size : 1f;
-	}
-
-	public float getSizeY() {
-		return vertical ? 1f : size;
 	}
 
 	public boolean isVertical() {
@@ -173,21 +170,24 @@ public class Door extends UsableLevelItem {
 	}
 
 	@Override
-	public NetStatePart fillStateParts(NetStatePart part, NetState state) {
-		part = super.fillStateParts(part, state);
-		part.setBoolean(0, vertical);
-		part.setBoolean(1, open);
-		part.setBoolean(2, damaged);
-		return part;
+	public void fillStateFields(int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
+		bools[boolOffset+0] = vertical;
+		bools[boolOffset+1] = open;
+		bools[boolOffset+2] = damaged;
+		super.fillStateFields(ints, intOffset, longs, longOffset, floats, floatOffset, bools, boolOffset+3);
 	}
 
 	@Override
-	public void updateFromStatePart(NetStatePart part, NetState state) {
-		super.updateFromStatePart(part, state);
-		vertical = part.getBoolean(0);
-		open = part.getBoolean(1);
-		damaged = part.getBoolean(2);
-		updateImg();
+	public void applyFromStateFields(NetState state, int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
+		vertical = bools[boolOffset+0];
+		open = bools[boolOffset+1];
+		damaged = bools[boolOffset+2];
+		super.applyFromStateFields(state, ints, intOffset, longs, longOffset, floats, floatOffset, bools, boolOffset+3);
 	}
-	
+
+	@Override
+	public int getBoolCount() {
+		return super.getBoolCount() + 3;
+	}
+
 }

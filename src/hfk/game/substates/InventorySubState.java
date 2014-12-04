@@ -150,7 +150,10 @@ public class InventorySubState extends GameSubState{
 			if(i < inventory.getQuickSlotCount()) selectedGear = inventory.getQuickslot(i);
 			if(selectedGear != null){
 				if(in.isMouseDown(InputMap.A_INV_USE)) inventory.unequipWeapon(i);
-				if(in.isMouseDown(InputMap.A_INV_DROP)) ctrl.dropItem(inventory.dropWeapon(i), inventory.getParent(), true);
+				if(in.isMouseDown(InputMap.A_INV_DROP)){
+					Weapon w = inventory.dropWeapon(i);
+					if(w != null) ctrl.dropItem(w, inventory.getParent(), true);
+				}
 			}
 		}
 	}

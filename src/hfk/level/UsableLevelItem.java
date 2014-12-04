@@ -5,6 +5,7 @@
  */
 package hfk.level;
 
+import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
@@ -24,7 +25,7 @@ public abstract class UsableLevelItem implements NetStateObject{
 	public PointI pos;
 	public Image img = null;
 	public int hp;
-	public float size = 1f;
+	public PointF size = new PointF(1f, 1f);
 	private long id;
 
 	public UsableLevelItem() {
@@ -49,7 +50,16 @@ public abstract class UsableLevelItem implements NetStateObject{
 	}
 	
 	public final boolean isInRangeToUse(Mob m){
-		return m.pos.distanceTo(pos.toFloat()) <= m.totalStats.getMaxPickupRange()+size/2f;
+		float r = m.totalStats.getMaxPickupRange();
+		return m.pos.squaredDistanceToRect(getTopLeftPoint(), getBottomRightPoint()) <= r*r;
+	}
+	
+	public PointF getTopLeftPoint(){
+		return new PointF(pos.x - size.x/2f, pos.y - size.y/2f);
+	}
+	
+	public PointF getBottomRightPoint(){
+		return new PointF(pos.x + size.x/2f, pos.y + size.y/2f);
 	}
 	
 	public void draw(){
@@ -81,21 +91,41 @@ public abstract class UsableLevelItem implements NetStateObject{
 	}
 
 	@Override
-	public NetStatePart fillStateParts(NetStatePart part, NetState state) {
-		part.setInteger(0, pos.x);
-		part.setInteger(1, pos.y);
-		part.setInteger(2, hp);
-		part.setFloat(0, size);
-		return part;
+	public int getIntCount() {
+		return 3;
 	}
 
 	@Override
-	public void updateFromStatePart(NetStatePart part, NetState state) {
-		pos.x = part.getInteger(0);
-		pos.y = part.getInteger(1);
-		hp = part.getInteger(2);
-		size = part.getFloat(0);
+	public int getLongCount() {
+		return 0;
 	}
-	
+
+	@Override
+	public int getFloatCount() {
+		return 2;
+	}
+
+	@Override
+	public int getBoolCount() {
+		return 0;
+	}
+
+	@Override
+	public void fillStateFields(int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
+		ints[intOffset+0] = pos.x;
+		ints[intOffset+1] = pos.y;
+		ints[intOffset+2] = hp;
+		floats[longOffset+0] = size.x;
+		floats[longOffset+0] = size.y;
+	}
+
+	@Override
+	public void applyFromStateFields(NetState state, int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
+		pos.x = ints[intOffset+0];
+		pos.y = ints[intOffset+1];
+		hp = ints[intOffset+2];
+		size.x = floats[longOffset+0];
+		size.y = floats[longOffset+0];
+	}
 	
 }

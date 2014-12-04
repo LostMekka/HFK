@@ -87,36 +87,32 @@ public class GameplaySubState extends GameSubState{
 		if(vx != 0 && vy != 0) s /= GameController.SQRT2;
 		PointF oldPlayerPos = ctrl.player.pos.clone();
 		ctrl.moveMob(player, vx * s, vy * s, time, true);
-		if(ctrl.recalcVisibleTiles || !oldPlayerPos.equals(ctrl.player.pos) || ctrl.scoutedTiles.isEmpty()){
+		if(ctrl.recalcVisibleTiles || !oldPlayerPos.equals(ctrl.player.pos) || !ctrl.level.hasScoutedTiles()){
 			ctrl.recalcVisibleTiles = false;
 			// update visible tiles
-			ctrl.visibleTiles.clear();
+			ctrl.level.clearVisible();
 			float r = ctrl.player.totalStats.getSightRange();
-			int ir = (int)Math.ceil(r) + 1;
+			float r2 = r + 0.5f;
+			float rs = ctrl.player.totalStats.getBasicSenseRange();
+			int ir = (int)Math.ceil(Math.max(r, rs)) + 1;
 			PointI ppi = ctrl.player.pos.round();
 			for(int x=ppi.x-ir; x<=ppi.x+ir; x++){
 				for(int y=ppi.y-ir; y<=ppi.y+ir; y++){
-					PointF p = new PointF(x, y);
-					if(p.squaredDistanceTo(ctrl.player.pos) <= r*r){
-						float angle = ctrl.player.pos.angleTo(p);
+					PointF pf = new PointF(x, y);
+					PointI pi = new PointI(x, y);
+					float dd = pf.squaredDistanceTo(ctrl.player.pos);
+					if(dd <= rs*rs) ctrl.level.setScouted(pi);
+					if(dd <= r2*r2){
+						float angle = ctrl.player.pos.angleTo(pf);
 						angle = GameController.getAngleDiff(angle, ctrl.player.getLookAngle());
-						if(Math.abs(angle) > ctrl.player.totalStats.getVisionAngle() / 2f) continue;
-						LinkedList<PointI> tiles = ctrl.level.getTilesOnLine(ctrl.player.pos, p, r);
-						for(PointI pi : tiles){
-							if(!ctrl.visibleTiles.contains(pi)) ctrl.visibleTiles.add(pi);
-							if(ctrl.level.isSightBlocking(pi.x, pi.y)) break;
+						if(Math.abs(angle) < ctrl.player.totalStats.getVisionAngle() / 2f){
+							LinkedList<PointI> tiles = ctrl.level.getTilesOnLine(ctrl.player.pos, pf, r2);
+							for(PointI pi2 : tiles) if(ctrl.player.pos.squaredDistanceTo(pi2.toFloat()) < r*r){
+								ctrl.level.setVisible(pi2);
+								if(ctrl.level.isSightBlocking(pi2.x, pi2.y)) break;
+							}
 						}
 					}
-				}
-			}
-			// update scouted tiles
-			for(PointI p : ctrl.visibleTiles){
-				if(!ctrl.scoutedTiles.contains(p)){
-					ctrl.scoutedTiles.add(p);
-					ctrl.miniMapMin.x = Math.min(p.x, ctrl.miniMapMin.x);
-					ctrl.miniMapMax.x = Math.max(p.x, ctrl.miniMapMax.x);
-					ctrl.miniMapMin.y = Math.min(p.y, ctrl.miniMapMin.y);
-					ctrl.miniMapMax.y = Math.max(p.y, ctrl.miniMapMax.y);
 				}
 			}
 		}
@@ -174,20 +170,20 @@ public class GameplaySubState extends GameSubState{
 			selectedLevelItem = ctrl.level.getUsableItemOnLine(
 					ctrl.player.pos, ctrl.mousePosInTiles, 
 					ctrl.player.totalStats.getMaxPickupRange(), lootMode);
-			if(selectedLevelItem != null){
-				if(!selectedLevelItem.isInRangeToUse(player)) selectedLevelItem = null;
-			}
+			if(selectedLevelItem != null && !selectedLevelItem.isInRangeToUse(player)) selectedLevelItem = null;
 			if(selectedLevelItem != null && in.isKeyPressed(InputMap.A_USE_LEVITEM)) selectedLevelItem.use(player);
 			selectedLoot = null;
 			Weapon w = player.getActiveWeapon();
 			if(w != null){
 				boolean pr = in.isMousePressed(InputMap.A_SHOOT);
 				boolean dn = input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON);
+				boolean apr = in.isMousePressed(InputMap.A_SHOOT_ALTERNATIVE);
+				boolean adn = input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON);
 				boolean a = w.totalStats.isAutomatic;
 				if((a && dn) || (!a && pr)){
 					w.pullTrigger();
 				}
-				if(in.isMousePressed(InputMap.A_SHOOT_ALTERNATIVE)){
+				if((a && adn) || (!a && apr)){
 					w.pullAlternativeTrigger();
 				}
 				if(in.isKeyPressed(InputMap.A_RELOAD)){
@@ -210,7 +206,7 @@ public class GameplaySubState extends GameSubState{
 			r.getGraphics().setColor(new Color(1f, 1f, 1f, 0.4f));
 			r.getGraphics().drawOval(pp.x-rad, pp.y-rad, 2*rad, 2*rad);
 			for(InventoryItem i : ctrl.items){
-				if(!ctrl.scoutedTiles.contains(i.pos.round())) continue;
+				if(!ctrl.level.isScouted(i.pos.round())) continue;
 				int hl = 0;
 				if(i.pos.squaredDistanceTo(ctrl.player.pos) <= ctrl.player.totalStats.getMaxPickupRange()) hl++;
 				if(i == selectedLoot) hl++;
@@ -237,7 +233,7 @@ public class GameplaySubState extends GameSubState{
 		if(drawMap){
 			r.drawMiniMap(new PointF(10, 10), 
 				new PointF(gc.getWidth()-20, gc.getHeight()-20), 
-				ctrl.miniMapMin, ctrl.miniMapMax, 0.5f);
+				ctrl.level.getScoutedMin(), ctrl.level.getScoutedMax(), 0.5f);
 		} else {
 			int w = 300;
 			h = 300;

@@ -9,7 +9,6 @@ package hfk.skills;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.items.weapons.CheatRifle;
-import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
@@ -17,6 +16,7 @@ import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
 import hfk.stats.StatsModifier;
 import hfk.stats.WeaponStatsCard;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 /**
@@ -47,7 +47,7 @@ public class SkillSet implements StatsModifier {
 			MobStatsCard msc = MobStatsCard.createBonus();
 			msc.setMaxHP((i+1)*25);
 			s.mobStatsCards[i] = msc;
-			s.costs[i] = 20 + 10*i;
+			s.costs[i] = 15 + 8*i;
 		}
 		skills.add(s);
 		
@@ -58,7 +58,7 @@ public class SkillSet implements StatsModifier {
 			dc.setDieCount(Damage.DamageType.fire.ordinal(), (i+1)/2);
 			dc.setEyeCount(Damage.DamageType.fire.ordinal(), (i+2)/2);
 			s.damageCards[i] = dc;
-			s.costs[i] = i>0 ? s.costs[i-1] + (i>4 ? 14 : 10) : 15;
+			s.costs[i] = i>0 ? s.costs[i-1] + 2*i+5 : 12;
 		}
 		skills.add(s);
 		
@@ -70,35 +70,129 @@ public class SkillSet implements StatsModifier {
 			wsc.shotVel = 0.04f * (i+1);
 			wsc.maxEnergyLossOnBounce = -0.1f * (i+1);
 			s.weaponStatsCards[i] = wsc;
-			s.costs[i] = i>0 ? s.costs[i-1] + (i>5 ? 8 : 6) : 10;
+			s.costs[i] = i>0 ? s.costs[i-1] + 7 : 10;
 		}
 		skills.add(s);
 		
-		shotgunDouble = new Skill(parent, 2, "dual barrel", "enables the alternative fire of double barrel shotguns to shoot both shells at once.");
-		shotgunDouble.costs[0] = 25;
-		shotgunDouble.costs[0] = 50;
+		shotgunDouble = new Skill(parent, 2, "dual barrel", "enables the alternative fire of double barrel shotguns to shoot both shells at once. level 2 even works with all other shotguns!");
+		shotgunDouble.costs[0] = 30;
+		shotgunDouble.costs[1] = 40;
 		skills.add(shotgunDouble);
+		
+		s = new Skill(parent, 8, "rapid fire", "the machinegun is your best friend. why someone would use any other weapons is beyond your comprehension... this skill raises the fire rate of all machineguns.");
+		s.weaponType = Weapon.WeaponType.machinegun;
+		for(int i=0; i<s.getMaxLevel(); i++){
+			WeaponStatsCard wsc = WeaponStatsCard.createBonus();
+			wsc.shotInterval = -0.05f*(i+2);
+			wsc.burstInterval = -0.05f*(i+2);
+			s.weaponStatsCards[i] = wsc;
+			s.costs[i] = 17 + 9*i;
+		}
+		skills.add(s);
 		
 		s = new Skill(parent, 5, "weapon juggler", "if surviving in a foreign universe has taught you one thing, it is that you need all the weapons you can get... at the same time! for each level of this skill you gain an extra weapon slot.");
 		for(int i=0; i<s.getMaxLevel(); i++){
 			MobStatsCard msc = MobStatsCard.createBonus();
 			msc.setQuickSlotCount(i+1);
 			s.mobStatsCards[i] = msc;
+			s.costs[i] = 25 + 8*i;
+		}
+		skills.add(s);
+		
+		s = new Skill(parent, 6, "reloader", "you optimized the reload routine. thats nice! every level gives you a speed boost when reloading any weapon type.\n\"my mom always said: honey, every second is precious, especially when you need to shoot someone.\"");
+		for(int i=0; i<s.getMaxLevel(); i++){
+			WeaponStatsCard wsc = WeaponStatsCard.createBonus();
+			wsc.reloadTimes = new float[Weapon.AMMO_TYPE_COUNT];
+			Arrays.fill(wsc.reloadTimes, -0.05f*(i+2));
+			s.weaponStatsCards[i] = wsc;
+			s.costs[i] = 14 + 7*i;
+		}
+		skills.add(s);
+		
+		s = new Skill(parent, 1, "double reloader", "reloading every single bullet by itself annoys you so much that you just squeeze in a second one with each reload step. \n\"who cares if it is breaking the weapon, i have no time!\"");
+		s.weaponType = Weapon.WeaponType.singleReload;
+		WeaponStatsCard wsc = WeaponStatsCard.createBonus();
+		wsc.reloadCount = new int[Weapon.AmmoType.values().length];
+		for(int i=0; i<wsc.reloadCount.length; i++) wsc.reloadCount[i] = 1;
+		s.weaponStatsCards[0] = wsc;
+		s.costs[0] = 32;
+		skills.add(s);
+		
+		grenadeSmart = new Skill(parent, 2, "smart grenades", "grenades are fun, especially when they dont kill you. for that reason you installed an a.i. module on your grenades that makes sure you stay safe. level 1 of this skill lets grenades bounce off walls instead of exploding on impact, while level 2 installs a friend/foe detection system to avoid friendly fire.");
+		grenadeSmart.costs = new int[] { 15, 25 };
+		skills.add(grenadeSmart);
+
+		grenadeManual = new Skill(parent, 2, "grenade trigger", "grenades are detonated manually! so skill, many control, much kapow.");
+		grenadeManual.costs = new int[] { 28, 38 };
+		skills.add(grenadeManual);
+
+		spiderSenses = new Skill(parent, 8, "spider senses", "you evolved to sense your surroundings and enemies from further away than you can see. how did you even do that??? the greater the level of this skill, the further you can sense stuff. if you are close enough, you can even sense reload status or health of an enemy!\n\n\"think of a number from one to a million...\"");
+		for(int i=0; i<spiderSenses.getMaxLevel(); i++){
+			MobStatsCard msc = MobStatsCard.createBonus();
+			msc.setBasicSenseRange(i+3);
+			if(i > 0) msc.setReloadSenseRange(i+2);
+			if(i > 1) msc.setHealthSenseRange(i);
+			spiderSenses.mobStatsCards[i] = msc;
+			spiderSenses.costs[i] = i>0 ? spiderSenses.costs[i-1] + 2*i+6 : 22;
+		}
+		skills.add(spiderSenses);
+		
+		s = new Skill(parent, 4, "hellrunner", "congratulations, you mastered the art of running away! each level of this skill makes you a bit faster.");
+		float speedup = 0.1f;
+		float totalspeed = speedup;
+		for(int i=0; i<s.getMaxLevel(); i++){
+			MobStatsCard msc = MobStatsCard.createBonus();
+			msc.setMaxSpeed(totalspeed);
+			speedup *= 0.5f;
+			totalspeed += speedup;
+			s.mobStatsCards[i] = msc;
+			s.costs[i] = 23 + 10*i;
+		}
+		skills.add(s);
+		
+		s = new Skill(parent, 10, "mule", "+1 inventory slot, makes a bit slower");
+		speedup = -0.05f;
+		totalspeed = speedup;
+		for(int i=0; i<s.getMaxLevel(); i++){
+			MobStatsCard msc = MobStatsCard.createBonus();
+			msc.setInventorySize(i+1);
+			msc.setMaxSpeed(totalspeed);
+			speedup *= 0.5f;
+			totalspeed += speedup;
+			s.mobStatsCards[i] = msc;
+			s.costs[i] = 25 + 9*i;
+		}
+		skills.add(s);
+		
+		s = new Skill(parent, 3, "thick skin", "+1 resistance against physical and piercing damage per level");
+		for(int i=0; i<s.getMaxLevel(); i++){
+			MobStatsCard msc = MobStatsCard.createBonus();
+			msc.setResistance(Damage.DamageType.physical.ordinal(), i+1);
+			msc.setResistance(Damage.DamageType.piercing.ordinal(), i+1);
+			s.mobStatsCards[i] = msc;
 			s.costs[i] = 25 + 10*i;
 		}
 		skills.add(s);
 		
-		grenadeSmart = new Skill(parent, 2, "smart grenades", "grenades are fun, especially when they dont kill you. for that reason you installed an a.i. module on your grenades that makes sure you stay safe. level 1 of this skill lets grenades bounce off walls instead of exploding on impact, while level 2 installs a friend/foe detection system to avoid friendly fire.");
-		grenadeSmart.costs = new int[] { 15, 30 };
-		skills.add(grenadeSmart);
-
-		grenadeManual = new Skill(parent, 2, "grenade trigger", "grenades are detonated manually! so skill, many control, much kapow.");
-		grenadeManual.costs = new int[] { 35, 35 };
-		skills.add(grenadeManual);
-
-		spiderSenses = new Skill(parent, 2, "spider senses", "you evolved to sense information about your enemies. how did you even do that??? level 1 shows reload status, level 2 shows health bars.");
-		spiderSenses.costs = new int[] { 10, 20 };
-		skills.add(spiderSenses);
+		s = new Skill(parent, 3, "elemental armor", "+1 resistance against fire and ice damage per level");
+		for(int i=0; i<s.getMaxLevel(); i++){
+			MobStatsCard msc = MobStatsCard.createBonus();
+			msc.setResistance(Damage.DamageType.fire.ordinal(), i+1);
+			msc.setResistance(Damage.DamageType.ice.ordinal(), i+1);
+			s.mobStatsCards[i] = msc;
+			s.costs[i] = 25 + 10*i;
+		}
+		skills.add(s);
+		
+		s = new Skill(parent, 3, "energy armor", "+1 resistance against shock and plasma damage per level");
+		for(int i=0; i<s.getMaxLevel(); i++){
+			MobStatsCard msc = MobStatsCard.createBonus();
+			msc.setResistance(Damage.DamageType.shock.ordinal(), i+1);
+			msc.setResistance(Damage.DamageType.plasma.ordinal(), i+1);
+			s.mobStatsCards[i] = msc;
+			s.costs[i] = 25 + 10*i;
+		}
+		skills.add(s);
 		
 		// TODO: set blocks and requirements
 		grenadeManual.addBlock(grenadeSmart);
@@ -163,19 +257,15 @@ public class SkillSet implements StatsModifier {
 		return superMax;
 	}
 	
-	public void skillsChanged(Skill changedSkill){
+	public void skillLeveledUp(Skill changedSkill, int cost){
 		if(changedSkill == superMore) superMax++;
 		if(changedSkill.isSuperSkill && changedSkill.getLevel() == 1){
 			superCount++;
 			if(superCount > superMax) throw new RuntimeException("super skill limit exceeded");
 		}
-		totalXpSpent = 0;
-		levelCount = 0;
-		for(Skill s : skills){
-			int l = s.getLevel();
-			levelCount += l;
-			for(int i=0; i<l; i++) totalXpSpent += s.costs[i];
-		}
+		if(changedSkill == spiderSenses) GameController.get().recalcVisibleTiles = true;
+		totalXpSpent += cost;
+		levelCount++;
 	}
 	
 	public LinkedList<Skill> getSkillList(){

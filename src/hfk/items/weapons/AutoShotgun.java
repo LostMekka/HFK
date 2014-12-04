@@ -7,6 +7,7 @@ package hfk.items.weapons;
 
 import hfk.PointF;
 import hfk.Shot;
+import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
@@ -16,24 +17,26 @@ import hfk.stats.WeaponStatsCard;
  *
  * @author LostMekka
  */
-public class PlasmaMachinegun extends Weapon {
-	
-	public PlasmaMachinegun(float angle, PointF position) {
+public class AutoShotgun extends Weapon {
+
+	public AutoShotgun(float angle, PointF position) {
 		super(angle, position);
-		shotSound = Resources.getSound("shot1.wav");
-		setImg("w_plasmamachinegun.png");
-		type = WeaponType.plasmaMachinegun;
+		shotSound = Resources.getSound("w_sg_s.wav");
+		setImg("w_autoShotgun.png");
+		type = WeaponType.autoShotgun;
 	}
 
 	@Override
 	public float getScreenRecoilAmount() {
-		return 0.08f;
+		return 0.4f;
 	}
 
 	@Override
 	public Shot initShot(Shot s) {
+		s.lifetime = GameController.random.nextInt(550) + 450;
+		s.friction = 2f + 8f * GameController.random.nextFloat();
 		s.size = 0.09f;
-		s.img = Resources.getImage("shot_plasma.png");
+		s.img = Resources.getImage("shot.png");
 		s.hitSound = Resources.getSound("hit1.wav");
 		return s;
 	}
@@ -41,17 +44,18 @@ public class PlasmaMachinegun extends Weapon {
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
 		WeaponStatsCard s = WeaponStatsCard.createNormal();
-		int plasma = Weapon.AmmoType.plasmaRound.ordinal();
-		s.clipSize[plasma] = 100;
-		s.reloadCount[plasma] = s.clipSize[plasma];
-		s.reloadTimes[plasma] = 5000;
-		s.ammoPerShot[plasma] = 1;
+		int shells = Weapon.AmmoType.shell.ordinal();
+		s.clipSize[shells] = 8;
+		s.reloadCount[shells] = 1;
+		s.reloadTimes[shells] = 750;
+		s.ammoPerShot[shells] = 1;
 		s.shotsPerBurst = 1;
-		s.burstInterval = 100;
-		s.maxScatter = 25f;
-		s.scatterCoolRate = 15f;
-		s.scatterPerShot = 2.2f;
-		s.shotVel = 7f;
+		s.projectilesPerShot = 9;
+		s.burstInterval = 350;
+		s.minScatter = 32f;
+		s.maxScatter = s.minScatter;
+		s.shotVel = 6.5f;
+		s.weaponZoom = 0.2f;
 		s.isAutomatic = true;
 		return s;
 	}
@@ -59,20 +63,20 @@ public class PlasmaMachinegun extends Weapon {
 	@Override
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
-		int plasma = Damage.DamageType.plasma.ordinal();
-		d.setDieCount(plasma, 3);
-		d.setEyeCount(plasma, 3);
+		int physical = Damage.DamageType.physical.ordinal();
+		d.setDieCount(physical, 2);
+		d.setEyeCount(physical, 5);
 		return d;
 	}
 
 	@Override
 	public String getWeaponName() {
-		return "Plasma Machinegun";
+		return "Auto Shotgun";
 	}
 
 	@Override
 	public long getRarityScore() {
-		return 15000;
+		return 25000;
 	}
-	
+
 }

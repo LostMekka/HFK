@@ -10,7 +10,9 @@ import hfk.Shot;
 import hfk.game.GameController;
 import hfk.items.weapons.Weapon;
 import hfk.game.Resources;
+import hfk.skills.Skill;
 import hfk.stats.MobStatsCard;
+import java.util.LinkedList;
 import org.newdawn.slick.Animation;
 
 /**
@@ -19,7 +21,9 @@ import org.newdawn.slick.Animation;
  */
 public class Player extends Mob {
 
-	public Player(PointF pos) {
+	private LinkedList<Skill> whishlist = new LinkedList<>();
+	
+	public Player(PointF pos){
 		super(pos);
 		animation = new Animation(Resources.getSpriteSheet("player.png"), 350);
 		hitSound = Resources.getSound("p_hit.wav");
@@ -73,8 +77,9 @@ public class Player extends Mob {
 	}
 
 	@Override
-	public void mobOnDeath(Shot s) {
+	public boolean mobOnDeath(Shot s) {
 		GameController.get().playerDied();
+		return true;
 	}
 	
 }

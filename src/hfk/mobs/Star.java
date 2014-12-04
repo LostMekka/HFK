@@ -48,11 +48,7 @@ public class Star extends Mob {
 		damageCard.setEyeCount(physical, 5);
 		autoUseWeapon = true;
 		barrageTimeOnLost = 500;
-		if(GameController.random.nextFloat() < 0.1){
-			inventory.addAmmo(Weapon.AmmoType.plasmaRound, 10 + GameController.random.nextInt(31));
-		} else {
-			inventory.addAmmo(Weapon.AmmoType.bullet, 2 + GameController.random.nextInt(14));
-		}
+		inventory.addAmmo(Weapon.AmmoType.bullet, 2 + GameController.random.nextInt(14));
 		Weapon w = new Weapon(getLookAngle(), pos) {
 			{shotTeam = Shot.Team.hostile;}
 			@Override

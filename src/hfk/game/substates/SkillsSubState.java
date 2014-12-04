@@ -181,7 +181,7 @@ public class SkillsSubState extends GameSubState {
 		Skill.SkillAvailability av = s.getSkillAvailability();
 		int cost = s.getCost();
 		r.drawStringOnScreen(s.name, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
-		str = "current level: " + s.getLevel();
+		str = "current level: " + s.getLevel() + "/" + s.getMaxLevel();
 		if(s.getLevel() == s.getMaxLevel()) str += " (maxed)";
 		r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
 		switch(av){

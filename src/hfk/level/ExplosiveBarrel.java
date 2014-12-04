@@ -40,10 +40,11 @@ public class ExplosiveBarrel extends UsableLevelItem {
 			dc.setAreaRadius(1.5f);
 			exSound = Resources.getSound("s_grenade_hit.wav");
 		}
-		hp = 5 + GameController.random.nextInt(26);
+		hp = 5 + GameController.random.nextInt(16);
 		animation = new Animation(Resources.getSpriteSheet("barrel.png"), 300 + GameController.random.nextInt(100));
 		animation.update(GameController.random.nextInt(5000));
-		size = 0.6f;
+		size.x = 12f/32f;
+		size.y = 24f/32f;
 	}
 
 	@Override

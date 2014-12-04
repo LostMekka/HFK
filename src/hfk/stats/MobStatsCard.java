@@ -23,6 +23,9 @@ public class MobStatsCard {
 	private float memoryTime;			// multiplied on applyBonus
 	private float turnRate;
 	private float visionAngle;
+	private float basicSenseRange;
+	private float reloadSenseRange;
+	private float healthSenseRange;
 	private int maxHP;
 	private int inventorySize;
 	private int quickSlotCount;
@@ -67,6 +70,9 @@ public class MobStatsCard {
 		maxPickupRange += c.maxPickupRange;
 		memoryTime += c.memoryTime;
 		sightRange += c.sightRange;
+		basicSenseRange += c.basicSenseRange;
+		reloadSenseRange += c.reloadSenseRange;
+		healthSenseRange += c.healthSenseRange;
 		hearRange += c.hearRange;
 		turnRate += c.turnRate;
 		visionAngle += c.visionAngle;
@@ -88,6 +94,9 @@ public class MobStatsCard {
 		sightRange *= 1f + c.sightRange;
 		hearRange *= 1f + c.hearRange;
 		// apply by addition
+		basicSenseRange += c.basicSenseRange;
+		reloadSenseRange += c.reloadSenseRange;
+		healthSenseRange += c.healthSenseRange;
 		maxHP += c.maxHP;
 		inventorySize += c.inventorySize;
 		quickSlotCount += c.quickSlotCount;
@@ -108,6 +117,9 @@ public class MobStatsCard {
 		ans.maxPickupRange = maxPickupRange;
 		ans.memoryTime = memoryTime;
 		ans.sightRange = sightRange;
+		ans.basicSenseRange = basicSenseRange;
+		ans.reloadSenseRange = reloadSenseRange;
+		ans.healthSenseRange = healthSenseRange;
 		ans.hearRange = hearRange;
 		ans.turnRate = turnRate;
 		ans.visionAngle = visionAngle;
@@ -170,6 +182,30 @@ public class MobStatsCard {
 
 	public void setSightRange(float sightRange) {
 		this.sightRange = sightRange;
+	}
+
+	public float getBasicSenseRange() {
+		return basicSenseRange;
+	}
+
+	public void setBasicSenseRange(float basicSenseRange) {
+		this.basicSenseRange = basicSenseRange;
+	}
+
+	public float getReloadSenseRange() {
+		return reloadSenseRange;
+	}
+
+	public void setReloadSenseRange(float reloadSenseRange) {
+		this.reloadSenseRange = reloadSenseRange;
+	}
+
+	public float getHealthSenseRange() {
+		return healthSenseRange;
+	}
+
+	public void setHealthSenseRange(float healthSenseRange) {
+		this.healthSenseRange = healthSenseRange;
 	}
 
 	public float getHearRange() {

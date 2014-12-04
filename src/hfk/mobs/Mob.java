@@ -71,13 +71,14 @@ public abstract class Mob implements StatsModifier {
 	public Sound hitSound = null, deathSound = null, alertSound = null;
 	public LinkedList<PointF> path = new LinkedList<>();
 	// stuff that normally will not be set by extending classes
+	public boolean givesXP = true;
 	public MobStatsCard basicStats, totalStats;
 	public int hp;
 	public int totalDamageTaken = 0;
 	public int totalHpHealed = 0;
 	public Inventory inventory;
-	private PointF lastPlayerPos = null;
-	private int lastPlayerTime = -1;
+	public PointF lastPlayerPos = null;
+	public int lastPlayerTime = -1;
 	private float lookAngle = 0f, desiredLookAngle = 0f;
 	private int barrageTimer = 0;
 	private int pullTriggerDelayTimer = 0;
@@ -89,11 +90,13 @@ public abstract class Mob implements StatsModifier {
 	private Door lastDoor = null;
 	private boolean enteredLastDoor = false;
 	private PointF lastDoorExitPoint = null;
-		
+	
 	public static Mob createMob(PointF pos, int maxDifficulty, int level){
 		// TODO: think of a less wasteful way to do this!!!
 		LinkedList<Mob> l = new LinkedList<>();
 		l.add(new Star(pos));
+		l.add(new Kamikaze(pos));
+		l.add(new KamikazeMaster(pos));
 		l.add(new Scout(pos));
 		l.add(new Hunter(pos));
 		l.add(new Freak(pos, Freak.LoadOutType.pistol));
@@ -101,6 +104,7 @@ public abstract class Mob implements StatsModifier {
 		l.add(new Freak(pos, Freak.LoadOutType.energypistol));
 		l.add(new Freak(pos, Freak.LoadOutType.plasmaminigun));
 		l.add(new Grunt(pos));
+		l.add(new Brute(pos));
 		float p = 0f;
 		ListIterator<Mob> iter = l.listIterator();
 		while(iter.hasNext()) if(iter.next().getDifficultyScore() > maxDifficulty) iter.remove();
@@ -139,7 +143,7 @@ public abstract class Mob implements StatsModifier {
 	public void mobOnGetSightOfPlayer(PointF playerPos){}
 	public void mobOnLostMemoryOfPlayer(){}
 	public void mobUpdate(int time, boolean playerVisible){}
-	public void mobOnDeath(Shot s){}
+	public boolean mobOnDeath(Shot s){ return true; }
 	public void mobOnHit(int dmg, Shot s){}
 
 	public Weapon getBionicWeapon() {
@@ -291,6 +295,16 @@ public abstract class Mob implements StatsModifier {
 				if(autoUseWeapon) tryToShoot();
 			}
 		} else {
+			float sr = totalStats.getBasicSenseRange();
+			if(ctrl.player.pos.squaredDistanceTo(pos) <= sr*sr){
+				// can sense player! update path but dont set barrage
+				lastPlayerPos = ctrl.player.pos.clone();
+				lastPlayerTime = 1;
+				if(autoSetPath && autoFollowPlayer && (path.isEmpty() ||
+				   path.getLast().squaredDistanceTo(ctrl.player.pos) >= 4f)){ 
+					createPathToPlayer();
+				}
+			}
 			// handle last known player position
 			if(lastPlayerTime == 0){
 				if(autoFollowPlayer){
@@ -452,7 +466,7 @@ public abstract class Mob implements StatsModifier {
 	
 	public void draw(){
 		GameController ctrl = GameController.get();
-		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos, false);
+		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos, ctrl.shouldDrawMobOutsideVisionRange(this));
 		Weapon w = getActiveWeapon();
 		if(w != null && w != bionicWeapon) w.render();
 		// reloading progress bar
@@ -462,7 +476,7 @@ public abstract class Mob implements StatsModifier {
 			p.x -= 0.5f;
 			p.y -= 0.6f;
 			p = ctrl.transformTilesToScreen(p);
-			float len = ctrl.transformTilesToScreen(1f);
+			float len = ctrl.transformTilesToScreen(Math.max(size, 1f));
 			Graphics g = ctrl.renderer.getGraphics();
 			g.setColor(Color.white);
 			g.drawRect(p.x, p.y, len, 7);
@@ -476,12 +490,12 @@ public abstract class Mob implements StatsModifier {
 			p.x -= 0.5f;
 			p.y -= relBar ? 0.7f : 0.6f;
 			p = ctrl.transformTilesToScreen(p);
-			float len = ctrl.transformTilesToScreen(1f);
+			float len = ctrl.transformTilesToScreen(Math.max(size, 1f));
 			Graphics g = ctrl.renderer.getGraphics();
 			g.setColor(Color.red);
 			g.drawRect(p.x, p.y, len, 7);
 			len -= 3;
-			g.fillRect(p.x + 2, p.y + 2, len * hp / totalStats.getMaxHP(), 4);
+			g.fillRect(p.x + 2, p.y + 2, len * Math.max(0f, Math.min(1f, (float)hp / totalStats.getMaxHP())), 4);
 		}
 //		if(stateTextTimer > 0 && this != ctrl.player){
 //			PointF p = pos.clone();
@@ -492,13 +506,16 @@ public abstract class Mob implements StatsModifier {
 		if(showPathDebug) drawPathDebugInfo();
 	}
 	
-	public final void onDeath(Shot s){
-		if(deathSound != null) GameController.get().playSoundAt(deathSound, pos);
-		for(InventoryItem i : inventory.removeAll()){
-			GameController.get().dropItem(i, this, false);
+	public final boolean onDeath(Shot s){
+		if(mobOnDeath(s)){
+			if(deathSound != null) GameController.get().playSoundAt(deathSound, pos);
+			for(InventoryItem i : inventory.removeAll()){
+				GameController.get().dropItem(i, this, false);
+			}
+			if(!(this instanceof Player) && givesXP) GameController.get().player.xp += getDifficultyScore();
+			return true;
 		}
-		if(!(this instanceof Player)) GameController.get().player.xp += getDifficultyScore();
-		mobOnDeath(s);
+		return false;
 	}
 	
 	public final void onHit(int dmg, Shot s){

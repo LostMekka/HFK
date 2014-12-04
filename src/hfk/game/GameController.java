@@ -21,17 +21,26 @@ import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
+import hfk.items.weapons.AutoShotgun;
 import hfk.items.weapons.CheatRifle;
 import hfk.items.weapons.DoubleBarrelShotgun;
 import hfk.items.weapons.EnergyPistol;
 import hfk.items.weapons.GrenadeLauncher;
+import hfk.items.weapons.Machinegun;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.PlasmaMachinegun;
+import hfk.items.weapons.PlasmaStorm;
 import hfk.items.weapons.PumpActionShotgun;
 import hfk.items.weapons.RocketLauncher;
 import hfk.items.weapons.SniperRifle;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
+import hfk.level.Tile;
+import hfk.level.UsableLevelItem;
+import hfk.level.factory.BoxFactory;
+import hfk.level.factory.EmptyFactory;
+import hfk.level.factory.LevelFactory;
+import hfk.level.factory.RoomsFactory;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
 import hfk.net.NetState;
@@ -39,6 +48,7 @@ import hfk.net.NetStateObject;
 import hfk.net.NetStatePart;
 import hfk.skills.SkillSet;
 import hfk.stats.Damage;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
@@ -84,11 +94,10 @@ public class GameController {
 	public final LinkedList<InventoryItem> items = new LinkedList<>();
 	public final LinkedList<IngameText> texts = new LinkedList<>();
 	public final LinkedList<Particle> particles = new LinkedList<>();
-	public final LinkedList<PointI> visibleTiles = new LinkedList<>();
-	public final LinkedList<PointI> scoutedTiles = new LinkedList<>();
 	private final LinkedList<Explosion> explosionsToRemove = new LinkedList<>();
 	private final LinkedList<Shot> shotsToRemove = new LinkedList<>();
 	private final LinkedList<Mob> mobsToRemove = new LinkedList<>();
+	private final LinkedList<Mob> mobsToAdd = new LinkedList<>();
 	private final LinkedList<InventoryItem> itemsToRemove = new LinkedList<>();
 
 	public GameOverSubState gameOverState;
@@ -107,7 +116,6 @@ public class GameController {
 	public PointF screenPosOriginal = screenPos.clone();
 	public PointF screenPosOffset = new PointF();
 	public PointI mousePosInPixels = new PointI();
-	public PointI miniMapMin, miniMapMax;
 	public float screenShake = 0f;
 	public int difficultyLevel = 1;
 	public boolean musicIsOn = true, recalcVisibleTiles = false;
@@ -265,7 +273,6 @@ public class GameController {
 	}
 	
 	public void nextLevel(){
-		scoutedTiles.clear();
 		particles.clear();
 		mobs.clear();
 		mobs.add(player);
@@ -273,12 +280,15 @@ public class GameController {
 		shots.clear();
 		texts.clear();
 		levelCount++;
-		int s = 25 + levelCount;
+		int s = 25 + levelCount + 2*LevelFactory.LEVEL_BORDER;
 		int d = getLevelDifficultyLimit(levelCount, true);
 		int r = getLevelRarityLimit(levelCount, true);
-		level = Level.Factory.createTestArena(s, s, d, r);
-		miniMapMin = player.pos.round();
-		miniMapMax = miniMapMin.clone();
+		LevelFactory f = new RoomsFactory(s, s);
+		f.addInnerFactory(new BoxFactory(s, s), 1f);
+		f.randomizeTileVariants(4);
+		level = f.generate(d, r, 0);
+		//level.print();
+		player.pos = level.getNextFreeSpawnPoint().toFloat();
 	}
 	
 	public void printBalanceInfo(){
@@ -312,7 +322,7 @@ public class GameController {
 	
 	public float getSkillCostIncreaseRate(){
 		// TODO: use difficultyLevel
-		return 0.5f;
+		return 1f/3f;
 	}
 	
 	public int getLevelCount(){
@@ -345,12 +355,19 @@ public class GameController {
 		screenPosOffset.y += Math.sin(angle) * amount;
 	}
 	
+	public boolean shouldDrawMobOutsideVisionRange(Mob m){
+		float d = player.totalStats.getBasicSenseRange();
+		return m != player && player.pos.squaredDistanceTo(m.pos) <= d*d;
+	}
+	
 	public boolean shouldDrawReloadBar(Mob m){
-		return m == player || player.skills.shouldRenderReloadBar(m);
+		float d =player.totalStats.getReloadSenseRange();
+		return m == player || player.pos.squaredDistanceTo(m.pos) <= d*d;
 	}
 	
 	public boolean shouldDrawHealthBar(Mob m){
-		return m != player && player.skills.shouldRenderHealthBar(m);
+		float d = player.totalStats.getHealthSenseRange();
+		return m != player && player.pos.squaredDistanceTo(m.pos) <= d*d;
 	}
 	
 	public InventoryItem getNearestItem(Mob m){
@@ -420,7 +437,7 @@ public class GameController {
 	}
 	
 	public void addFallingText(String text, PointF pos, Color c, Mob parent){
-		if(!visibleTiles.contains(pos.round())) return;
+		if(!level.isVisible(pos.round())) return;
 		IngameText t = new IngameText(text, c, pos, 0.5f);
 		t.vel.x = 1.9f*(random.nextFloat()-0.5f);
 		t.vel.y = -2.8f;
@@ -434,7 +451,7 @@ public class GameController {
 	}
 	
 	public void addFloatingText(String text, float scale, PointF pos, Color c, Mob parent){
-		if(!visibleTiles.contains(pos.round())) return;
+		if(!level.isVisible(pos.round())) return;
 		IngameText t = new IngameText(text, c, pos, scale);
 		t.lifeTime = 800;
 		t.vel.x = 0.2f*(random.nextFloat()-0.5f);
@@ -442,6 +459,10 @@ public class GameController {
 		t.useGravity = false;
 		t.parent = parent;
 		texts.add(t);
+	}
+	
+	public void addMob(Mob m){
+		mobsToAdd.add(m);
 	}
 	
 	public void addExplosion(PointF pos, Damage d, Shot shot, Sound sound){
@@ -462,7 +483,7 @@ public class GameController {
 		// TODO: intelligently damage tiles (maybe reduce damage to mobs too when behind a wall?)
 		float r = damage.getAreaRadius();
 		if(r <= 0) throw new RuntimeException("deeal area damage called without area damage object!");
-		for(Mob m : mobs){
+		for(Mob m : mobs) if(!mobsToRemove.contains(m)){
 			float dd = m.pos.squaredDistanceTo(p);
 			if(dd < (r + m.size/2f) * (r + m.size/2f)){
 				float d = Math.max(0f, (float)Math.sqrt(dd) - m.size/2f);
@@ -503,27 +524,24 @@ public class GameController {
 		}
 	}
 	
-	public void createDebris(PointF pos, Image i, int border, float r){
-		createDebris(pos, i, border, 3, 8, r);
+	public void createDebris(PointF pos, Image img, int borderX, int borderY, float r){
+		createDebris(pos, img, borderX, borderY, 3, 8, r);
 	}
 	
-	public void createDebris(PointF pos, Image origImage, int border, int min, int max, float r){
+	public void createDebris(PointF pos, Image img, int borderX, int borderY, int min, int max, float r){
 		int n = min;
 		if(max > min) n += GameController.random.nextInt(max - min);
 		for(int i=0; i<n; i++){
-			Particle p = new Particle(origImage, border, pos, r);
-			//p.lifeTime = 40000 + random.nextInt(20000);
+			Particle p = new Particle(img, borderX, borderY, pos, r);
 			GameController.get().particles.add(p);
 		}
 	}
 	
-	public void createDebris(PointF pos, float dir, Image origImage, int border, int min, int max, float r){
+	public void createDebris(PointF pos, float dir, Image origImage, int borderX, int borderY, int min, int max, float r){
 		int n = min;
 		if(max > min) n += GameController.random.nextInt(max - min);
 		for(int i=0; i<n; i++){
-			Particle p = new Particle(origImage, border, pos, r);
-			
-			//p.lifeTime = 40000 + random.nextInt(20000);
+			Particle p = new Particle(origImage, borderX, borderY, pos, dir, r);
 			GameController.get().particles.add(p);
 		}
 	}
@@ -534,8 +552,7 @@ public class GameController {
 		m.totalDamageTaken += dmg;
 		m.hp -= dmg;
 		if(m.hp <= 0){
-			m.onDeath(s);
-			mobsToRemove.add(m);
+			if(m.onDeath(s)) mobsToRemove.add(m);
 		} else {
 			m.onHit(dmg, s);
 		}
@@ -607,12 +624,15 @@ public class GameController {
 		// update of states
 		if(!isPaused()) omniSubState.update(this, gc, sbg, time);
 		currSubState.update(this, gc, sbg, time);
+		renderer.update(time);
 		// remove marked stuff
 		mobs.removeAll(mobsToRemove);
+		for(Mob m : mobsToAdd) if(!mobs.contains(m)) mobs.add(m);
 		shots.removeAll(shotsToRemove);
 		explosions.removeAll(explosionsToRemove);
 		items.removeAll(itemsToRemove);
 		mobsToRemove.clear();
+		mobsToAdd.clear();
 		shotsToRemove.clear();
 		explosionsToRemove.clear();
 		itemsToRemove.clear();
@@ -624,16 +644,59 @@ public class GameController {
 		renderer.render(this);
 	}
 	
+	private void renderVisionDebugInfo(){
+		PointF p = mousePosInTiles.round().toFloat();
+		PointF pps = transformTilesToScreen(player.pos);
+		PointF ps = transformTilesToScreen(p);
+		renderer.getGraphics().setColor(Color.yellow);
+		renderer.getGraphics().drawLine(pps.x, pps.y, ps.x, ps.y);
+		
+		float r = transformTilesToScreen(player.totalStats.getSightRange());
+		renderer.getGraphics().setColor(Color.yellow);
+		renderer.getGraphics().drawOval(pps.x - r, pps.y - r, 2f * r, 2f * r);
+		
+		r = transformTilesToScreen(player.totalStats.getBasicSenseRange());
+		renderer.getGraphics().setColor(Color.blue);
+		renderer.getGraphics().drawOval(pps.x - r, pps.y - r, 2f * r, 2f * r);
+		
+		r = transformTilesToScreen(player.totalStats.getReloadSenseRange());
+		renderer.getGraphics().setColor(Color.white);
+		renderer.getGraphics().drawOval(pps.x - r, pps.y - r, 2f * r, 2f * r);
+		
+		r = transformTilesToScreen(player.totalStats.getHealthSenseRange());
+		renderer.getGraphics().setColor(Color.red);
+		renderer.getGraphics().drawOval(pps.x - r, pps.y - r, 2f * r, 2f * r);
+		
+		renderer.getGraphics().setColor(Color.yellow);
+		LinkedList<PointI> l = level.getTilesOnLine(player.pos, p, 100);
+		for(PointI pi : l){
+			PointF p1 = pi.toFloat();
+			p1.x -= 0.5;
+			p1.y -= 0.5;
+			p1 = transformTilesToScreen(p1);
+			float s = transformTilesToScreen(1f);
+			renderer.getGraphics().drawRect(p1.x, p1.y, s, s);
+			if(level.isSightBlocking(pi.x, pi.y)) break;
+		}
+	}
+	
 	// ----- net code ----------------------------------------------------------
 	
 	public void netStateObjectCreated(NetStateObject o){
 		objectMap.put(o.getID(), o);
 	}
 	
+	public void netStateObjectDestroyed(NetStateObject o){
+		objectMap.remove(o.getID());
+	}
+	
+	public Collection<NetStateObject> getNetStateObjectList(){
+		return objectMap.values();
+	}
+	
 	public NetState createNetState(){
-		NetState state = new NetState(timeStamp);
-		NetStatePart levelPart = NetStatePart.create(level, state);
-		// TODO: create net state parts for each directly known game object
+		NetState state = new NetState(timeStamp, objectMap.size());
+		for(NetStateObject o : objectMap.values()) state.addObject(o);
 		return state;
 	}
 	

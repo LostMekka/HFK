@@ -21,12 +21,12 @@ public class Particle {
 	public int lifeTime = -1;
 	private final float acc = -0.1f;
 
-	public Particle(Image img, int border, PointF pos, float r) {
-		this(img, border, pos, GameController.random.nextFloat() * 2f * (float)Math.PI, r);
+	public Particle(Image img, int borderX, int borderY, PointF pos, float r) {
+		this(img, borderX, borderY, pos, GameController.random.nextFloat() * 2f * (float)Math.PI, r);
 	}
 
-	public Particle(Image img, int border, PointF pos, float dir, float r) {
-		setImg(img, border);
+	public Particle(Image img, int borderX, int borderY, PointF pos, float dir, float r) {
+		setImg(img, borderX, borderY);
 		this.pos = pos.clone();
 		rotation = GameController.random.nextFloat() * 2f * (float)Math.PI;
 		r *= GameController.random.nextFloat();
@@ -37,22 +37,22 @@ public class Particle {
 		size = Math.max(img.getWidth(), img.getHeight()) / GameController.SPRITE_SIZE;
 	}
 
-	public Particle(Image img, int border, PointF pos, PointF vel, float rotation) {
-		setImg(img, border);
+	public Particle(Image img, int borderX, int borderY, PointF pos, PointF vel, float rotation) {
+		setImg(img, borderX, borderY);
 		this.pos = pos.clone();
 		this.vel = vel.clone();
 		this.rotation = rotation;
 		size = Math.max(img.getWidth(), img.getHeight()) / GameController.SPRITE_SIZE;
 	}
 	
-	private void setImg(Image origImg, int border){
-		int w = origImg.getWidth() - 2*border;
-		int h = origImg.getHeight() - 2*border;
+	private void setImg(Image origImg, int borderX, int borderY){
+		int w = origImg.getWidth() - 2*borderX;
+		int h = origImg.getHeight() - 2*borderY;
 		int iw = Math.min(w, GameController.random.nextInt(6)+2);
 		int ih = Math.min(h, GameController.random.nextInt(6)+2);
 		int x = GameController.random.nextInt(w-iw+1);
 		int y = GameController.random.nextInt(h-ih+1);
-		img = origImg.getSubImage(x+border, y+border, iw, ih);
+		img = origImg.getSubImage(x+borderX, y+borderY, iw, ih);
 	}
 	
 	public void draw(){

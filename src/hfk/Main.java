@@ -7,6 +7,8 @@
 package hfk;
 
 import hfk.game.HFKGame;
+import hfk.level.factory.PropertyMap;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -23,6 +25,30 @@ public class Main {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) {
+//		Random r1 = new Random();
+//		Random r2 = new Random();
+//		long seed1 = r1.nextLong();
+//		long seed2 = r1.nextLong();
+//		for(int i=0; i<10; i++){
+//			//PropertyMap m = PropertyMap.createRandom(200, 100, 4, 0, -2.5f, 1f, true);
+//			r1.setSeed(seed1);
+//			r2.setSeed(seed2);
+//			float infl = i<5 ? i/5f : (10-i)/5f;
+//			PropertyMap m = PropertyMap.createRandom(200, 100, 4, 0, -2.5f, 1f, r1, r2, 0);
+//			//m.fadeOutEllypse(0.5f, 1f, 1f);
+//			m.draw("" + i, 8);
+//			//m.drawSliced("" + i, 8, 2);
+//		}
+//		if(true) return;
+		for(int i=0; i<50; i++){
+			//PropertyMap m = PropertyMap.createRandom(200, 100, 4, 0, -2.5f, 1f, true);
+			PropertyMap m = PropertyMap.createRandom(50, 50, 7, 0, -1.4f, 1f, true, null, null, null);
+			m.fadeOutEllypse(0.5f, 1f, 1f);
+			//m.draw("" + i, 8);
+			//m.drawSliced("" + i, 8, 7);
+			m.drawSlicedCustomBorders("" + i, 8, 0f);
+		}
+		if(true) return;
 		//printFontStuff();
 		boolean fullscreen = true;
 		System.setProperty("mode", "normal");

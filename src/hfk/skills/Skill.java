@@ -114,7 +114,7 @@ public class Skill implements StatsModifier {
 		if(level >= maxLevel || parent.xp < c) return false;
 		parent.xp -= c;
 		level++;
-		parent.skills.skillsChanged(this);
+		parent.skills.skillLeveledUp(this, c);
 		parent.recalculateCards();
 		return true;
 	}

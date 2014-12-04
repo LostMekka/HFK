@@ -55,11 +55,11 @@ public class RocketLauncher extends Weapon {
 		DamageCard d = DamageCard.createNormal();
 		int phys = Damage.DamageType.physical.ordinal();
 		int fire = Damage.DamageType.fire.ordinal();
-		d.setDieCount(phys, 6);
-		d.setEyeCount(phys, 6);
-		d.setDieCount(fire, 6);
-		d.setEyeCount(fire, 6);
-		d.setAreaRadius(1f);
+		d.setDieCount(phys, 20);
+		d.setEyeCount(phys, 5);
+		d.setDieCount(fire, 20);
+		d.setEyeCount(fire, 5);
+		d.setAreaRadius(2.5f);
 		return d;
 	}
 

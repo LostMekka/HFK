@@ -133,7 +133,10 @@ public class Shot {
 			pos.add(collAns.corr);
 			PointF bounceAns = vel.bounce(collAns.corr, maxEnergyLossOnBounce);
 			angle += bounceAns.y;
-			if(bounceCount <= 0 && friction <= 0) friction = 1f + 3f * GameController.random.nextFloat();
+			if(bounceCount <= 0 && friction <= 0){
+				friction = 1f + 3f * GameController.random.nextFloat();
+				if(lifetime < 0) lifetime = (int)(vel.approximateLength() / friction * 1000f);
+			}
 			if(!isGrenade && manualDetonateLevel <= 0){
 				ctrl.level.damageTile(collAns.collidingTilePos, Math.round(bounceAns.x * dmg.calcFinalDamage()), pos.clone());
 			}

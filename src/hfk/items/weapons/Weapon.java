@@ -30,13 +30,17 @@ public abstract class Weapon extends InventoryItem {
 	public static class WeaponType{
 		// generic types
 		public static final WeaponType none = new WeaponType("!!no type!!");
+		public static final WeaponType cheatWeapon = new WeaponType("cheat weapon");
 		public static final WeaponType explosiveWeapon = new WeaponType("explosive weapon");
 		public static final WeaponType energyWeapon = new WeaponType("energy weapon");
 		public static final WeaponType plasmaWeapon = new WeaponType("plasma weapon");
 		public static final WeaponType zoomable = new WeaponType("zoomable");
 		public static final WeaponType shotgun = new WeaponType("shotgun");
 		public static final WeaponType machinegun = new WeaponType("machinegun");
+		public static final WeaponType automatic = new WeaponType("automatic weapon");
+		public static final WeaponType singleReload = new WeaponType("single reload");
 		// concrete types
+		public static final WeaponType autoShotgun = new WeaponType("auto shotgun");
 		public static final WeaponType cheatRifle = new WeaponType("cheat rifle");
 		public static final WeaponType damagedHuntingGun = new WeaponType("damaged hunting gun");
 		public static final WeaponType doubleBarrelShotgun = new WeaponType("double barrel shotgun");
@@ -44,18 +48,25 @@ public abstract class Weapon extends InventoryItem {
 		public static final WeaponType grenadeLauncher = new WeaponType("grenade launcher");
 		public static final WeaponType pistol = new WeaponType("pistol");
 		public static final WeaponType plasmaMachinegun = new WeaponType("plasma machinegun");
+		public static final WeaponType plasmaStorm = new WeaponType("plasma storm");
 		public static final WeaponType pumpActionShotgun = new WeaponType("pump action shotgun");
 		public static final WeaponType rocketLauncher = new WeaponType("rocket launcher");
 		public static final WeaponType sniperRifle = new WeaponType("sniper rifle");
 		// init parents
 		static { 
+			// generic types
+			machinegun.setParents(new WeaponType[]{automatic});
+			// concrete types
+			cheatRifle.setParents(new WeaponType[]{cheatWeapon, grenadeLauncher});
+			autoShotgun.setParents(new WeaponType[]{shotgun, automatic, singleReload});
 			doubleBarrelShotgun.setParents(new WeaponType[]{shotgun});
 			energyPistol.setParents(new WeaponType[]{pistol, energyWeapon});
 			grenadeLauncher.setParents(new WeaponType[]{explosiveWeapon});
 			plasmaMachinegun.setParents(new WeaponType[]{machinegun, plasmaWeapon});
-			pumpActionShotgun.setParents(new WeaponType[]{shotgun});
+			plasmaStorm.setParents(new WeaponType[]{machinegun, plasmaWeapon});
+			pumpActionShotgun.setParents(new WeaponType[]{shotgun, singleReload});
 			rocketLauncher.setParents(new WeaponType[]{explosiveWeapon});
-			sniperRifle.setParents(new WeaponType[]{zoomable});
+			sniperRifle.setParents(new WeaponType[]{zoomable, singleReload});
 		}
 		
 		private final String name;
@@ -429,7 +440,7 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public boolean pullTrigger(){
-		return pullTrigger(totalStats.shotsPerBurst, totalStats.shotInterval);
+		return pullTrigger(totalStats.shotsPerBurst, Math.round(totalStats.shotInterval));
 	}
 	
 	private boolean pullTrigger(int shotsPerBurst, int shotInterval){
@@ -472,7 +483,7 @@ public abstract class Weapon extends InventoryItem {
 		if(burstShotCount > 0){
 			setState(burstTimeBetweenShots, WeaponState.cooldownShot, false);
 		} else {
-			setState(mustReload() ? 0 : totalStats.burstInterval, WeaponState.cooldownBurst, false);
+			setState(mustReload() ? 0 : Math.round(totalStats.burstInterval), WeaponState.cooldownBurst, false);
 		}
 		currentScatter = Math.max(0, Math.min(totalStats.maxScatter, currentScatter + totalStats.scatterPerShot));
 	}
@@ -548,10 +559,12 @@ public abstract class Weapon extends InventoryItem {
 		PointF p = pos.clone();
 		p.x += lengthOffset * Math.cos(angle);
 		p.y += lengthOffset * Math.sin(angle);
+		Mob m = getParentMob();
+		boolean drawOutside = m == null || GameController.get().shouldDrawMobOutsideVisionRange(m);
 		if(Math.abs(angle) > Math.PI/2){
-			GameController.get().renderer.drawImage(flippedImg, p, 1f, angle, getParentMob() == null);
+			GameController.get().renderer.drawImage(flippedImg, p, 1f, angle, drawOutside);
 		} else {
-			GameController.get().renderer.drawImage(img, p, 1f, angle, getParentMob() == null);
+			GameController.get().renderer.drawImage(img, p, 1f, angle, drawOutside);
 		}
 	}
 	

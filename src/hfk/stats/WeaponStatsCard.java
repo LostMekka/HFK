@@ -15,16 +15,16 @@ import java.util.Arrays;
 public class WeaponStatsCard {
 	
 	public int[] clipSize = new int[Weapon.AMMO_TYPE_COUNT];
-	public int[] reloadTimes = new int[Weapon.AMMO_TYPE_COUNT];
 	public int[] reloadCount = new int[Weapon.AMMO_TYPE_COUNT];
 	public int[] ammoPerShot = new int[Weapon.AMMO_TYPE_COUNT];
 	public int[] ammoPerBurst = new int[Weapon.AMMO_TYPE_COUNT];
+	public float[] reloadTimes = new float[Weapon.AMMO_TYPE_COUNT];
 	public float[] ammoRegenerationRates = new float[Weapon.AMMO_TYPE_COUNT];
 	public int projectilesPerShot;
 	public int shotsPerBurst;
-	public int burstInterval;
-	public int shotInterval;
 	public int shotBounces;
+	public float burstInterval;
+	public float shotInterval;
 	public float minScatter;
 	public float maxScatter;
 	public float scatterPerShot;
@@ -38,7 +38,7 @@ public class WeaponStatsCard {
 	
 	private boolean isBonusCard;
 	
-	public static final WeaponStatsCard createNormal(){
+	public static WeaponStatsCard createNormal(){
 		WeaponStatsCard ans = new WeaponStatsCard();
 		ans.isBonusCard = false;
 		ans.projectilesPerShot = 1;
@@ -56,7 +56,7 @@ public class WeaponStatsCard {
 		return ans;
 	}
 	
-	public static final WeaponStatsCard createBonus(){
+	public static WeaponStatsCard createBonus(){
 		WeaponStatsCard ans = new WeaponStatsCard();
 		ans.isBonusCard = true;
 		return ans;
@@ -103,22 +103,22 @@ public class WeaponStatsCard {
 		shotVel *= 1f + c.shotVel;
 		weaponZoom *= 1f + c.weaponZoom;
 		maxEnergyLossOnBounce *= 1f + c.maxEnergyLossOnBounce;
+		bounceProbability *= 1f + c.bounceProbability;
+		burstInterval *= 1f + c.burstInterval;
+		shotInterval *= 1f + c.shotInterval;
 		// add
-		bounceProbability += c.bounceProbability;
 		projectilesPerShot += c.projectilesPerShot;
 		shotsPerBurst += c.shotsPerBurst;
-		burstInterval += c.burstInterval;
-		shotInterval += c.shotInterval;
 		shotBounces += c.shotBounces;
 		overDamageSplashRadius += c.overDamageSplashRadius;
 		// other
 		isAutomatic |= c.isAutomatic;
 		for(int i=0; i<Weapon.AMMO_TYPE_COUNT; i++){
 			clipSize[i] += c.clipSize[i];
-			reloadTimes[i] -= c.reloadTimes[i];
 			reloadCount[i] += c.reloadCount[i];
 			ammoPerShot[i] += c.ammoPerShot[i];
 			ammoPerBurst[i] += c.ammoPerBurst[i];
+			reloadTimes[i] *= 1f + c.reloadTimes[i];
 			ammoRegenerationRates[i] *= 1f + c.ammoRegenerationRates[i];
 		}
 		// limit

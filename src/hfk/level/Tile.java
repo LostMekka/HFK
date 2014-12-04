@@ -11,8 +11,7 @@ import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.net.NetState;
-import hfk.net.NetStateObject;
-import hfk.net.NetStatePart;
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SpriteSheet;
 
@@ -20,159 +19,123 @@ import org.newdawn.slick.SpriteSheet;
  *
  * @author LostMekka
  */
-public class Tile implements NetStateObject{
+public class Tile{
 
-	public enum TileType{ blueFloor, blueFloorB, blueWall, blueWallB, boxA, boxB, boxC, boxD }
-	
 	private static SpriteSheet sheet = null;
 	
-	private final PointI pos, imgPos;
-	private boolean isWall;
-	private int hp = 0, armor = 0;
-	private Tile replacement = null;
-	private long id;
+	public final PointI imgPos;
+	public final PointF size;
+	public int hp = -1, armor = 0;
+	private int tileType;
+	private Animation animation = null;
+	private Image floorImage = null;
 
-	public Tile() {
-		// empty constructor for net state
-		pos = new PointI();
+	public Tile(int tileType, int tileSet) {
+		this.tileType = tileType;
 		imgPos = new PointI();
-		init();
-	}
-	
-	public Tile(PointI pos, TileType t) {
-		this.pos = pos.clone();
-		switch(t){
-			case blueFloor:
-				imgPos = new PointI(0, 0);
-				isWall = false;
-				break;
-			case blueFloorB:
-				imgPos = new PointI(0, 1);
-				isWall = false;
-				break;
-			case blueWall:
-				imgPos = new PointI(0, 2);
-				isWall = true;
-				replacement = new Tile(pos, TileType.blueFloor);
-				hp = 200;
-				armor = 3;
-				break;
-			case blueWallB:
-				imgPos = new PointI(0, 3);
-				isWall = true;
-				replacement = new Tile(pos, TileType.blueFloor);
-				hp = 200;
-				armor = 3;
-				break;
-			case boxA:
-				imgPos = new PointI(1, 0);
-				isWall = true;
-				replacement = new Tile(pos, TileType.blueFloor);
-				hp = 200;
-				armor = 2;
-				break;
-			case boxB:
-				imgPos = new PointI(1, 1);
-				isWall = true;
-				replacement = new Tile(pos, TileType.blueFloor);
-				hp = 160;
-				armor = 1;
-				break;
-			case boxC:
-				imgPos = new PointI(1, 2);
-				isWall = true;
-				replacement = new Tile(pos, TileType.blueFloor);
-				hp = 120;
-				break;
-			case boxD:
-				imgPos = new PointI(1, 3);
-				isWall = true;
-				replacement = new Tile(pos, TileType.blueFloor);
-				hp = 70;
-				break;
-			default:
-				throw new RuntimeException("tile type not recognized!");
-		}
-		init();
-		id = GameController.get().createIdFor(this);
+		size = new PointF();
+		init(tileType, tileSet, true);
 	}
 
-	private void init(){
+	public int getTileType() {
+		return tileType;
+	}
+
+	public void setTileType(int tileType, int tileSet, boolean tileSetChanged) {
+		if(!tileSetChanged && tileType == this.tileType) return;
+		this.tileType = tileType;
+		init(tileType, tileSet, false);
+	}
+
+	public final void init(int tileType, int tileSet, boolean initFields){
 		if(sheet == null) sheet = Resources.getSpriteSheet("tiles.png");
+		int tsx = 4 * (tileSet % 4);
+		int tsy = 4 * (tileSet / 4);
+		if(tileType < 16){
+			// standard tileset tiles
+			if(tileType < 4){
+				// standard wall
+				imgPos.set(tsx, tsy+tileType);
+				size.set(1f, 1f);
+				if(initFields){
+					hp = 200;
+					armor = 3;
+				}
+			} else if(tileType < 8){
+				// standard floor
+				imgPos.set(tsx+1, tsy+tileType-4);
+			} else if(tileType < 12){
+				// standard crates
+				int t = tileType-8;
+				imgPos.set(tsx+2, tsy+t);
+				size.set(0.875f, 0.875f);
+				if(initFields){
+					hp = 60*(1+t);
+					armor = Math.max(0, t-1);
+				}
+			} else {
+				// standard other stuff
+				int t = tileType-12;
+				imgPos.set(tsx+3, tsy+t);
+				size.set(0.875f, 0.875f);
+				if(initFields){
+					hp = 60*(1+t);
+					armor = Math.max(0, t-1);
+				}
+			}
+		} else {
+			// special tiles
+			switch(tileType){
+				case 16:
+					// cold sleep chamber, functioning
+					animation = new Animation(sheet, new int[]{0,4,1,4,0,5,1,5}, new int[]{600,600,600,600});
+					size.set(1f, 0.57f);
+					if(initFields) hp = 60;
+					break;
+				case 17:
+					// cold sleep chamber, broken
+					animation = new Animation(sheet, new int[]{2,5,2,4,2,5,2,4}, new int[]{200,200,800,500});
+					size.set(1f, 0.57f);
+					if(initFields) hp = 60;
+					break;
+			}
+		}
+		floorImage = null;
+		if(size.x > 0f && size.y > 0f && (size.x < 1f || size.y < 1f)){
+			floorImage = sheet.getSprite(tsx+1, tsy);
+		}
 	}
 	
 	public Tile damage(int dmg){
-		if(replacement == null) return this;
+		if(hp < 0) return this;
 		dmg = Math.max(dmg-armor, 0);
 		hp -= dmg;
-		if(hp <= 0) return replacement;
+		if(hp <= 0){
+			int tileSet = GameController.get().level.getTileSet();
+			switch(tileType){
+				case 16: return new Tile(17, tileSet);
+				default: return new Tile(4, tileSet);
+			}
+		}
 		return this;
 	}
 	
 	public boolean isWall() {
-		return isWall;
+		return size.x > 0f && size.y > 0f;
 	}
 	
 	public Image getImage(){
+		if(animation != null) return animation.getCurrentFrame();
 		return sheet.getSprite(imgPos.x, imgPos.y);
 	}
 	
-	public void draw(){
-		GameController.get().renderer.drawImage(getImage(), pos.toFloat(), true);
+	public void draw(PointF pos){
+		if(floorImage != null) GameController.get().renderer.drawImage(floorImage, pos, true);
+		GameController.get().renderer.drawImage(getImage(), pos, true);
 	}
 	
-	public void moveTo(int x, int y){
-		pos.x = x;
-		pos.y = y;
-	}
-	
-	@Override
-	public long getID() {
-		return id;
-	}
-
-	@Override
-	public void setID(long id) {
-		this.id = id;
-	}
-
-	@Override
-	public NetStatePart fillStateParts(NetStatePart part, NetState state) {
-		if(replacement != null){
-			state.addObject(replacement);
-			part.setID(0, replacement.id);
-		}
-		part.setInteger(0, hp);
-		part.setInteger(1, armor);
-		part.setInteger(2, pos.x);
-		part.setInteger(3, pos.y);
-		part.setInteger(4, imgPos.x);
-		part.setInteger(5, imgPos.y);
-		part.setBoolean(0, isWall);
-		return part;
-	}
-
-	@Override
-	public void updateFromStatePart(NetStatePart part, NetState state) {
-		long repID = part.getID(0);
-		if(repID >= 0){
-			NetStateObject o = GameController.get().getNetStateObject(repID);
-			if(o == null){
-				replacement = new Tile();
-			} else {
-				replacement = (Tile)o;
-			}
-			replacement.updateFromStatePart(state.parts.get(repID), state);
-		} else {
-			replacement = null;
-		}
-		hp = part.getInteger(0);
-		armor = part.getInteger(1);
-		pos.x = part.getInteger(2);
-		pos.y = part.getInteger(3);
-		imgPos.x = part.getInteger(4);
-		imgPos.y = part.getInteger(5);
-		isWall = part.getBoolean(0);
+	public void update(int time){
+		if(animation != null) animation.update(time);
 	}
 	
 }

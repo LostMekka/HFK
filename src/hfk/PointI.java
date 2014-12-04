@@ -6,8 +6,6 @@
 package hfk;
 
 import hfk.game.GameController;
-import hfk.game.slickstates.GameplayState;
-import java.util.Random;
 
 /**
  *
@@ -29,6 +27,16 @@ public class PointI {
 	public PointI() {
 		x = 0;
 		y = 0;
+	}
+	
+	public void set(PointI p){
+		x = p.x;
+		y = p.y;
+	}
+	
+	public void set(int x, int y){
+		this.x = x;
+		this.y = y;
 	}
 
 	@Override

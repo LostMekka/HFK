@@ -14,6 +14,10 @@ import hfk.game.GameController;
  */
 public class PointF {
 	
+	public static PointF createRandom(){
+		return new PointF(GameController.random.nextFloat(), GameController.random.nextFloat());
+	}
+	
 	public float x, y;
 
 	public PointF() {
@@ -276,6 +280,11 @@ public class PointF {
 	public void set(PointF p){
 		x = p.x;
 		y = p.y;
+	}
+	
+	public void set(float x, float y){
+		this.x = x;
+		this.y = y;
 	}
 	
 }

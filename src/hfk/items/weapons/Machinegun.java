@@ -16,40 +16,43 @@ import hfk.stats.WeaponStatsCard;
  *
  * @author LostMekka
  */
-public class GrenadeLauncher extends Weapon {
-
-	public GrenadeLauncher(float angle, PointF position) {
+public class Machinegun extends Weapon {
+	
+	public Machinegun(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
-		setImg("w_grenadelauncher.png");
-		type = WeaponType.grenadeLauncher;
+		setImg("w_machinegun.png");
+		type = WeaponType.machinegun;
+	}
+
+	@Override
+	public float getScreenRecoilAmount() {
+		return 0.08f;
 	}
 
 	@Override
 	public Shot initShot(Shot s) {
 		s.size = 0.09f;
-		s.img = Resources.getImage("s_grenade.png");
-		s.hitSound = Resources.getSound("s_grenade_hit.wav");
-		s.bounceSound = Resources.getSound("s_grenade_bounce.wav");
-		s.friction = 7f;
-		s.lifetime = 1500;
+		s.img = Resources.getImage("shot.png");
+		s.hitSound = Resources.getSound("hit1.wav");
 		return s;
 	}
 
 	@Override
 	public WeaponStatsCard getDefaultWeaponStats() {
 		WeaponStatsCard s = WeaponStatsCard.createNormal();
-		int grenade = Weapon.AmmoType.grenade.ordinal();
-		s.clipSize[grenade] = 1;
-		s.reloadCount[grenade] = s.clipSize[grenade];
-		s.reloadTimes[grenade] = 1100;
-		s.ammoPerShot[grenade] = 1;
+		int bullet = Weapon.AmmoType.bullet.ordinal();
+		s.clipSize[bullet] = 100;
+		s.reloadCount[bullet] = s.clipSize[bullet];
+		s.reloadTimes[bullet] = 4000;
+		s.ammoPerShot[bullet] = 1;
 		s.shotsPerBurst = 1;
-		s.maxScatter = 30f;
-		s.scatterCoolRate = 10f;
-		s.scatterPerShot = 6f;
-		s.shotVel = 9f;
-		s.isAutomatic = false;
+		s.burstInterval = 100;
+		s.maxScatter = 20f;
+		s.scatterCoolRate = 15f;
+		s.scatterPerShot = 1.9f;
+		s.shotVel = 7f;
+		s.isAutomatic = true;
 		return s;
 	}
 
@@ -57,23 +60,19 @@ public class GrenadeLauncher extends Weapon {
 	public DamageCard getDefaultDamageCard() {
 		DamageCard d = DamageCard.createNormal();
 		int phys = Damage.DamageType.physical.ordinal();
-		int fire = Damage.DamageType.fire.ordinal();
-		d.setDieCount(phys, 10);
+		d.setDieCount(phys, 2);
 		d.setEyeCount(phys, 4);
-		d.setDieCount(fire, 10);
-		d.setEyeCount(fire, 6);
-		d.setAreaRadius(1.8f);
 		return d;
 	}
 
 	@Override
 	public String getWeaponName() {
-		return "Grenade Launcher";
+		return "Machinegun";
 	}
 
 	@Override
 	public long getRarityScore() {
-		return 12000;
+		return 9000;
 	}
 	
 }

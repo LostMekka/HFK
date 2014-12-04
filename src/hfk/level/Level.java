@@ -14,6 +14,7 @@ import hfk.mobs.Mob;
 import hfk.net.NetState;
 import hfk.net.NetStateObject;
 import hfk.net.NetStatePart;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,278 +28,162 @@ import org.newdawn.slick.Image;
  */
 public class Level implements NetStateObject{
 	
-	public static class Factory{
-		private static Random ran = GameController.random;
-		private Factory(){}
-		private static class Box{
-			public int x,y,w,h;
-			public Box() {}
-			public Box(int x, int y, int w, int h) {
-				this.x = x;
-				this.y = y;
-				this.w = w;
-				this.h = h;
+	public LinkedList<UsableLevelItem> items = new LinkedList<>();
+	private int tileSet;
+	private Tile[][] tiles;
+	private boolean[][] visible;
+	private boolean[][] scouted;
+	private PointI scoutedMin = null;
+	private PointI scoutedMax = null;
+	private PointI spawnPoint = null;
+	private Tile defaultTile;
+	private LinkedList<UsableLevelItem> itemsToRemove = new LinkedList<>();
+	
+	public Level(int sx, int sy, int tileSet){
+		this.tileSet = tileSet;
+		defaultTile = new Tile(0, tileSet);
+		tiles = new Tile[sx][sy];
+		visible = new boolean[sx+2][sy+2];
+		scouted = new boolean[sx+2][sy+2];
+		id = GameController.get().createIdFor(this);
+	}
+	
+	public void printTilesInfo(){
+		for(int y=0; y<getHeight(); y++){
+			for(int x=0; x<getWidth(); x++){
+				System.out.format("%2d ", tiles[x][y].getTileType());
 			}
-			public Box(Box b) {
-				this.x = b.x;
-				this.y = b.y;
-				this.w = b.w;
-				this.h = b.h;
-			}
-			public PointI getRandomPoint(){
-				return new PointI(GameController.random.nextInt(h)+x, GameController.random.nextInt(h)+y);
-			}
+			System.out.println();
 		}
-		private static boolean boxesTouch(Box b1, Box b2){
-			return	b1.x+b1.w >= b2.x && 
-					b1.x <= b2.x+b2.w && 
-					b1.y+b1.h >= b2.y && 
-					b1.y <= b2.y+b2.h;
-		}
-		public static Level createTestArena(int sx, int sy, int difficulty, int itemScore){
-			int border = 10;
-			GameController ctrl = GameController.get();
-			Level l = new Level();
-			l.tiles = new Tile[sx+2*border][sy+2*border];
-			generateBorder(l, new Box(0, 0, sx+2*border, sy+2*border), border);
-			int min = ran.nextInt(10)+4;
-			int max = ran.nextInt(20)+10;
-			Box inside = new Box(border, border, sx, sy);
-			generateRoomLevel(l, inside, min, max, min, max);
-			
-			LinkedList<PointI> ex = new LinkedList<>();
-			PointI plp = l.getNextFreeField(inside.getRandomPoint(), null);
-			ex.add(plp);
-			ctrl.player.pos = plp.toFloat();
-			PointI stairsPos = l.getNextFreeField(inside.getRandomPoint(), ex);
-			ex.add(stairsPos);
-			l.items.add(new Stairs(stairsPos));
+	}
 
-			addMobs(l, inside, difficulty, ctrl.player.pos.round(), 12f, ex);
-			addItems(l, inside, itemScore, ex);
-			float barr = GameController.random.nextFloat() * GameController.random.nextFloat() * GameController.random.nextFloat();
-			addBarrels(l, inside, (int)(sx * sy * 0.08f * barr), ex);
-			
-			l.defaultTile = new Tile(new PointI(), Tile.TileType.blueWall);
-			return l;
+	public void print(){
+		for(int y=0; y<getHeight(); y++){
+			for(int x=0; x<getWidth(); x++){
+				System.out.print(tiles[x][y].isWall() ? "[]" : "  ");
+			}
+			System.out.println();
 		}
-		private static void generateBorder(Level l, Box b, int border){
-			for(int i=0; i<border; i++){
-				for(int x=b.x; x<b.x+b.w; x++){
-					l.tiles[x][i] = new Tile(new PointI(x, i), Tile.TileType.blueWall);
-					l.tiles[x][b.h-1-i] = new Tile(new PointI(x, b.h-1-i), Tile.TileType.blueWall);
-				}
-				for(int y=border; y<b.y+b.h-border; y++){
-					l.tiles[i][y] = new Tile(new PointI(i, y), Tile.TileType.blueWall);
-					l.tiles[b.h-1-i][y] = new Tile(new PointI(b.h-1-i, y), Tile.TileType.blueWall);
-				}
-			}
-		}
-		private static void generateRoomLevel(Level l, Box b, int minW, int maxW, int minH, int maxH){
-			// split every box into sub boxes until they are small enough
-			LinkedList<Box> roomsToSplit = new LinkedList<>();
-			LinkedList<Box> finalRooms = new LinkedList<>();
-			roomsToSplit.add(new Box(b));
-			while(!roomsToSplit.isEmpty()){
-				Box r1 = roomsToSplit.removeFirst();
-				boolean vert = r1.w >= 2*minW + 1;
-				boolean horiz = r1.h >= 2*minH + 1;
-				if((!vert && !horiz) || (r1.w <= maxW && r1.h <= maxH && ran.nextFloat() <= 0.4f)){
-					// do not split anymore
-					finalRooms.add(r1);
-					continue;
-				}
-				boolean dir = vert ? (horiz ? ran.nextBoolean() : false) : true;
-				if(dir){
-					// horizontal split
-					int h = r1.h;
-					r1.h = minH + ran.nextInt(h - 2*minH);
-					Box r2 = new Box(r1.x, r1.y + r1.h + 1, r1.w, h - r1.h - 1);
-					roomsToSplit.add(r1);
-					roomsToSplit.add(r2);
-				} else {
-					// vertical split
-					int w = r1.w;
-					r1.w = minW + ran.nextInt(w - 2*minW);
-					Box r2 = new Box(r1.x + r1.w + 1, r1.y, w - r1.w - 1, r1.h);
-					roomsToSplit.add(r1);
-					roomsToSplit.add(r2);
-				}
-			}
-			// fill everything with walls
-			for(int x=b.x; x<b.x+b.w; x++){
-				for(int y=b.y; y<b.y+b.h; y++){
-					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueWall : Tile.TileType.blueWallB;
-					l.tiles[x][y] = new Tile(new PointI(x, y), t);
-				}
-			}
-			// generate rooms
-			for(Box b1 : finalRooms){
-				if(b1.w * b1.h > 40){
-					// box level generator will clear the room for us
-					generateBoxLevel(l, b1, 2, 3, 2, 3, 0.04f);
-				} else {
-					// do not generate boxes. clear room instead
-					for(int x=b1.x; x<b1.x+b1.w; x++){
-						for(int y=b1.y; y<b1.y+b1.h; y++){
-							Tile.TileType t = ran.nextFloat()>0.4 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
-							l.tiles[x][y] = new Tile(new PointI(x, y), t);
-						}
-					}
-				}
-			}
-			// create doors
-			int n = finalRooms.size();
-			for(int i1=0; i1<n; i1++){
-				Box r1 = finalRooms.get(i1);
-				for(int i2=i1+1; i2<n; i2++){
-					Box r2 = finalRooms.get(i2);
-					boolean ox = r2.x > r1.x;
-					boolean oy = r2.y > r1.y;
-					int dx = ox? r2.x-r1.x-r1.w : r1.x-r2.x-r2.w;
-					int dy = oy? r2.y-r1.y-r1.h : r1.y-r2.y-r2.h;
-					if(dx != 1 && dy != 1) continue;
-					if(dx == 1 && dy < 0){
-						int posX = ox ? r2.x-1 : r1.x-1;
-						int startY = oy ? r2.y : r1.y;
-						int endY = r1.y+r1.h > r2.y+r2.h ? r2.y+r2.h : r1.y+r1.h;
-						int posY = startY + ran.nextInt(endY - startY);
-						PointI p = new PointI(posX, posY);
-						Door door = new Door(p, true);
-						l.tiles[posX][posY] = new Tile(p, Tile.TileType.blueFloor);
-						l.items.add(door);
-					}
-					if(dy == 1 && dx < 0){
-						int posY = oy ? r2.y-1 : r1.y-1;
-						int startX = ox ? r2.x : r1.x;
-						int endX = r1.x+r1.w > r2.x+r2.w ? r2.x+r2.w : r1.x+r1.w;
-						int posX = startX + ran.nextInt(endX - startX);
-						PointI p = new PointI(posX, posY);
-						Door door = new Door(p, false);
-						l.tiles[posX][posY] = new Tile(p, Tile.TileType.blueFloor);
-						l.items.add(door);
-					}
-				}
-			}
-		}
-		private static void generateBoxLevel(Level l, Box b, int minW, int maxW, int minH, int maxH, float rate){
-			// clear area
-			for(int x=b.x; x<b.x+b.w; x++){
-				for(int y=b.y; y<b.y+b.h; y++){
-					Tile.TileType t = ran.nextFloat()>0.2 ? Tile.TileType.blueFloor : Tile.TileType.blueFloorB;
-					l.tiles[x][y] = new Tile(new PointI(x, y), t);
-				}
-			}
-			// do the boxes fit?
-			if(minW > b.w-2 || minH > b.h-2) return; // boxes do not fit!
-			// create boxes
-			LinkedList<Box> bl = new LinkedList<>();
-			for(int i=0; i<b.w*b.h*rate; i++){
-				Box b1 = new Box();
-				b1.w = Math.min(ran.nextInt(maxW-minW+1)+minW, b.w-2);
-				b1.h = Math.min(ran.nextInt(maxH-minH+1)+minH, b.h-2);
-				b1.x = ran.nextInt(b.w-b1.w-1)+1+b.x;
-				b1.y = ran.nextInt(b.h-b1.h-1)+1+b.y;
-				boolean touch = false;
-				for(Box b2 : bl) if(boxesTouch(b1, b2)){
-					touch = true;
-					break;
-				}
-				if(!touch) bl.add(b1);
-			}
-			// fill boxes
-			for(Box b1 : bl){
-				Tile.TileType t = null;
-				switch(ran.nextInt(4)){
-					case 0: t = Tile.TileType.boxA; break;
-					case 1: t = Tile.TileType.boxB; break;
-					case 2: t = Tile.TileType.boxC; break;
-					case 3: t = Tile.TileType.boxD; break;
-				}
-				for(int x=b1.x; x<b1.x+b1.w; x++){
-					for(int y=b1.y; y<b1.y+b1.h; y++){
-						l.tiles[x][y] = new Tile(new PointI(x, y), t);
-					}
-				}
-			}
-		}
-		private static void addMobs(Level l, Box box, int diff, PointI plp, float minMobDistance, LinkedList<PointI> ex){
-//			System.out.println("\n--- level ----------------");
-			GameController ctrl = GameController.get();
-			PointF plpF = plp.toFloat();
-			LinkedList<PointI> ex2 = new LinkedList<>();
-			ex2.addAll(ex);
-			for(int x=0; x<l.getWidth(); x++){
-				for(int y=0; y<l.getHeight(); y++){
-					PointF p = new PointF(x, y);
-					if(p.squaredDistanceTo(plpF) <= minMobDistance*minMobDistance) ex2.add(p.round());
-				}
-			}
-			Mob m;
-			int d = diff, mc = Integer.MAX_VALUE, stack = 0;
-			PointI p = null;
-			for(;;){
-				if(mc >= stack){
-					mc = 0;
-					p = box.getRandomPoint();
-					stack = ran.nextInt(ran.nextInt(ran.nextInt(10)+1)+1);
-				}
-				int maxD = Math.min(d, Math.round(diff*GameController.MOBGENERATION_MAXDIFF_FACTOR));
-				m = Mob.createMob(new PointF(), maxD, ctrl.getLevelCount());
-				if(m == null) break;
-//				System.out.println("   mob: " + m.getDisplayName());
-				mc++;
-				d -= m.getDifficultyScore();
-				PointI p2 = l.getNextFreeField(p, ex2);
-				if(p2 == null) break;
-				m.pos = p2.toFloat();
-				ex.add(p2);
-				ex2.add(p2);
-				ctrl.mobs.add(m);
-			}
-		}
-		private static void addItems(Level l, Box box, int rar, LinkedList<PointI> ex){
-			GameController ctrl = GameController.get();
-			InventoryItem i;
-			int r = rar, mc = Integer.MAX_VALUE, stack = 0;
-			PointI p = null;
-			for(;;){
-				if(mc >= stack){
-					mc = 0;
-					p = box.getRandomPoint();
-					stack = ran.nextInt(ran.nextInt(8)+1);
-				}
-				i = InventoryItem.create(new PointF(), r);
-				if(i == null) break;
-				mc++;
-				r -= i.getRarityScore();
-				PointI p2 = l.getNextFreeField(p, ex);
-				if(p2 == null) break;
-				i.pos = p2.toFloat();
-				ex.add(p2);
-				ctrl.addItem(i);
-			}
-		}
-		private static void addBarrels(Level l, Box box, int count, LinkedList<PointI> ex){
-			for(int i=0; i<count; i++){
-				PointI p = l.getNextFreeField(box.getRandomPoint(), ex);
-				if(p == null) break;
-				l.items.add(new ExplosiveBarrel(p));
-				ex.add(p);
-			}
+	}
+
+	public PointI getNextFreeSpawnPoint() {
+		return getNextFreeField(spawnPoint, null);
+	}
+
+	public PointI getSpawnPoint() {
+		return spawnPoint.clone();
+	}
+
+	public void setSpawnPoint(PointI spawnPoint) {
+		this.spawnPoint = getNextFreeField(spawnPoint, null);
+	}
+
+	public boolean setTile(int x, int y, Tile t){
+		if(x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) return false;
+		tiles[x][y] = t;
+		return true;
+	}
+	
+	public boolean setTile(int x, int y, int tileType){
+		if(x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) return false;
+		tiles[x][y] = new Tile(tileType, tileSet);
+		return true;
+	}
+	
+	public boolean hasTile(int x, int y){
+		return tiles[x][y] != null;
+	}
+	
+	public int getTileSet() {
+		return tileSet;
+	}
+	
+	public void clearScouted(){
+		scoutedMin = null;
+		scoutedMax = null;
+		for(boolean[] a : scouted) Arrays.fill(a, false);
+	}
+	
+	public void clearVisible(){
+		for(boolean[] a : visible) Arrays.fill(a, false);
+	}
+	
+	public boolean isScouted(PointI pos){
+		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+2 || pos.y >= getHeight()+2) return false;
+		return scouted[pos.x+1][pos.y+1];
+	}
+	
+	public boolean isVisible(PointI pos){
+		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+2 || pos.y >= getHeight()+2) return false;
+		return visible[pos.x+1][pos.y+1];
+	}
+	
+	public void setScouted(PointI pos){
+		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+2 || pos.y >= getHeight()+2) return;
+		scouted[pos.x+1][pos.y+1] = true;
+		if(scoutedMin == null){
+			scoutedMin = pos.clone();
+			scoutedMax = pos.clone();
+		} else {
+			scoutedMin.x = Math.min(pos.x, scoutedMin.x);
+			scoutedMax.x = Math.max(pos.x, scoutedMax.x);
+			scoutedMin.y = Math.min(pos.y, scoutedMin.y);
+			scoutedMax.y = Math.max(pos.y, scoutedMax.y);
 		}
 	}
 	
-	private Tile[][] tiles;
-	private Tile defaultTile;
-	private LinkedList<UsableLevelItem> items = new LinkedList<>(), itemsToRemove = new LinkedList<>();
+	public void setVisible(PointI pos){
+		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+2 || pos.y >= getHeight()+2) return;
+		visible[pos.x+1][pos.y+1] = true;
+		scouted[pos.x+1][pos.y+1] = true;
+		if(scoutedMin == null){
+			scoutedMin = pos.clone();
+			scoutedMax = pos.clone();
+		} else {
+			scoutedMin.x = Math.min(pos.x, scoutedMin.x);
+			scoutedMax.x = Math.max(pos.x, scoutedMax.x);
+			scoutedMin.y = Math.min(pos.y, scoutedMin.y);
+			scoutedMax.y = Math.max(pos.y, scoutedMax.y);
+		}
+	}
 	
-	private Level(){}
+	public boolean hasScoutedTiles(){
+		return scoutedMin != null;
+	}
+	
+	public PointI getScoutedMin(){
+		return scoutedMin == null ? new PointI(-1, -1) : scoutedMin;
+	}
+	
+	public PointI getScoutedMax(){
+		return scoutedMax == null ? new PointI(-1, -1) : scoutedMax;
+	}
+	
+	public int getScoutedMinX(){
+		return scoutedMin == null ? -1 : scoutedMin.x;
+	}
+	
+	public int getScoutedMinY(){
+		return scoutedMin == null ? -1 : scoutedMin.y;
+	}
+	
+	public int getScoutedMaxX(){
+		return scoutedMax == null ? -1 : scoutedMax.x;
+	}
+	
+	public int getScoutedMaxY(){
+		return scoutedMax == null ? -1 : scoutedMax.y;
+	}
 	
 	public void update(int time){
 		for(UsableLevelItem i : items) i.update(time);
 		items.removeAll(itemsToRemove);
 		itemsToRemove.clear();
+		for(int x=0; x<getWidth(); x++){
+			for(int y=0; y<getHeight(); y++){
+				tiles[x][y].update(time);
+			}
+		}
 	}
 
 	public void requestDeleteItem(UsableLevelItem i) {
@@ -358,30 +243,34 @@ public class Level implements NetStateObject{
 	public void damageTile(PointI pos, int dmg, PointF shotPos){
 		if(!isInLevel(pos)) return;
 		if(tiles[pos.x][pos.y].isWall()){
-			Tile t = tiles[pos.x][pos.y].damage(dmg);
-			if(tiles[pos.x][pos.y] != t){
-				GameController.get().createDebris(pos.toFloat(), tiles[pos.x][pos.y].getImage(), 1, 0.5f);
+			Tile n = tiles[pos.x][pos.y].damage(dmg);
+			int bx = Math.round(16f * (1f - tiles[pos.x][pos.y].size.x));
+			int by = Math.round(16f * (1f - tiles[pos.x][pos.y].size.y));
+			if(tiles[pos.x][pos.y] != n){
+				GameController.get().createDebris(pos.toFloat(), tiles[pos.x][pos.y].getImage(), bx, by, 0.5f);
 				GameController.get().recalcVisibleTiles = true;
-				tiles[pos.x][pos.y] = t;
+				tiles[pos.x][pos.y] = n;
 			} else {
-				addDebrisFromDamage(pos, shotPos, dmg, 2, tiles[pos.x][pos.y].getImage());
+				addDebrisFromDamage(pos, shotPos, dmg, bx, by, tiles[pos.x][pos.y].getImage());
 			}
 		} else {
 			for(UsableLevelItem i : items) if(!isMarkedForRemoval(i)){
 				if(i.pos.equals(pos)){
+					int bx = Math.round(16f * (1f - i.size.x));
+					int by = Math.round(16f * (1f - i.size.y));
 					if(i.damage(dmg)){
 						requestDeleteItem(i);
-						GameController.get().createDebris(pos.toFloat(), i.img, 4, 0.5f);
+						GameController.get().createDebris(pos.toFloat(), i.img, bx, by, 0.5f);
 						GameController.get().recalcVisibleTiles = true;
 					} else {
-						addDebrisFromDamage(pos, shotPos, dmg, 4, i.img);
+						addDebrisFromDamage(pos, shotPos, dmg, bx, by, i.img);
 					}
 				}
 			}
 		}
 	}
 	private static final float DEBRIS_POINT_DISTANCE = 0.52f;
-	private void addDebrisFromDamage(PointI pos, PointF shotPos, int dmg, int border, Image img){
+	private void addDebrisFromDamage(PointI pos, PointF shotPos, int dmg, int bx, int by, Image img){
 		int n = getDebrisCountOnDamage(dmg);
 		if(n <= 0) return;
 		PointF diff = shotPos.clone();
@@ -412,9 +301,9 @@ public class Level implements NetStateObject{
 		}
 		p.add(pos.toFloat());
 		if(dir == null){
-			GameController.get().createDebris(p, img, border, n, n, 0f);
+			GameController.get().createDebris(p, img, bx, by, n, n, 0f);
 		} else {
-			GameController.get().createDebris(p, (float)dir, img, border, n, n, 0f);
+			GameController.get().createDebris(p, (float)dir, img, bx, by, n, n, 0f);
 		}
 	}
 	private int getDebrisCountOnDamage(int dmg){
@@ -458,11 +347,11 @@ public class Level implements NetStateObject{
 	public void draw(int x1, int y1, int x2, int y2){
 		for(int x=x1; x<=x2; x++){
 			for(int y=y1; y<=y2; y++){
+				PointF p = new PointF(x, y);
 				if(x >= 0 && x < getWidth() && y >= 0 && y < getHeight()){
-					tiles[x][y].draw();
+					tiles[x][y].draw(p);
 				} else {
-					defaultTile.moveTo(x, y);
-					defaultTile.draw();
+					defaultTile.draw(p);
 				}
 			}
 		}
@@ -496,7 +385,7 @@ public class Level implements NetStateObject{
 		return a[GameController.random.nextInt(i)];
 	}
 	
-	private void insert(WayPoint p, WayPoint[] a){
+	private void insert(Level.WayPoint p, Level.WayPoint[] a){
 		if(a[0] == null){
 			a[0] = p;
 		} else {
@@ -514,7 +403,7 @@ public class Level implements NetStateObject{
 		}
 	}
 	
-	private WayPoint getRandom(WayPoint[] a){
+	private Level.WayPoint getRandom(Level.WayPoint[] a){
 		int i;
 		for(i=0; i<a.length; i++){
 			if(a[i] == null) break;
@@ -578,13 +467,13 @@ public class Level implements NetStateObject{
 	public LinkedList<PointF> getPathAwayFrom(PointF start, PointF target, int maxLength, boolean shorten, boolean canOpenDoors){
 		PointI s = start.round();
 		PointI e = target.round();
-		WayPoint[][][] flowField = new WayPoint[getWidth()][getHeight()][4];
-		LinkedList<WayPoint> expanded = new LinkedList<>();
-		LinkedList<WayPoint> toExpand = new LinkedList<>();
-		toExpand.add(new WayPoint(s, -s.hammingDistanceTo(e), 0));
+		Level.WayPoint[][][] flowField = new Level.WayPoint[getWidth()][getHeight()][4];
+		LinkedList<Level.WayPoint> expanded = new LinkedList<>();
+		LinkedList<Level.WayPoint> toExpand = new LinkedList<>();
+		toExpand.add(new Level.WayPoint(s, -s.hammingDistanceTo(e), 0));
 		
 		while(!toExpand.isEmpty()){
-			WayPoint wp1 = toExpand.removeFirst();
+			Level.WayPoint wp1 = toExpand.removeFirst();
 			// if maximum path length is reached, return path to that point instead
 			if(wp1.dist >= maxLength){
 				e = wp1.p;
@@ -593,7 +482,7 @@ public class Level implements NetStateObject{
 			expanded.add(wp1);
 			for(PointI p2 : getDirectlyReachableTiles(wp1.p, canOpenDoors)){
 				if(contains(p2, expanded)) continue;
-				WayPoint wp2 = new WayPoint(p2, wp1.dist + 1 - p2.hammingDistanceTo(e), wp1.dist + 1);
+				Level.WayPoint wp2 = new Level.WayPoint(p2, wp1.dist + 1 - p2.hammingDistanceTo(e), wp1.dist + 1);
 				if(!contains(p2, toExpand)) insertSorted(wp2, toExpand);
 				insert(wp1, flowField[wp2.p.x][wp2.p.y]);
 			}
@@ -601,7 +490,7 @@ public class Level implements NetStateObject{
 		// get point that has largest distance
 		LinkedList<PointI> best = new LinkedList<>();
 		int d = Integer.MAX_VALUE;
-		for(WayPoint w : expanded){
+		for(Level.WayPoint w : expanded){
 			int d2 = w.p.hammingDistanceTo(e);
 			if(d2 == d){
 				best.add(w.p);
@@ -614,7 +503,7 @@ public class Level implements NetStateObject{
 		e = best.get(GameController.random.nextInt(best.size()));
 		
 		LinkedList<PointF> ans = new LinkedList<>();
-		WayPoint w = new WayPoint(e, 0, 0);
+		Level.WayPoint w = new Level.WayPoint(e, 0, 0);
 		while(w != null){
 			ans.addFirst(w.p.toFloat());
 			w = getRandom(flowField[w.p.x][w.p.y]);
@@ -630,14 +519,14 @@ public class Level implements NetStateObject{
 	public LinkedList<PointF> getPathTo(PointF start, PointF end, int maxLength, boolean shorten, boolean canOpenDoors, boolean nullIfUnreachable){
 		PointI s = start.round();
 		PointI e = end.round();
-		WayPoint[][][] flowField = new WayPoint[getWidth()][getHeight()][4];
-		LinkedList<WayPoint> expanded = new LinkedList<>();
-		LinkedList<WayPoint> toExpand = new LinkedList<>();
-		toExpand.add(new WayPoint(s, s.hammingDistanceTo(e), 0));
+		Level.WayPoint[][][] flowField = new Level.WayPoint[getWidth()][getHeight()][4];
+		LinkedList<Level.WayPoint> expanded = new LinkedList<>();
+		LinkedList<Level.WayPoint> toExpand = new LinkedList<>();
+		toExpand.add(new Level.WayPoint(s, s.hammingDistanceTo(e), 0));
 		
 		boolean done = false;
 		while(!done && !toExpand.isEmpty()){
-			WayPoint wp1 = toExpand.removeFirst();
+			Level.WayPoint wp1 = toExpand.removeFirst();
 			// if maximum path length is reached, return path to that point instead
 			if(wp1.dist >= maxLength){
 				e = wp1.p;
@@ -646,7 +535,7 @@ public class Level implements NetStateObject{
 			expanded.add(wp1);
 			for(PointI p2 : getDirectlyReachableTiles(wp1.p, canOpenDoors)){
 				if(contains(p2, expanded)) continue;
-				WayPoint wp2 = new WayPoint(p2, wp1.dist + 1 + p2.hammingDistanceTo(e), wp1.dist + 1);
+				Level.WayPoint wp2 = new Level.WayPoint(p2, wp1.dist + 1 + p2.hammingDistanceTo(e), wp1.dist + 1);
 				if(!contains(p2, toExpand)) insertSorted(wp2, toExpand);
 				insert(wp1, flowField[wp2.p.x][wp2.p.y]);
 				if(p2.equals(e)){
@@ -660,7 +549,7 @@ public class Level implements NetStateObject{
 			// point is not reachable. go to nearest point instead!
 			LinkedList<PointI> best = new LinkedList<>();
 			int d = Integer.MIN_VALUE;
-			for(WayPoint w : expanded){
+			for(Level.WayPoint w : expanded){
 				int d2 = w.p.hammingDistanceTo(e);
 				if(d2 == d){
 					best.add(w.p);
@@ -674,7 +563,7 @@ public class Level implements NetStateObject{
 		}
 		
 		LinkedList<PointF> ans = new LinkedList<>();
-		WayPoint w = new WayPoint(e, 0, 0);
+		Level.WayPoint w = new Level.WayPoint(e, 0, 0);
 		while(w != null){
 			ans.addFirst(w.p.toFloat());
 			w = getRandom(flowField[w.p.x][w.p.y]);
@@ -687,13 +576,13 @@ public class Level implements NetStateObject{
 		return ans;
 	}
 	
-	private boolean contains(PointI p, LinkedList<WayPoint> l){
-		for(WayPoint wp : l) if(wp.p.equals(p)) return true;
+	private boolean contains(PointI p, LinkedList<Level.WayPoint> l){
+		for(Level.WayPoint wp : l) if(wp.p.equals(p)) return true;
 		return false;
 	}
 	
-	private void insertSorted(WayPoint p, LinkedList<WayPoint> l){
-		Iterator<WayPoint> iter = l.iterator();
+	private void insertSorted(Level.WayPoint p, LinkedList<Level.WayPoint> l){
+		Iterator<Level.WayPoint> iter = l.iterator();
 		int i = 0;
 		while(iter.hasNext()){
 			if(p.score < iter.next().score) break;
@@ -735,16 +624,16 @@ public class Level implements NetStateObject{
 		public PointI collidingTilePos = null;
 	}
 	// --- !!! --- SIMPLE COLLISION! SIZE MUST NOT BE GREATER THAN 1 !!!
-	public CollisionAnswer doCollision(PointF center, float size){
+	public Level.CollisionAnswer doCollision(PointF center, float size){
 		// TODO: rewrite collision to make use ofaith size > 1
 		if(size > 1) throw new IllegalArgumentException("size is greater than 1. this algorithm cannot handle that!!!");
-		CollisionAnswer answer = new CollisionAnswer();
+		Level.CollisionAnswer answer = new Level.CollisionAnswer();
 		float ansLen = -1f;
 		int ix = Math.round(center.x);
 		int iy = Math.round(center.y);
 		LinkedList<PointF> history = new LinkedList<>();
 		int collisionCount = 0;
-		ColAns ans = new ColAns();
+		Level.ColAns ans = new Level.ColAns();
 		// collide with level items
 		for(UsableLevelItem i : items){
 			if(i.blocksMovement()){
@@ -753,9 +642,9 @@ public class Level implements NetStateObject{
 					// limit correction movement
 					Door d = (Door)i;
 					newCorr = doSingleWallCollision(center, size/2f, i.pos, 
-							d.getSizeX(), d.getSizeY(), !d.isVertical(), d.isVertical());
+							d.size.x, d.size.y, !d.isVertical(), d.isVertical());
 				} else {
-					newCorr = doSingleWallCollision(center, size/2f, i.pos, i.size);
+					newCorr = doSingleWallCollision(center, size/2f, i.pos, i.size.x, i.size.y, false, false);
 				}
 				if(!newCorr.isZero()){
 					float len = newCorr.length();
@@ -792,7 +681,7 @@ public class Level implements NetStateObject{
 		if(collisionCount != history.size()){
 			// some collisions were discarded to avoid false correction.
 			// recalculate correction vector from history!
-			ans = new ColAns();
+			ans = new Level.ColAns();
 			LinkedList<PointF> oldHistory = history;
 			history = new LinkedList<>();
 			for(PointF newCorr : oldHistory) addCollisionEffect(ans, newCorr, center, history);
@@ -810,7 +699,7 @@ public class Level implements NetStateObject{
 		public boolean noClipX = false, noClipY = false;
 	}
 	
-	private void addCollisionEffect(ColAns ans, PointF newCorr, PointF center, LinkedList<PointF> history){
+	private void addCollisionEffect(Level.ColAns ans, PointF newCorr, PointF center, LinkedList<PointF> history){
 		// handle x axis
 		if(newCorr.x != 0 && !ans.noClipY){
 			if(ans.oldCorr.x == 0){
@@ -960,8 +849,7 @@ public class Level implements NetStateObject{
 		for(PointI p : getTilesOnLine(p1, p2, maxDistance + 1f)){
 			UsableLevelItem i = getUsableLevelItem(p.toFloat());
 			if(i != null){
-				float d = maxDistance + i.size/2f;
-				if(p1.squaredDistanceTo(i.pos.toFloat()) < d*d){
+				if(p1.squaredDistanceToRect(i.getTopLeftPoint(), i.getBottomRightPoint()) < maxDistance*maxDistance){
 					// if the item is stairs or this is the first tile, save it for later.
 					// if nothing else comes up later, we return the saved item.
 					if(isFirstTile || (ans == null && i instanceof Stairs)){
@@ -1056,60 +944,98 @@ public class Level implements NetStateObject{
 	}
 
 	@Override
-	public NetStatePart fillStateParts(NetStatePart part, NetState state) {
-		state.addObject(defaultTile);
-		int i = 0;
-		for(int x=0; x<getWidth(); x++){
-			for(int y=0; y<getHeight(); y++){
-				state.addObject(tiles[x][y]);
-				part.setID(i, tiles[x][y].getID());
-				i++;
-			}
-		}
-		part.setInteger(0, items.size());
-		for(UsableLevelItem item : items){
-			state.addObject(item);
-			part.setID(i, item.getID());
-			i++;
-		}
-		return part;
+	public int getIntCount() {
+		return getWidth() * getHeight() * 3 + 4;
 	}
 
 	@Override
-	public void updateFromStatePart(NetStatePart part, NetState state) {
-		defaultTile.updateFromStatePart(state.parts.get(defaultTile.getID()), state);
+	public int getLongCount() {
+		return items.size();
+	}
+
+	@Override
+	public int getFloatCount() {
+		return 0;
+	}
+
+	@Override
+	public int getBoolCount() {
+		return getWidth() * getHeight() * 2;
+	}
+
+	@Override
+	public void fillStateFields(int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
+		ints[intOffset+0] = getWidth();
+		ints[intOffset+1] = getHeight();
+		ints[intOffset+2] = tileSet;
+		ints[intOffset+3] = defaultTile.getTileType();
+		intOffset += 4;
 		int i = 0;
 		for(int x=0; x<getWidth(); x++){
 			for(int y=0; y<getHeight(); y++){
-				long tileID = part.getID(i);
-				NetStatePart<Tile> tilePart = state.parts.get(tileID);
-				if(tiles[x][y].getID() == tileID){
-					tiles[x][y].updateFromStatePart(tilePart, state);
-				} else {
-					tiles[x][y] = tilePart.getAndUpdateObject(state);
-				}
+				ints[intOffset+3*i+0] = tiles[x][y].hp;
+				ints[intOffset+3*i+1] = tiles[x][y].armor;
+				ints[intOffset+3*i+2] = tiles[x][y].getTileType();
+				bools[boolOffset+2*i] = visible[x][y];
+				bools[boolOffset+2*i+1] = scouted[x][y];
 				i++;
 			}
 		}
-		// item list will only get smaller. there cannot be new items coming into a level
-		// also, ordering stays the same
-		int size = part.getInteger(0);
-		int start = i;
-		ListIterator<UsableLevelItem> iter = items.listIterator();
-		for(; i<start+size; i++){
-			UsableLevelItem ownItem = iter.next();
-			long remoteID = part.getID(i);
-			while(remoteID != ownItem.getID()){
-				iter.remove();
-				ownItem = iter.next();
-			}
-			ownItem.updateFromStatePart(state.parts.get(remoteID), state);
-		}
-		// remove trailing items
-		while(iter.hasNext()){
-			iter.next();
-			iter.remove();
+		i = 0;
+		for(UsableLevelItem item : items){
+			longs[longOffset+i] = item.getID();
+			i++;
 		}
 	}
-	
+
+	@Override
+	public void applyFromStateFields(NetState state, int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
+		int w = ints[intOffset+0];
+		int h = ints[intOffset+1];
+		if(tiles == null || w != getWidth() || h != getHeight()){
+			// level changed!!
+			if(tiles != null) System.out.println("WARNING: Level size changed!");
+			tiles = new Tile[w][h];
+			visible = new boolean[w][h];
+			scouted = new boolean[w][h];
+			tileSet = ints[intOffset+2];
+			defaultTile = new Tile(ints[intOffset+3], tileSet);
+			intOffset += 4;
+			int i = 0;
+			for(int x=0; x<getWidth(); x++){
+				for(int y=0; y<getHeight(); y++){
+					tiles[x][y] = new Tile(ints[intOffset+3*i+2], tileSet);
+					tiles[x][y].hp = ints[intOffset+3*i+0];
+					tiles[x][y].armor = ints[intOffset+3*i+1];
+					visible[x][y] = bools[boolOffset+2*i+1];
+					scouted[x][y] = bools[boolOffset+2*i+2];
+					i++;
+				}
+			}
+		} else {
+			// level is still the same.
+			int ts = ints[intOffset+2];
+			boolean tsChanged = tileSet != ts;
+			tileSet = ts;
+			defaultTile.setTileType(ints[intOffset+3], tileSet, tsChanged);
+			intOffset += 4;
+			int i = 0;
+			for(int x=0; x<getWidth(); x++){
+				for(int y=0; y<getHeight(); y++){
+					tiles[x][y].hp = ints[intOffset+3*i+0];
+					tiles[x][y].armor = ints[intOffset+3*i+1];
+					tiles[x][y].setTileType(ints[intOffset+3*i+2], tileSet, tsChanged);
+					visible[x][y] = bools[boolOffset+2*i+1];
+					scouted[x][y] = bools[boolOffset+2*i+2];
+					i++;
+				}
+			}
+		}
+		// remaining longs are ids for level items
+		items.clear();
+		for(int i=0; i<longs.length; i++){
+			items.add((UsableLevelItem)state.getObject(longs[longOffset+i]));
+		}
+	}
+
 }

@@ -12,9 +12,21 @@ package hfk.net;
  */
 public interface NetStateObject{
 	
+	public int getIntCount();
+	public int getLongCount();
+	public int getFloatCount();
+	public int getBoolCount();
 	public long getID();
 	public void setID(long id);
-	public NetStatePart fillStateParts(NetStatePart part, NetState state);
-	public void updateFromStatePart(NetStatePart part, NetState state);
+	public void fillStateFields(
+			int[] ints, int intOffset,
+			long[] longs, int longOffset,
+			float[] floats, int floatOffset,
+			boolean[] bools, int boolOffset);
+	public void applyFromStateFields(NetState state,
+			int[] ints, int intOffset,
+			long[] longs, int longOffset,
+			float[] floats, int floatOffset,
+			boolean[] bools, int boolOffset);
 	
 }

@@ -284,7 +284,6 @@ public final class Inventory implements StatsModifier {
 	public Weapon dropWeapon(int index){
 		if(index < 0 || index >= quickSlots.length) return null;
 		Weapon w = quickSlots[index];
-		if(!w.isReady()) return null;
 		w.weaponUnSelected();
 		quickSlots[index] = null;
 		w.parentInventory = null;

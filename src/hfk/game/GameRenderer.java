@@ -62,14 +62,17 @@ public class GameRenderer {
 	private static final Color MM_WALL_SCOUTED = new Color(0.7f, 0.7f, 0.7f);
 	private static final Color MM_FLOOR_INSIGHT = new Color(1f, 1f, 1f, 0.55f);
 	private static final Color MM_FLOOR_SCOUTED = new Color(0.7f, 0.7f, 0.7f, 0.55f);
-	private static final Color MM_STAIRS = new Color(1f, 0.5f, 0f);
+	private static final Color MM_STAIRS = new Color(0f, 1f, 0f);
+	private static final Color MM_STAIRS_SQUARES = new Color(0f, 1f, 0f);
 	private static final Color MM_DOOR_O = new Color(0.5f, 0.5f, 0f);
 	private static final Color MM_DOOR_C = new Color(1f, 1f, 0f);
 	private static final Color MM_PLAYER = new Color(0f, 1f, 0f);
 	private static final Color MM_ENEMY = new Color(1f, 0f, 0f);
 	private static final Color MM_LOOT = new Color(0f, 0f, 1f);
 	private static final Color MM_FINAL = new Color(1f, 1f, 1f, 0.5f);
+	private static final int MM_MAX_TIMER = 1000;
 	private HashMap<PointF, Image> mmImages = new HashMap<>();
+	private int mmStairsTimer = 0;
 	
 	public void drawMiniMap(PointF pos, PointF size, PointI min, PointI max, float alpha){
 		PointI s = new PointI(max.x - min.x + 1, max.y - min.y + 1);
@@ -101,56 +104,67 @@ public class GameRenderer {
 		g.setColor(MM_BACK);
 		g.fillRect(pos.x, pos.y, size.x, size.y);
 		// draw tiles and level items first
-		for(PointI pi : ctrl.scoutedTiles){
+		for(int x=ctrl.level.getScoutedMinX(); x<=ctrl.level.getScoutedMaxX(); x++){
+			for(int y=ctrl.level.getScoutedMinY(); y<=ctrl.level.getScoutedMaxY(); y++){
+				PointI pi = new PointI(x, y);
 			PointF pf = pi.toFloat();
-			boolean inSight = ctrl.visibleTiles.contains(pi);
-			// fisrt draw tiles
-			if(ctrl.level.isWallTile(pi.x, pi.y)){
-				drawMMRect(g, inSight ? MM_WALL_INSIGHT : MM_WALL_SCOUTED, pf, 1f, mid, size, zoom);
-			} else {
-				drawMMRect(g, inSight ? MM_FLOOR_INSIGHT : MM_FLOOR_SCOUTED, pf, 1f, mid, size, zoom);
+				if(ctrl.level.isScouted(pi)){
+					boolean inSight = ctrl.level.isVisible(pi);
+					// draw tiles
+					if(ctrl.level.isWallTile(pi.x, pi.y)){
+						fillMMRect(g, inSight ? MM_WALL_INSIGHT : MM_WALL_SCOUTED, pf, 1f, mid, size, zoom);
+					} else {
+						fillMMRect(g, inSight ? MM_FLOOR_INSIGHT : MM_FLOOR_SCOUTED, pf, 1f, mid, size, zoom);
+					}
+				}
 			}
-			// then, if necessary, draw level item on top of tile
-			UsableLevelItem i = ctrl.level.getUsableLevelItem(pf);
-			if(i != null){
+		}
+		// draw level item on top of tiles
+		for(UsableLevelItem i : ctrl.level.items) if(ctrl.level.isScouted(i.pos)){
 				Color c;
-				float sx = i.size;
-				float sy = i.size;
 				if(i instanceof Stairs){
 					c = MM_STAIRS;
 				} else if(i instanceof Door){
 					Door d = (Door)i;
 					c = d.isOpen() ? MM_DOOR_O : MM_DOOR_C;
-					if(d.isVertical()){
-						sy = 1f;
-					} else {
-						sx = 1f;
-					}
 				} else {
-					c = inSight ? MM_WALL_INSIGHT : MM_WALL_SCOUTED;
+					c = ctrl.level.isVisible(i.pos) ? MM_WALL_INSIGHT : MM_WALL_SCOUTED;
 				}
-				drawMMRect(g, c, pf, sx, sy, mid, size, zoom);
+				fillMMRect(g, c, i.pos.toFloat(), i.size.x, i.size.y, mid, size, zoom);
 			}
-		}
 		// draw other things on top
 		for(InventoryItem i : ctrl.items){
-			if(!ctrl.scoutedTiles.contains(i.pos.round())) continue;
-			drawMMRect(g, MM_LOOT, i.pos, i.size, mid, size, zoom);
+			if(!ctrl.level.isScouted(i.pos.round())) continue;
+			fillMMRect(g, MM_LOOT, i.pos, i.size, mid, size, zoom);
 		}
-		g.setColor(MM_ENEMY);
 		for(Mob m : ctrl.mobs){
-			if(m instanceof Player || !ctrl.visibleTiles.contains(m.pos.round())) continue;
-			drawMMRect(g, MM_ENEMY, m.pos, m.size, mid, size, zoom);
+			if(m instanceof Player || !ctrl.level.isVisible(m.pos.round())) continue;
+			fillMMRect(g, MM_ENEMY, m.pos, m.size, mid, size, zoom);
 		}
-		drawMMRect(g, MM_PLAYER, ctrl.player.pos, ctrl.player.size, mid, size, zoom);
+		fillMMRect(g, MM_PLAYER, ctrl.player.pos, ctrl.player.size, mid, size, zoom);
+		// draw tactical overlay stuff
+		for(UsableLevelItem i : ctrl.level.items) if(i instanceof Stairs) if(ctrl.level.isScouted(i.pos)){
+			float s = mmStairsTimer/(float)MM_MAX_TIMER;
+			MM_STAIRS_SQUARES.a = (1f + s)/2f;
+			drawMMRect(g, MM_STAIRS_SQUARES, i.pos.toFloat(), 3f - 2f*s, 5, mid, size, zoom);
+			MM_STAIRS_SQUARES.a = s/2f;
+			drawMMRect(g, MM_STAIRS_SQUARES, i.pos.toFloat(), 5f - 2f*s, 5, mid, size, zoom);
+		}
 		// draw final image on screen
 		MM_FINAL.a = alpha;
 		getGraphics().drawImage(mmImg, pos.x, pos.y, MM_FINAL);
 	}
-	private void drawMMRect(Graphics g, Color c, PointF pos, float size, PointF mmMid, PointF mmSize, float zoom){
-		drawMMRect(g, c, pos, size, size, mmMid, mmSize, zoom);
+	private void fillMMRect(Graphics g, Color c, PointF pos, float size, PointF mmMid, PointF mmSize, float zoom){
+		fillMMRect(g, c, pos, size, size, mmMid, mmSize, zoom);
 	}
-	private void drawMMRect(Graphics g, Color c, PointF pos, float sizeX, float sizeY, PointF mmMid, PointF mmSize, float zoom){
+	private void drawMMRect(Graphics g, Color c, PointF pos, float size, int border, PointF mmMid, PointF mmSize, float zoom){
+		g.setColor(c);
+		for(int i=0; i<border; i++) g.drawRect(
+				mmSize.x/2f + (pos.x - size/2f - mmMid.x)*zoom + i, 
+				mmSize.y/2f + (pos.y - size/2f - mmMid.y)*zoom + i, 
+				size * zoom - 2*i, size * zoom - 2*i);
+	}
+	private void fillMMRect(Graphics g, Color c, PointF pos, float sizeX, float sizeY, PointF mmMid, PointF mmSize, float zoom){
 		g.setColor(c);
 		g.fillRect(
 				mmSize.x/2f + (pos.x - sizeX/2f - mmMid.x)*zoom, 
@@ -278,22 +292,28 @@ public class GameRenderer {
 		float sy = i.getHeight() / GameController.SPRITE_SIZE;
 		GameController ctrl = GameController.get();
 		LinkedList<PointI> tiles = new LinkedList<>();
+		boolean isFirst = true;
+		boolean isV = false;
+		boolean isS = false;
+		boolean allTheSame = true;
 		for(int x=Math.round(pos.x - scale * sx * 0.499f); x<=Math.round(pos.x + scale * sx * 0.499f); x++){
 			for(int y=Math.round(pos.y - scale * sy * 0.499f); y<=Math.round(pos.y + scale * sy * 0.499f); y++){
-				tiles.add(new PointI(x, y));
+				PointI p = new PointI(x, y);
+				if(isFirst){
+					isFirst = false;
+					isV = ctrl.level.isVisible(p);
+					isS = ctrl.level.isScouted(p);
+				} else {
+					if(isV != ctrl.level.isVisible(p) || isS != ctrl.level.isScouted(p)) allTheSame = false;
 			}
+				tiles.add(p);
+		}
 		}
 		float zoom = ctrl.getZoom();
 		PointF screenPos = ctrl.getScreenPos();
-		int one = Math.round(ctrl.transformTilesToScreen(1));
-		for(PointI p : tiles){
-			boolean bright = ctrl.visibleTiles.contains(p);
-			if(bright || (ignoreVisionRange && ctrl.scoutedTiles.contains(p))){
-				getGraphics().setClip(
-						Math.round(ctrl.transformTilesToScreen(p.x - screenPos.x - 0.5f)), 
-						Math.round(ctrl.transformTilesToScreen(p.y - screenPos.y - 0.5f)), 
-						one, one);
-				if(bright){
+		if(allTheSame){
+			if(isV || (ignoreVisionRange && isS)){
+				if(isV){
 					i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
 							ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
 							zoom * scale);
@@ -303,8 +323,28 @@ public class GameRenderer {
 							zoom * scale, RENDER_FOG);
 				}
 			}
+		} else {
+			int one = Math.round(ctrl.transformTilesToScreen(1));
+			for(PointI p : tiles){
+				boolean bright = ctrl.level.isVisible(p);
+				if(bright || (ignoreVisionRange && ctrl.level.isScouted(p))){
+					getGraphics().setClip(
+							Math.round(ctrl.transformTilesToScreen(p.x - screenPos.x - 0.5f)), 
+							Math.round(ctrl.transformTilesToScreen(p.y - screenPos.y - 0.5f)), 
+							one, one);
+					if(bright){
+						i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
+								ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
+								zoom * scale);
+					} else {
+						i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
+								ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
+								zoom * scale, RENDER_FOG);
+					}
+				}
+			}
+			getGraphics().clearClip();
 		}
-		getGraphics().clearClip();
 	}
 	
 	public void drawImage(Image i, PointF pos, float scale, float angle, boolean ignoreVisionRange){
@@ -330,6 +370,10 @@ public class GameRenderer {
 	public void initAfterLoading(){
 		font = Resources.getFont("font");
 		font_big = Resources.getFont("font_big");
+	}
+
+	public void update(int time){
+		mmStairsTimer = (mmStairsTimer + time) % MM_MAX_TIMER;
 	}
 
 	public void render(GameController ctrl) throws SlickException{

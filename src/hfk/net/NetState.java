@@ -5,17 +5,15 @@
  */
 package hfk.net;
 
+import hfk.game.GameController;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  *
@@ -23,47 +21,64 @@ import java.util.zip.GZIPOutputStream;
  */
 public class NetState implements Serializable {
 
-	private long timeStamp, parentTimeStamp = -1;
-	public HashMap<Long, NetStatePart> parts = new HashMap<>();
+	private final long timeStamp, parentTimeStamp;
+	private final ArrayList<NetStatePart> parts;
 
-	public NetState(long timeStamp) {
+	public NetState(long timeStamp, int objectCount) {
+		this(timeStamp, -1, objectCount);
+	}
+
+	public NetState(long timeStamp, long parentTimeStamp, int objectCount) {
 		this.timeStamp = timeStamp;
+		this.parentTimeStamp = parentTimeStamp;
+		parts = new ArrayList<>(objectCount);
 	}
 
 	public long getTimeStamp() {
 		return timeStamp;
 	}
+	
+	public NetStateObject getObject(long id){
+		// see if game controller already has the object
+		NetStateObject o = GameController.get().getNetStateObject(id);
+		if(o != null) return o;
+		// object is not there. create a new one!
+		for(NetStatePart part : parts){
+			if(part.getID() == id) return part.createObject();
+		}
+		throw new RuntimeException("no information found about this object!");
+	}
 
 	public boolean addObject(NetStateObject o) {
 		long id = o.getID();
-		if (parts.containsKey(id)) {
-			return false;
-		}
-		parts.put(id, NetStatePart.create(o, this));
+		for(NetStatePart p : parts) if(p.getID() == id) return false;
+		parts.add(NetStatePart.create(o));
 		return true;
 	}
-
+	
 	public NetState createDiffTo(NetState parent) {
-		NetState ans = new NetState(timeStamp);
-		boolean changed = false;
-		for (NetStatePart ownSP : parts.values()) {
-			long id = ownSP.getObjectID();
-			NetStatePart diff = ownSP.createDiff(parent.parts.get(id));
-			if (diff != null) {
-				ans.parts.put(id, diff);
-				changed = true;
-			}
-		}
-		return changed ? ans : null;
+		NetState ans = new NetState(timeStamp, parent.timeStamp, parts.size());
+		// TODO: implement diff
+		return ans;
 	}
 
+	public NetState createFromDiffTo(NetState parent) {
+		NetState ans = new NetState(timeStamp, parts.size());
+		// TODO: implement diff
+		return ans;
+	}
+
+	private static ByteArrayOutputStream arrOut = null;
+	private static ObjectOutputStream objOut = null;
 	public byte[] toBytes() {
 		try {
-			ByteArrayOutputStream arrOut = new ByteArrayOutputStream();
-			//GZIPOutputStream zipOut = new GZIPOutputStream(arrOut);
-			ObjectOutputStream objOut = new ObjectOutputStream(arrOut);
+			if(arrOut == null){
+				arrOut = new ByteArrayOutputStream();
+				objOut = new ObjectOutputStream(arrOut);
+			} else {
+				arrOut.reset();
+			}
 			objOut.writeObject(this);
-			objOut.close();
 			byte[] ans = arrOut.toByteArray();
 			return ans;
 		} catch(IOException e){
