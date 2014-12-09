@@ -70,7 +70,8 @@ public class ServerGameController extends GameController {
 			sendTimer %= SEND_TIME_INTERVAL;
 			long t1 = System.currentTimeMillis();
 			NetState state = createNetState();
-			state.addObject(level);
+			// TODO: think about level integration into state
+			//state.addObject(level);
 			long t2 = System.currentTimeMillis();
 			byte[] arr = state.toBytes();
 			long t3 = System.currentTimeMillis();
