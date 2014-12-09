@@ -38,9 +38,10 @@ import hfk.level.Level;
 import hfk.level.Tile;
 import hfk.level.UsableLevelItem;
 import hfk.level.factory.BoxFactory;
-import hfk.level.factory.EmptyFactory;
+import hfk.level.factory.generators.RandomFloorGenerator;
 import hfk.level.factory.LevelFactory;
 import hfk.level.factory.RoomsFactory;
+import hfk.level.factory.concreteFactories.EmptyAreaFactory;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
 import hfk.net.NetState;
@@ -283,10 +284,8 @@ public class GameController {
 		int s = 25 + levelCount + 2*LevelFactory.LEVEL_BORDER;
 		int d = getLevelDifficultyLimit(levelCount, true);
 		int r = getLevelRarityLimit(levelCount, true);
-		LevelFactory f = new RoomsFactory(s, s);
-		f.addInnerFactory(new BoxFactory(s, s), 1f);
-		f.randomizeTileVariants(4);
-		level = f.generate(d, r, 0);
+		LevelFactory f = new EmptyAreaFactory(s, s);
+		level = f.create(d, r);
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
 	}

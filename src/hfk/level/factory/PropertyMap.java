@@ -6,6 +6,7 @@
 
 package hfk.level.factory;
 
+import hfk.Box;
 import hfk.PointF;
 import hfk.game.GameController;
 import java.awt.Color;
@@ -177,7 +178,7 @@ public final class PropertyMap {
 		return Math.round(getFloatAt(x, y));
 	}
 	
-	public float getAverageFloat(LevelFactory.Box b){
+	public float getAverageFloat(Box b){
 		float sum = 0f;
 		for(int ix=b.x; ix<b.x+b.w; ix++){
 			for(int iy=b.y; iy<b.y+b.h; iy++){
@@ -187,11 +188,11 @@ public final class PropertyMap {
 		return sum / (b.w*b.h);
 	}
 	
-	public int getAverageInt(LevelFactory.Box b){
+	public int getAverageInt(Box b){
 		return Math.round(getAverageFloat(b));
 	}
 	
-	public float getMinFloat(LevelFactory.Box b){
+	public float getMinFloat(Box b){
 		float ans = Float.MAX_VALUE;
 		for(int ix=b.x; ix<b.x+b.w; ix++){
 			for(int iy=b.y; iy<b.y+b.h; iy++){
@@ -202,11 +203,11 @@ public final class PropertyMap {
 		return ans;
 	}
 	
-	public int getMinInt(LevelFactory.Box b){
+	public int getMinInt(Box b){
 		return Math.round(getMinFloat(b));
 	}
 	
-	public float getMaxFloat(LevelFactory.Box b){
+	public float getMaxFloat(Box b){
 		float ans = Float.MIN_VALUE;
 		for(int ix=b.x; ix<b.x+b.w; ix++){
 			for(int iy=b.y; iy<b.y+b.h; iy++){
@@ -217,7 +218,7 @@ public final class PropertyMap {
 		return ans;
 	}
 	
-	public int getMaxInt(LevelFactory.Box b){
+	public int getMaxInt(Box b){
 		return Math.round(getMinFloat(b));
 	}
 	

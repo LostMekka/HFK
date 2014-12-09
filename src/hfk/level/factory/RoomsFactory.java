@@ -6,6 +6,7 @@
 
 package hfk.level.factory;
 
+import hfk.level.factory.generators.RandomFloorGenerator;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.level.Door;
@@ -29,7 +30,7 @@ public class RoomsFactory extends LevelFactory {
 	
 	public RoomsFactory(int width, int height) {
 		super(width, height);
-		emptyFactory = new EmptyFactory(width, height);
+		emptyFactory = new RandomFloorGenerator(width, height);
 		minWMap = getrandomizedPropertyMap(3.5f, 20f, 3f);
 		maxWMap = getrandomizedPropertyMap(8f, 30f, 3f);
 		minHMap = getrandomizedPropertyMap(3.5f, 20f, 3f);

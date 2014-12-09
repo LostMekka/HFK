@@ -25,7 +25,6 @@ import org.newdawn.slick.Image;
 public class Level implements Serializable{
 	
 	public LinkedList<UsableLevelItem> items = new LinkedList<>();
-	private int tileSet;
 	private Tile[][] tiles;
 	private boolean[][] visible;
 	private boolean[][] scouted;
@@ -35,8 +34,7 @@ public class Level implements Serializable{
 	private Tile defaultTile;
 	private LinkedList<UsableLevelItem> itemsToRemove = new LinkedList<>();
 	
-	public Level(int sx, int sy, int tileSet){
-		this.tileSet = tileSet;
+	public Level(int sx, int sy){
 		defaultTile = Tile.createWall(0, 0, 0, 0, 0, 0);
 		tiles = new Tile[sx][sy];
 		visible = new boolean[sx+2][sy+2];
@@ -72,10 +70,6 @@ public class Level implements Serializable{
 	
 	public boolean hasTile(int x, int y){
 		return tiles[x][y] != null;
-	}
-	
-	public int getTileSet() {
-		return tileSet;
 	}
 	
 	public void clearScouted(){

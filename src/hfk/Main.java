@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package hfk;
 
 import hfk.game.HFKGame;
@@ -42,11 +36,11 @@ public class Main {
 //		if(true) return;
 //		for(int i=0; i<50; i++){
 //			//PropertyMap m = PropertyMap.createRandom(200, 100, 4, 0, -2.5f, 1f, true);
-//			PropertyMap m = PropertyMap.createRandom(50, 50, 7, 0, -1.4f, 1f, true, null, null, null);
-//			m.fadeOutEllypse(0.5f, 1f, 1f);
-//			//m.draw("" + i, 8);
+//			PropertyMap m = PropertyMap.createRandom(50, 50, 7, 0, -1.4f, 1f);
+//			//m.fadeOutEllypse(0.5f, 1f, 1f);
+//			m.draw("" + i, 8);
 //			//m.drawSliced("" + i, 8, 7);
-//			m.drawSlicedCustomBorders("" + i, 8, 0f);
+//			//m.drawSlicedCustomBorders("" + i, 8, 0f);
 //		}
 //		if(true) return;
 		//printFontStuff();
