@@ -84,7 +84,7 @@ public class Resources {
 		"door.wav",
 	};
 	private static final String[] musicNames = {
-		"creepy_006.ogg",
+		"music001.ogg",
 	};
 	
 	private static final LinkedList<LoadingProgressListener> listeners = new LinkedList<>();

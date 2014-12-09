@@ -247,7 +247,7 @@ public class GameController {
 	}
 	
 	public void initAfterLoading(GameContainer gc){
-		music = Resources.getMusic("creepy_006.ogg");
+		music = Resources.getMusic("music001.ogg");
 		renderer.initAfterLoading();
 		gameOverState.initAfterLoading(this, gc);
 		gameplaySubState.initAfterLoading(this, gc);
