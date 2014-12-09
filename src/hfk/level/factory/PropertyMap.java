@@ -38,9 +38,10 @@ public final class PropertyMap {
 			if(i>0) size *= 1.5f;
 			if(i < layerOffset) continue;
 			PointF off = SimplexNoise.getRandomOffset();
+			float rot = GameController.random.nextFloat();
 			for(int x=0; x<w; x++){
 				for(int y=0; y<h; y++){
-					m.field[x][y] += size * (float)SimplexNoise.noise(x, y, 1f/size, off);
+					m.field[x][y] += size * (float)SimplexNoise.noise(x, y, 1f/size, off, rot);
 				}
 			}
 		}
