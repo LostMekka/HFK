@@ -9,24 +9,20 @@ package hfk.level;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
-import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
-import hfk.net.NetState;
-import hfk.net.NetStateObject;
-import hfk.net.NetStatePart;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Random;
 import org.newdawn.slick.Image;
 
 /**
  *
  * @author LostMekka
  */
-public class Level implements NetStateObject{
+public class Level implements Serializable{
 	
 	public LinkedList<UsableLevelItem> items = new LinkedList<>();
 	private int tileSet;
@@ -41,22 +37,12 @@ public class Level implements NetStateObject{
 	
 	public Level(int sx, int sy, int tileSet){
 		this.tileSet = tileSet;
-		defaultTile = new Tile(0, tileSet);
+		defaultTile = Tile.createWall(0, 0, 0, 0, 0, 0);
 		tiles = new Tile[sx][sy];
 		visible = new boolean[sx+2][sy+2];
 		scouted = new boolean[sx+2][sy+2];
-		id = GameController.get().createIdFor(this);
 	}
 	
-	public void printTilesInfo(){
-		for(int y=0; y<getHeight(); y++){
-			for(int x=0; x<getWidth(); x++){
-				System.out.format("%2d ", tiles[x][y].getTileType());
-			}
-			System.out.println();
-		}
-	}
-
 	public void print(){
 		for(int y=0; y<getHeight(); y++){
 			for(int x=0; x<getWidth(); x++){
@@ -81,12 +67,6 @@ public class Level implements NetStateObject{
 	public boolean setTile(int x, int y, Tile t){
 		if(x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) return false;
 		tiles[x][y] = t;
-		return true;
-	}
-	
-	public boolean setTile(int x, int y, int tileType){
-		if(x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) return false;
-		tiles[x][y] = new Tile(tileType, tileSet);
 		return true;
 	}
 	
@@ -242,14 +222,16 @@ public class Level implements NetStateObject{
 	
 	public void damageTile(PointI pos, int dmg, PointF shotPos){
 		if(!isInLevel(pos)) return;
-		if(tiles[pos.x][pos.y].isWall()){
-			Tile n = tiles[pos.x][pos.y].damage(dmg);
-			int bx = Math.round(16f * (1f - tiles[pos.x][pos.y].size.x));
-			int by = Math.round(16f * (1f - tiles[pos.x][pos.y].size.y));
-			if(tiles[pos.x][pos.y] != n){
-				GameController.get().createDebris(pos.toFloat(), tiles[pos.x][pos.y].getImage(), bx, by, 0.5f);
+		Tile tile = tiles[pos.x][pos.y];
+		// TODO: also allow floor tiles to get damaged
+		if(tile.isWall()){
+			Image i = tile.getImage();
+			boolean tileChanged = tile.damage(dmg);
+			int bx = Math.round(16f * (1f - tile.getSizeX()));
+			int by = Math.round(16f * (1f - tile.getSizeY()));
+			if(tileChanged){
+				GameController.get().createDebris(pos.toFloat(), i, bx, by, 0.5f);
 				GameController.get().recalcVisibleTiles = true;
-				tiles[pos.x][pos.y] = n;
 			} else {
 				addDebrisFromDamage(pos, shotPos, dmg, bx, by, tiles[pos.x][pos.y].getImage());
 			}
@@ -932,110 +914,4 @@ public class Level implements NetStateObject{
 		return true;
 	}
 	
-	private long id;
-	@Override
-	public long getID() {
-		return id;
-	}
-
-	@Override
-	public void setID(long id) {
-		this.id = id;
-	}
-
-	@Override
-	public int getIntCount() {
-		return getWidth() * getHeight() * 3 + 4;
-	}
-
-	@Override
-	public int getLongCount() {
-		return items.size();
-	}
-
-	@Override
-	public int getFloatCount() {
-		return 0;
-	}
-
-	@Override
-	public int getBoolCount() {
-		return getWidth() * getHeight() * 2;
-	}
-
-	@Override
-	public void fillStateFields(int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
-		ints[intOffset+0] = getWidth();
-		ints[intOffset+1] = getHeight();
-		ints[intOffset+2] = tileSet;
-		ints[intOffset+3] = defaultTile.getTileType();
-		intOffset += 4;
-		int i = 0;
-		for(int x=0; x<getWidth(); x++){
-			for(int y=0; y<getHeight(); y++){
-				ints[intOffset+3*i+0] = tiles[x][y].hp;
-				ints[intOffset+3*i+1] = tiles[x][y].armor;
-				ints[intOffset+3*i+2] = tiles[x][y].getTileType();
-				bools[boolOffset+2*i] = visible[x][y];
-				bools[boolOffset+2*i+1] = scouted[x][y];
-				i++;
-			}
-		}
-		i = 0;
-		for(UsableLevelItem item : items){
-			longs[longOffset+i] = item.getID();
-			i++;
-		}
-	}
-
-	@Override
-	public void applyFromStateFields(NetState state, int[] ints, int intOffset, long[] longs, int longOffset, float[] floats, int floatOffset, boolean[] bools, int boolOffset) {
-		int w = ints[intOffset+0];
-		int h = ints[intOffset+1];
-		if(tiles == null || w != getWidth() || h != getHeight()){
-			// level changed!!
-			if(tiles != null) System.out.println("WARNING: Level size changed!");
-			tiles = new Tile[w][h];
-			visible = new boolean[w][h];
-			scouted = new boolean[w][h];
-			tileSet = ints[intOffset+2];
-			defaultTile = new Tile(ints[intOffset+3], tileSet);
-			intOffset += 4;
-			int i = 0;
-			for(int x=0; x<getWidth(); x++){
-				for(int y=0; y<getHeight(); y++){
-					tiles[x][y] = new Tile(ints[intOffset+3*i+2], tileSet);
-					tiles[x][y].hp = ints[intOffset+3*i+0];
-					tiles[x][y].armor = ints[intOffset+3*i+1];
-					visible[x][y] = bools[boolOffset+2*i+1];
-					scouted[x][y] = bools[boolOffset+2*i+2];
-					i++;
-				}
-			}
-		} else {
-			// level is still the same.
-			int ts = ints[intOffset+2];
-			boolean tsChanged = tileSet != ts;
-			tileSet = ts;
-			defaultTile.setTileType(ints[intOffset+3], tileSet, tsChanged);
-			intOffset += 4;
-			int i = 0;
-			for(int x=0; x<getWidth(); x++){
-				for(int y=0; y<getHeight(); y++){
-					tiles[x][y].hp = ints[intOffset+3*i+0];
-					tiles[x][y].armor = ints[intOffset+3*i+1];
-					tiles[x][y].setTileType(ints[intOffset+3*i+2], tileSet, tsChanged);
-					visible[x][y] = bools[boolOffset+2*i+1];
-					scouted[x][y] = bools[boolOffset+2*i+2];
-					i++;
-				}
-			}
-		}
-		// remaining longs are ids for level items
-		items.clear();
-		for(int i=0; i<longs.length; i++){
-			items.add((UsableLevelItem)state.getObject(longs[longOffset+i]));
-		}
-	}
-
 }
