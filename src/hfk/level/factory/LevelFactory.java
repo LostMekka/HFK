@@ -181,7 +181,7 @@ public abstract class LevelFactory {
 	}
 	
 	public void randomizeTileVariants(float chunkSize){
-		setProperty(PROP_TILEVARIANT, PropertyMap.createRandom(width, height, 4, 1, -1f, 1f, true, null, null, null));
+		setProperty(PROP_TILEVARIANT, PropertyMap.createRandom(width, height, 4, 1, -1f, 1f));
 	}
 	
 	public PropertyMap getrandomizedPropertyMap(float minValue, float maxValue, float chunkSize){

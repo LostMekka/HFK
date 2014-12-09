@@ -30,53 +30,9 @@ public final class PropertyMap {
 		}
 		return p;
 	}
-	public static PropertyMap createRandom(int w, int h, int layerCount, int layerOffset, float min, float max, boolean normalize, Random r, int[] offsetsX, int[] offsetsY){
+	public static PropertyMap createRandom(int w, int h, int layerCount, int layerOffset, float min, float max){
 		if(min > max) throw new IllegalArgumentException("min > max");
-		if(r == null) r = GameController.random;
 		PropertyMap m = new PropertyMap(w, h);
-//		float factor = (max - min) / (float)(Math.pow(2, layerCount + layerOffset) - Math.pow(2, layerOffset));
-//		int size = 1;
-//		float[] line1 = null;
-//		float[] line2 = null;
-//		for(int i=0; i<layerCount+layerOffset; i++){
-//			if(i>0){
-//				factor *= 2;
-//				size *= 2;
-//			}
-//			if(i < layerOffset) continue;
-//			int numVals = (w + 2*size - 2) / size + 1;
-//			if(line1 == null){
-//				line1 = new float[numVals];
-//				line2 = new float[numVals];
-//			}
-//			fillArray(line1, numVals, min, max, factor, r);
-//			fillArray(line2, numVals, min, max, factor, r);
-//			int offsetX = offsetsX == null ? r.nextInt(size) : offsetsX[i];
-//			int offsetY = offsetsY == null ? r.nextInt(size) : offsetsY[i];
-//			for(int y=0; y<h; y++){
-//				int modY = (y + offsetY) % size;
-//				if(modY == 0){
-//					// swap lines and refill 2nd one
-//					float[] tmp = line1;
-//					line1 = line2;
-//					line2 = tmp;
-//					fillArray(line2, numVals, min, max, factor, r);
-//				}
-//				float dy1 = modY;
-//				float dy2 = (size - modY);
-//				for(int x=0; x<w; x++){
-//					int modX = (x + offsetX) % size;
-//					float dx1 = modX;
-//					float dx2 = (size - modX);
-//					m.field[x][y] += (
-//							dx2*dy2*line1[(x + offsetX) / size] + 
-//							dx1*dy2*line1[(x + offsetX) / size + 1] + 
-//							dx2*dy1*line2[(x + offsetX) / size] + 
-//							dx1*dy1*line2[(x + offsetX) / size + 1]
-//							) / (dx1*dy1 + dx1*dy2 + dx2*dy1 + dx2*dy2);
-//				}
-//			}
-//		}
 		float size = 2.4f;
 		for(int i=0; i<layerCount+layerOffset; i++){
 			if(i>0) size *= 1.5f;
@@ -88,7 +44,7 @@ public final class PropertyMap {
 				}
 			}
 		}
-		if(normalize) m.normalize(min, max);
+		m.normalize(min, max);
 		return m;
 	}
 	private static void fillArray(float[] array, int len, float min, float max, float factor, Random r){
