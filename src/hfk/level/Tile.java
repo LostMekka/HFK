@@ -95,6 +95,7 @@ public class Tile{
 	}
 	
 	private Tile(int layers){
+		if(sheet == null) sheet = Resources.getSpriteSheet("tiles.png");
 		imgPos = new PointI[layers];
 		size = new PointF[layers];
 		hp = new int[layers];

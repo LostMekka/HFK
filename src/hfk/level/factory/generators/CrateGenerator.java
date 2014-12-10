@@ -4,12 +4,16 @@
  * and open the template in the editor.
  */
 
-package hfk.level.factory;
+package hfk.level.factory.generators;
 
+import hfk.Box;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.level.Level;
 import hfk.level.Tile;
+import hfk.level.factory.LevelFactory;
+import hfk.level.factory.LevelGenerator;
+import hfk.level.factory.PropertyMap;
 import static hfk.level.factory.RoomsFactory.PROP_MAXROOMHEIGHT;
 import static hfk.level.factory.RoomsFactory.PROP_MAXROOMWIDTH;
 import static hfk.level.factory.RoomsFactory.PROP_MINROOMHEIGHT;
@@ -21,28 +25,33 @@ import java.util.Random;
  *
  * @author LostMekka
  */
-public class BoxFactory extends LevelFactory {
+public class CrateGenerator extends LevelGenerator {
 
 	public static final String PROP_MINBOXWIDTH = "minBoxWidth";
 	public static final String PROP_MAXBOXWIDTH = "maxBoxWidth";
 	public static final String PROP_MINBOXHEIGHT = "minBoxHeight";
 	public static final String PROP_MAXBOXHEIGHT = "maxBoxHeight";
+
+	public CrateGenerator(LevelGenerator parent) {
+		super(parent);
+	}
 	
-	public BoxFactory(int width, int height) {
-		super(width, height);
-		setProperty(PROP_MINBOXWIDTH, getrandomizedPropertyMap(1f, 3f, 10f));
-		setProperty(PROP_MAXBOXWIDTH, getrandomizedPropertyMap(2f, 5f, 10f));
-		setProperty(PROP_MINBOXHEIGHT, getrandomizedPropertyMap(1f, 3f, 10f));
-		setProperty(PROP_MAXBOXHEIGHT, getrandomizedPropertyMap(2f, 5f, 10f));
+	@Override
+	public PropertyMap generatePropertyMap(String name, PointI levelSize) {
+		if(name.equals(PROP_MINBOXWIDTH)) return PropertyMap.createRandom(levelSize.x, levelSize.y, 6, 0, 1f, 3f);
+		if(name.equals(PROP_MAXBOXWIDTH)) return PropertyMap.createRandom(levelSize.x, levelSize.y, 6, 0, 2f, 5f);
+		if(name.equals(PROP_MINBOXHEIGHT)) return PropertyMap.createRandom(levelSize.x, levelSize.y, 6, 0, 1f, 3f);
+		if(name.equals(PROP_MAXBOXHEIGHT)) return PropertyMap.createRandom(levelSize.x, levelSize.y, 6, 0, 2f, 5f);
+		return super.generatePropertyMap(name, levelSize);
 	}
 
 	@Override
 	public void generate(Level l, Box b) {
 		Random ran = GameController.random;
-		int minW = 2;
-		int maxW = 3;
-		int minH = 2;
-		int maxH = 3;
+		int minW = getPropertyMap(PROP_MINBOXWIDTH, false, this).getAverageInt(b);
+		int maxW = getPropertyMap(PROP_MAXBOXWIDTH, false, this).getAverageInt(b);
+		int minH = getPropertyMap(PROP_MINBOXHEIGHT, false, this).getAverageInt(b);
+		int maxH = getPropertyMap(PROP_MAXBOXHEIGHT, false, this).getAverageInt(b);
 		// do the boxes fit?
 		if(minW <= b.w-2 || minH <= b.h-2){
 			// create boxes

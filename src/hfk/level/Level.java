@@ -44,7 +44,7 @@ public class Level implements Serializable{
 	public void print(){
 		for(int y=0; y<getHeight(); y++){
 			for(int x=0; x<getWidth(); x++){
-				System.out.print(tiles[x][y].isWall() ? "[]" : "  ");
+				System.out.print(tiles[x][y] == null ? "X " : (tiles[x][y].isWall() ? "[]" : "  "));
 			}
 			System.out.println();
 		}

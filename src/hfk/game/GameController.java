@@ -37,7 +37,7 @@ import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.level.Tile;
 import hfk.level.UsableLevelItem;
-import hfk.level.factory.BoxFactory;
+import hfk.level.factory.generators.CrateGenerator;
 import hfk.level.factory.generators.RandomFloorGenerator;
 import hfk.level.factory.LevelFactory;
 import hfk.level.factory.RoomsFactory;

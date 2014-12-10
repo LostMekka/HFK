@@ -47,17 +47,22 @@ public class RandomFloorGenerator extends LevelGenerator {
 		for(int x=b.x; x<b.x+b.w; x++){
 			for(int y=b.y; y<b.y+b.h; y++){
 				float p = GameController.random.nextFloat()*pSum;
-				float orig = p;
+				Tile tile = null;
 				for(FloorType t : types){
 					p -= t.p;
 					if(p <= 0f){
-						l.setTile(x, y, Tile.createFloor(t.type, t.subtype, t.variant));
+						tile = Tile.createFloor(t.type, t.subtype, t.variant);
 						break;
 					}
+				}
+				if(tile != null){
+					l.setTile(x, y, tile);
+				} else {
 					throw new RuntimeException("cannot get floor type!");
 				}
 			}
 		}
+		l.print();
 	}
 	
 }
