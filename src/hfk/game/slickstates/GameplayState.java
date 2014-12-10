@@ -1,28 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package hfk.game.slickstates;
 
-import hfk.IngameText;
-import hfk.PointF;
-import hfk.PointI;
-import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.HFKGame;
-import hfk.items.Inventory;
-import hfk.items.InventoryItem;
-import hfk.items.weapons.Weapon;
-import hfk.mobs.Mob;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.ListIterator;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;

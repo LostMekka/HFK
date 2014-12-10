@@ -10,8 +10,8 @@ import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.Resources;
-import hfk.net.NetState;
-import org.newdawn.slick.Animation;
+import java.io.Serializable;
+import java.util.LinkedList;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SpriteSheet;
 
@@ -20,6 +20,15 @@ import org.newdawn.slick.SpriteSheet;
  * @author LostMekka
  */
 public class Tile{
+	
+	public static class TileData implements Serializable{
+		public PointI imgPos;
+		public PointF size;
+		public int hp, armor;
+		public float[] dps;
+		public int[] aniLen;
+		public PointI[] aniPos;
+	}
 	
 	public static final int FLOORTYPES = 10;
 	public static final int WALLTYPES = 10;
@@ -32,154 +41,137 @@ public class Tile{
 
 	private static SpriteSheet sheet = null;
 	
-	public final PointI[] imgPos;
-	public final PointF[] size;
-	public int[] hp, armor;
-	public int[][] animationLength;
-	public float[] dps;
-	private byte index = 0, animationIndex;
+	public LinkedList<TileData> data = new LinkedList<>();
+	private TileData curr = null, nextFull = null;
 	private int animationTimer = 0, animationMaxTimer = -1, 
 			floorAnimationMaxTimer, combinedAnimationMaxTimer;
-	private PointI animationPos[][];
 
-	public static Tile createFloor(int type, int subtype, int variant){
-		Tile t = new Tile(1);
-		t.imgPos[0] = new PointI(type, SUBTYPES*subtype + variant);
-		t.size[0] = new PointF();
-		return t;
+	public void addFloor(int type, int subtype, int variant){
+		TileData d = new TileData();
+		d.imgPos = new PointI(type, SUBTYPES*subtype + variant);
+		d.size = new PointF();
+		data.addLast(d);
+		updateData();
 	}
 	
-	public static Tile createWall(int type, int subtype, int variant, 
-			int floorType, int floorSubtype, int floorVariant){
-		Tile t = new Tile(2);
-		t.imgPos[0] = new PointI(WALLOFFSET + type, SUBTYPES*subtype + variant);
-		t.size[0] = new PointF(1f, 1f);
-		t.hp[0] = 200;
-		t.imgPos[1] = new PointI(floorType, SUBTYPES*floorSubtype + floorVariant);
-		t.size[1] = new PointF();
-		return t;
+	public void addWall(int type, int subtype, int variant){
+		TileData d = new TileData();
+		d.imgPos = new PointI(WALLOFFSET + type, SUBTYPES*subtype + variant);
+		d.size = new PointF(1f, 1f);
+		d.hp = 200;
+		data.addFirst(d);
+		updateData();
 	}
 	
-	public static Tile createCrate(int type, int subtype, int variant, 
-			int floorType, int floorSubtype, int floorVariant){
-		Tile t = new Tile(2);
-		t.imgPos[0] = new PointI(CRATEOFFSET + type, SUBTYPES*subtype + variant);
-		t.size[0] = new PointF(0.875f, 0.875f);
-		t.hp[0] = 100;
-		t.imgPos[1] = new PointI(floorType, SUBTYPES*floorSubtype + floorVariant);
-		t.size[1] = new PointF();
-		return t;
+	public void addCrate(int type, int subtype, int variant){
+		TileData d = new TileData();
+		d.imgPos = new PointI(CRATEOFFSET + type, SUBTYPES*subtype + variant);
+		d.size = new PointF(0.875f, 0.875f);
+		d.hp = 100;
+		data.addFirst(d);
+		updateData();
 	}
 	
-	public static Tile createSleepChamber(int floorType, int floorSubtype, int floorVariant){
-		Tile t = new Tile(3);
-		t.animationPos[0] = new PointI[]{
-				new PointI(0, SPECIALOFFSET), 
-				new PointI(1, SPECIALOFFSET), 
-				new PointI(0, SPECIALOFFSET+1), 
-				new PointI(1, SPECIALOFFSET+1)};
-		t.animationLength[0] = new int[]{600,600,600,600};
-		t.size[0] = new PointF(1f, 0.57f);
-		t.hp[0] = 60;
-		t.animationPos[1] = new PointI[]{
+	public void addSleepChamber(boolean damaged){
+		TileData d = new TileData();
+		d.aniPos = new PointI[]{
 				new PointI(2, SPECIALOFFSET), 
 				new PointI(2, SPECIALOFFSET+1), 
 				new PointI(2, SPECIALOFFSET), 
 				new PointI(2, SPECIALOFFSET+1)};
-		t.animationLength[1] = new int[]{200,200,800,500};
-		t.size[1] = new PointF(1f, 0.57f);
-		t.hp[1] = 60;
-		t.imgPos[1] = new PointI(floorType, SUBTYPES*floorSubtype + floorVariant);
-		t.size[1] = new PointF();
-		return t;
+		d.aniLen = new int[]{200,200,800,500};
+		d.size = new PointF(1f, 0.57f);
+		d.hp = 60;
+		data.addFirst(d);
+		if(!damaged){
+			d = new TileData();
+			d.aniPos = new PointI[]{
+					new PointI(0, SPECIALOFFSET), 
+					new PointI(1, SPECIALOFFSET), 
+					new PointI(0, SPECIALOFFSET+1), 
+					new PointI(1, SPECIALOFFSET+1)};
+			d.aniLen = new int[]{600,600,600,600};
+			d.size = new PointF(1f, 0.57f);
+			d.hp = 60;
+			data.addFirst(d);
+		}
+		updateData();
 	}
 	
-	private Tile(int layers){
+	public Tile(){
 		if(sheet == null) sheet = Resources.getSpriteSheet("tiles.png");
-		imgPos = new PointI[layers];
-		size = new PointF[layers];
-		hp = new int[layers];
-		hp[layers-1] = -1;
-		armor = new int[layers];
-		dps = new float[layers];
-		animationPos = new PointI[layers][];
-		animationLength = new int[layers][];
 	}
 
-	public Tile(PointI[] imgPos, PointF[] size, int[] hp, int[] armor, int[][] animationLength, float[] dps, PointI[][] animationPos) {
-		this.imgPos = imgPos;
-		this.size = size;
-		this.hp = hp;
-		this.armor = armor;
-		this.dps = dps;
-		this.animationLength = animationLength;
-		this.animationPos = animationPos;
-	}
-	
 	public PointF getSize(){
-		return size[index];
+		return curr.size;
 	}
 	
 	public float getSizeX(){
-		return size[index].x;
+		return curr.size.x;
 	}
 	
 	public float getSizeY(){
-		return size[index].y;
+		return curr.size.y;
 	}
 	
 	public boolean damage(int dmg){
-		if(hp[index] < 0) return false;
-		dmg = Math.max(dmg-armor[index], 0);
-		hp[index] -= dmg;
-		if(hp[index] <= 0){
-			index++;
-			updateMaxTimer();
+		if(curr.hp < 0) return false;
+		dmg = Math.max(dmg-curr.armor, 0);
+		curr.hp -= dmg;
+		if(curr.hp <= 0){
+			data.removeFirst();
+			updateData();
 			return true;
 		}
 		return false;
 	}
 	
 	public boolean isWall() {
-		return !size[index].isZero();
+		return !curr.size.isZero();
 	}
 	
 	public Image getImage(){
-		PointI p = imgPos[index];
-		if(animationPos[index] != null) p = animationPos[index][animationTimer % animationMaxTimer];
+		PointI p = curr.imgPos;
+		if(curr.aniPos != null) p = curr.aniPos[animationTimer % animationMaxTimer];
 		return sheet.getSprite(p.x, p.y);
 	}
 	
 	public Image getFloorImage(){
-		int i = imgPos.length-1;
-		PointI p = imgPos[i];
-		if(animationPos[i] != null) p = animationPos[i][animationTimer % floorAnimationMaxTimer];
+		PointI p = nextFull.imgPos;
+		if(nextFull.aniPos != null) p = nextFull.aniPos[animationTimer % floorAnimationMaxTimer];
 		return sheet.getSprite(p.x, p.y);
 	}
 	
 	public void draw(PointF pos){
-		if(index < imgPos.length-1 && (size[index].x < 1f || size[index].y < 1f)){
+		if(curr != nextFull && (curr.size.x < 1f || curr.size.y < 1f)){
 			GameController.get().renderer.drawImage(getFloorImage(), pos, true);
 		}
 		GameController.get().renderer.drawImage(getImage(), pos, true);
 	}
 	
 	public void update(int time){
-		if(animationMaxTimer == -1) updateMaxTimer();
+		if(animationMaxTimer == -1) updateData();
 		if(combinedAnimationMaxTimer != 0){
 			animationTimer = (animationTimer+time) % combinedAnimationMaxTimer;
 		}
 	}
 	
-	private void updateMaxTimer(){
-		int t = 0;
-		if(animationPos[index] != null) for(int i=0; i<animationPos[index].length; i++){
-			t += animationLength[index][i];
+	private void updateData(){
+		curr = data.getFirst();
+		nextFull = data.getLast();
+		for(TileData d : data){
+			if(d.size.x >= 1f && d.size.y >= 1f){
+				nextFull = d;
+				break;
+			}
 		}
-		int last = imgPos.length-1;
+		int t = 0;
+		if(curr.aniPos != null) for(int i=0; i<curr.aniPos.length; i++){
+			t += curr.aniLen[i];
+		}
 		int tf = 0;
-		if(animationPos[last] != null) for(int i=0; i<animationPos[last].length; i++){
-			tf += animationLength[last][i];
+		if(nextFull.aniPos != null) for(int i=0; i<nextFull.aniPos.length; i++){
+			tf += nextFull.aniLen[i];
 		}
 		animationMaxTimer = t;
 		floorAnimationMaxTimer = tf;

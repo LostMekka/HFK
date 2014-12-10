@@ -12,11 +12,10 @@ import hfk.PointI;
 import hfk.Shape;
 import hfk.game.GameController;
 import hfk.items.InventoryItem;
-import hfk.level.ExplosiveBarrel;
 import hfk.level.Level;
 import hfk.level.Stairs;
+import hfk.level.Tile;
 import hfk.mobs.Mob;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -34,15 +33,14 @@ public abstract class LevelFactory extends LevelGenerator {
 
 	public LevelFactory(int width, int height) {
 		super(null);
-		if(width < 3*LEVEL_BORDER || height < 3*LEVEL_BORDER) throw new RuntimeException("level is too small! (" + width + "," + height + ")");
 		size = new PointI(width, height);
 	}
 	
-	public abstract Box getLegalSpawnArea();
+	public abstract Shape getLegalSpawnArea();
+	public abstract Tile getDefaultTile();
 	
 	public Level create(int difficulty, int rarity){
-		Random ran = GameController.random;
-		Level l = new Level(size.x, size.y);
+		Level l = new Level(size.x, size.y, getDefaultTile());
 		generate(l, new Box(0, 0, size.x, size.y));
 		Shape spawnArea = getLegalSpawnArea();
 		l.setSpawnPoint(spawnArea.getRandomPointInside());

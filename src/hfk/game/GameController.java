@@ -6,6 +6,7 @@
 
 package hfk.game;
 
+import hfk.Box;
 import hfk.Explosion;
 import hfk.game.substates.GameSubState;
 import hfk.IngameText;
@@ -41,6 +42,7 @@ import hfk.level.factory.generators.CrateGenerator;
 import hfk.level.factory.generators.RandomFloorGenerator;
 import hfk.level.factory.LevelFactory;
 import hfk.level.factory.RoomsFactory;
+import hfk.level.factory.concreteFactories.CrateAreaFactory;
 import hfk.level.factory.concreteFactories.EmptyAreaFactory;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
@@ -67,6 +69,7 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class GameController {
 	
+	public static final boolean CHEAT_MAPREVEAL = false;
 	public static final String VERSION = "0.1.1";
 	
 	public static final float SQRT2 = (float)Math.sqrt(2);
@@ -284,10 +287,11 @@ public class GameController {
 		int s = 25 + levelCount + 2*LevelFactory.LEVEL_BORDER;
 		int d = getLevelDifficultyLimit(levelCount, true);
 		int r = getLevelRarityLimit(levelCount, true);
-		LevelFactory f = new EmptyAreaFactory(s, s);
+		LevelFactory f = new CrateAreaFactory(s, s);
 		level = f.create(d, r);
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
+		if(CHEAT_MAPREVEAL) for(PointI p : new Box(0, 0, s, s)) level.setScouted(p);
 	}
 	
 	public void printBalanceInfo(){

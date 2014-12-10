@@ -34,9 +34,14 @@ public class Level implements Serializable{
 	private Tile defaultTile;
 	private LinkedList<UsableLevelItem> itemsToRemove = new LinkedList<>();
 	
-	public Level(int sx, int sy){
-		defaultTile = Tile.createWall(0, 0, 0, 0, 0, 0);
+	public Level(int sx, int sy, Tile defaultTile){
+		this.defaultTile = defaultTile;
 		tiles = new Tile[sx][sy];
+		for(int x=0; x<sx; x++){
+			for(int y=0; y<sy; y++){
+				tiles[x][y] = new Tile();
+			}
+		}
 		visible = new boolean[sx+2][sy+2];
 		scouted = new boolean[sx+2][sy+2];
 	}
@@ -62,9 +67,14 @@ public class Level implements Serializable{
 		this.spawnPoint = getNextFreeField(spawnPoint, null);
 	}
 
-	public boolean setTile(int x, int y, Tile t){
-		if(x < 0 || x >= getWidth() || y < 0 || y >= getHeight()) return false;
-		tiles[x][y] = t;
+	public Tile getTile(PointI p){
+		if(p.x < 0 || p.x >= getWidth() || p.y < 0 || p.y >= getHeight()) return null;
+		return tiles[p.x][p.y];
+	}
+	
+	public boolean setTile(PointI p, Tile t){
+		if(p.x < 0 || p.x >= getWidth() || p.y < 0 || p.y >= getHeight()) return false;
+		tiles[p.x][p.y] = t;
 		return true;
 	}
 	
@@ -83,12 +93,12 @@ public class Level implements Serializable{
 	}
 	
 	public boolean isScouted(PointI pos){
-		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+2 || pos.y >= getHeight()+2) return false;
+		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+1 || pos.y >= getHeight()+1) return false;
 		return scouted[pos.x+1][pos.y+1];
 	}
 	
 	public boolean isVisible(PointI pos){
-		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+2 || pos.y >= getHeight()+2) return false;
+		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+1 || pos.y >= getHeight()+1) return false;
 		return visible[pos.x+1][pos.y+1];
 	}
 	

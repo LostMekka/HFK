@@ -6,8 +6,9 @@
 
 package hfk.level.factory;
 
-import hfk.Box;
 import hfk.PointF;
+import hfk.PointI;
+import hfk.Shape;
 import hfk.game.GameController;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -169,57 +170,51 @@ public final class PropertyMap {
 		}
 	}
 	
-	public float getFloatAt(int x, int y){
-		if(x<0 || x>=width || y<0 || y>=height) return defaultValue;
-		return field[x][y];
+	public float getFloatAt(PointI p){
+		if(p.x<0 || p.x>=width || p.y<0 || p.y>=height) return defaultValue;
+		return field[p.x][p.y];
 	}
 	
-	public int getIntAt(int x, int y){
-		return Math.round(getFloatAt(x, y));
+	public int getIntAt(PointI p){
+		return Math.round(getFloatAt(p));
 	}
 	
-	public float getAverageFloat(Box b){
+	public float getAverageFloat(Shape s){
 		float sum = 0f;
-		for(int ix=b.x; ix<b.x+b.w; ix++){
-			for(int iy=b.y; iy<b.y+b.h; iy++){
-				sum += getFloatAt(ix, iy);
-			}
+		for(PointI p : s){
+			sum += getFloatAt(p);
 		}
-		return sum / (b.w*b.h);
+		return sum / s.getPointCount();
 	}
 	
-	public int getAverageInt(Box b){
-		return Math.round(getAverageFloat(b));
+	public int getAverageInt(Shape s){
+		return Math.round(getAverageFloat(s));
 	}
 	
-	public float getMinFloat(Box b){
+	public float getMinFloat(Shape s){
 		float ans = Float.MAX_VALUE;
-		for(int ix=b.x; ix<b.x+b.w; ix++){
-			for(int iy=b.y; iy<b.y+b.h; iy++){
-				float v = getFloatAt(ix, iy);
-				if(v < ans) ans = v;
-			}
+		for(PointI p : s){
+			float v = getFloatAt(p);
+			if(v < ans) ans = v;
 		}
 		return ans;
 	}
 	
-	public int getMinInt(Box b){
-		return Math.round(getMinFloat(b));
+	public int getMinInt(Shape s){
+		return Math.round(getMinFloat(s));
 	}
 	
-	public float getMaxFloat(Box b){
+	public float getMaxFloat(Shape s){
 		float ans = Float.MIN_VALUE;
-		for(int ix=b.x; ix<b.x+b.w; ix++){
-			for(int iy=b.y; iy<b.y+b.h; iy++){
-				float v = getFloatAt(ix, iy);
-				if(v > ans) ans = v;
-			}
+		for(PointI p : s){
+			float v = getFloatAt(p);
+			if(v > ans) ans = v;
 		}
 		return ans;
 	}
 	
-	public int getMaxInt(Box b){
-		return Math.round(getMinFloat(b));
+	public int getMaxInt(Shape s){
+		return Math.round(getMinFloat(s));
 	}
 	
 	public void draw(String filename, int pixelSize){
@@ -227,18 +222,19 @@ public final class PropertyMap {
 		Graphics2D g = img.createGraphics();
 		float min = Float.MAX_VALUE;
 		float max = Float.MIN_VALUE;
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				float f = getFloatAt(x, y);
+		PointI p = new PointI();
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				float f = getFloatAt(p);
 				if(f < min) min = f;
 				if(f > max) max = f;
 			}
 		}
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				float f = (getFloatAt(x, y) - min) / (max - min);
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				float f = (getFloatAt(p) - min) / (max - min);
 				g.setColor(new Color(f, f, f));
-				g.fillRect(x*pixelSize, y*pixelSize, pixelSize, pixelSize);
+				g.fillRect(p.x*pixelSize, p.y*pixelSize, pixelSize, pixelSize);
 			}
 		}
 		g.dispose();
@@ -253,20 +249,21 @@ public final class PropertyMap {
 		Graphics2D g = img.createGraphics();
 		float min = Float.MAX_VALUE;
 		float max = Float.MIN_VALUE;
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				float f = getFloatAt(x, y);
+		PointI p = new PointI();
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				float f = getFloatAt(p);
 				if(f < min) min = f;
 				if(f > max) max = f;
 			}
 		}
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				float f = (getFloatAt(x, y) - min) / (max - min);
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				float f = (getFloatAt(p) - min) / (max - min);
 				int i = (int)(f * sliceCount) % DRAWSLICEDCOLORS.length;
 				if(i >= sliceCount) i = sliceCount - 1;
 				g.setColor(DRAWSLICEDCOLORS[i]);
-				g.fillRect(x*pixelSize, y*pixelSize, pixelSize, pixelSize);
+				g.fillRect(p.x*pixelSize, p.y*pixelSize, pixelSize, pixelSize);
 			}
 		}
 		g.dispose();
@@ -280,17 +277,18 @@ public final class PropertyMap {
 		Graphics2D g = img.createGraphics();
 		float min = Float.MAX_VALUE;
 		float max = Float.MIN_VALUE;
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				float f = getFloatAt(x, y);
+		PointI p = new PointI();
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				float f = getFloatAt(p);
 				if(f < min) min = f;
 				if(f > max) max = f;
 			}
 		}
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				g.setColor(getFloatAt(x, y)>border ? Color.white : Color.black);
-				g.fillRect(x*pixelSize, y*pixelSize, pixelSize, pixelSize);
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				g.setColor(getFloatAt(p)>border ? Color.white : Color.black);
+				g.fillRect(p.x*pixelSize, p.y*pixelSize, pixelSize, pixelSize);
 			}
 		}
 		g.dispose();
@@ -301,9 +299,10 @@ public final class PropertyMap {
 	
 	public void print(){
 		System.out.println("----- property map -----------------------------------------------");
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				System.out.format("%6.2f ", getFloatAt(x, y));
+		PointI p = new PointI();
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				System.out.format("%6.2f ", getFloatAt(p));
 			}
 			System.out.println();
 		}
@@ -311,9 +310,10 @@ public final class PropertyMap {
 	
 	public void printSign(){
 		System.out.println("----- property map -----------------------------------------------");
-		for(int x=0; x<width; x++){
-			for(int y=0; y<height; y++){
-				float f = getFloatAt(x, y);
+		PointI p = new PointI();
+		for(p.x=0; p.x<width; p.x++){
+			for(p.y=0; p.y<height; p.y++){
+				float f = getFloatAt(p);
 				if(f > 0) System.out.print("O ");
 				if(f < 0) System.out.print("X ");
 				if(f == 0) System.out.print("= ");
