@@ -4,7 +4,6 @@ import hfk.PointI;
 import hfk.RandomSelector;
 import hfk.Shape;
 import hfk.level.Level;
-import java.util.ArrayList;
 
 /**
  *
@@ -21,17 +20,8 @@ public abstract class LevelGenerator {
 		}
 	}
 	
-	private class InnerGenerator{
-		public LevelGenerator g;
-		public float p;
-		public InnerGenerator(LevelGenerator g, float p) {
-			this.g = g;
-			this.p = p;
-		}
-	}
-
 	private final LevelGenerator parent;
-	private ArrayList<InnerGenerator> innerGenerators = null;
+	private final RandomSelector<LevelGenerator> innerGenerators = new RandomSelector<>();
 	private final RandomSelector<PrimitiveTileType> ran = new RandomSelector<>();
 
 	public LevelGenerator(LevelGenerator parent) {
@@ -51,8 +41,11 @@ public abstract class LevelGenerator {
 	}
 	
 	public void addInnerGenerator(LevelGenerator generator, float probabilityModifier){
-		if(innerGenerators == null) innerGenerators = new ArrayList<>();
-		innerGenerators.add(new InnerGenerator(generator, probabilityModifier));
+		innerGenerators.addItem(generator, probabilityModifier);
+	}
+	
+	public LevelGenerator getRandomInnerGenerator(){
+		return innerGenerators.getRandomItem();
 	}
 	
 	public void generateDefaultPropertyMaps(int width, int height){}
