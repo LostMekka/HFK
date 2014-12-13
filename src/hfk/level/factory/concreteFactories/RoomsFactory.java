@@ -44,7 +44,7 @@ public class RoomsFactory extends LevelFactory{
 		crates.mapMaxX = PropertyMap.createRandom(width, height, 7, 1, 2f, 4.2f);
 		crates.mapMinY = PropertyMap.createRandom(width, height, 7, 1, 1.2f, 3f);
 		crates.mapMaxY = PropertyMap.createRandom(width, height, 7, 1, 2f, 4.2f);
-		crates.boxProbability = PropertyMap.createRandom(width, height, 7, 1, 0f, 0.3f);
+		crates.boxProbability = PropertyMap.createRandom(width, height, 7, 1, 0f, 0.4f);
 		rooms = new RoomsGenerator(this);
 		rooms.generateDefaultPropertyMaps(width, height);
 		rooms.empty = floor;
