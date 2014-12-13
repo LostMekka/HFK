@@ -193,6 +193,7 @@ public final class Inventory implements StatsModifier {
 		for(int i=0; i<quickSlots.length; i++){
 			Weapon w = quickSlots[i];
 			if(w != null){
+				w.weaponUnSelected();
 				l.add(w);
 				w.parentInventory = null;
 				quickSlots[i] = null;

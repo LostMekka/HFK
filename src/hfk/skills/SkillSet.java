@@ -37,6 +37,7 @@ public class SkillSet implements StatsModifier {
 	private Skill plasmaOverDmgSplash;
 	private Skill grenadeRange, grenadeManual, grenadeSmart;
 	private Skill spiderSenses;
+	private Skill quickHandsReload;
 	private Skill superMore;
 	
 	public SkillSet(Mob parent) {
@@ -116,6 +117,10 @@ public class SkillSet implements StatsModifier {
 		for(int i=0; i<wsc.reloadCount.length; i++) wsc.reloadCount[i] = 1;
 		s.weaponStatsCards[0] = wsc;
 		s.costs[0] = 32;
+		skills.add(s);
+		
+		quickHandsReload = new Skill(parent, 1, "quick hands", "even in the heat of battle, when you switch your weapon that is not done reloading, you put the ammo to reload back in your bag instead of dropping it.");
+		quickHandsReload.costs = new int[] { 14 };
 		skills.add(s);
 		
 		grenadeSmart = new Skill(parent, 2, "smart grenades", "grenades are fun, especially when they dont kill you. for that reason you installed an a.i. module on your grenades that makes sure you stay safe. level 1 of this skill lets grenades bounce off walls instead of exploding on impact, while level 2 installs a friend/foe detection system to avoid friendly fire.");
@@ -302,6 +307,10 @@ public class SkillSet implements StatsModifier {
 	
 	public boolean shouldRenderHealthBar(Mob m){
 		return spiderSenses.getLevel() > 1;
+	}
+	
+	public boolean shouldKeepAmmoOnCancelReload(){
+		return quickHandsReload.getLevel() > 0;
 	}
 	
 	public boolean canAltFire(Weapon w){

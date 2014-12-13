@@ -179,7 +179,7 @@ public abstract class Weapon extends InventoryItem {
 		// cancel reloading
 		if(state == WeaponState.cooldownReload){
 			InventoryItem i = new AmmoItem(pos.clone(), AmmoType.values()[clipToReload], reloadAmount);
-			if(m != null) i = m.inventory.addItem(i);
+			if(m != null && m.skills.shouldKeepAmmoOnCancelReload()) i = m.inventory.addItem(i);
 			if(i != null) GameController.get().dropItem(i, null, false);
 			setReady();
 		}
