@@ -24,6 +24,11 @@ public class PointI {
 		this.y = y;
 	}
 
+	public PointI(PointI p) {
+		x = p.x;
+		y = p.y;
+	}
+
 	public PointI() {
 		x = 0;
 		y = 0;

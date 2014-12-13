@@ -10,6 +10,24 @@ import java.util.NoSuchElementException;
  */
 public class Box extends Shape{
 	
+	public static Box[] createOutsideBorder(Box b, int border){
+		Box[] ans = new Box[4];
+		ans[0] = new Box(b.x + border, b.y, b.w - 2*border, border);
+		ans[1] = new Box(b.x + border, b.y + b.h - border, b.w - 2*border, border);
+		ans[2] = new Box(b.x, b.y, border, b.h);
+		ans[3] = new Box(b.x + b.w - border, b.y, border, b.h);
+		return ans;
+	}
+
+	public static Box[] createOutsideBorder(int x, int y, int width, int height, int border){
+		Box[] ans = new Box[4];
+		ans[0] = new Box(x + border, y, width - 2*border, border);
+		ans[1] = new Box(x + border, y + height - border, width - 2*border, border);
+		ans[2] = new Box(x, y, border, height);
+		ans[3] = new Box(x + width - border, y, border, height);
+		return ans;
+	}
+
 	public int x,y,w,h;
 	
 	public Box() {}
@@ -27,6 +45,27 @@ public class Box extends Shape{
 		this.w = b.w;
 		this.h = b.h;
 	}
+
+	@Override
+	public Shape clone() {
+		return new Box(this);
+	}
+
+	@Override
+	public Shape subtractBorder(int border) {
+		PointCloud ans = new PointCloud();
+		for(Box b : createOutsideBorder(this, border)) ans.addShape(b);
+		x += border;
+		y += border;
+		w -= 2*border; if(w<0) w=0;
+		h -= 2*border; if(h<0) h=0;
+		return ans;
+	}
+	
+	@Override
+	public Box getBoundingBox() {
+		return this;
+	}
 	
 	@Override
 	public PointI getRandomPointInside() {
@@ -38,7 +77,7 @@ public class Box extends Shape{
 	}
 
 	@Override
-	public boolean isInside(PointI p) {
+	public boolean contains(PointI p) {
 		return isInside(p.x, p.y);
 	}
 
