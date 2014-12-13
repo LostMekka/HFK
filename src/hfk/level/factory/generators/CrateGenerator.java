@@ -8,7 +8,6 @@ package hfk.level.factory.generators;
 
 import hfk.Box;
 import hfk.PointI;
-import hfk.RandomSelector;
 import hfk.Shape;
 import hfk.game.GameController;
 import hfk.level.Level;
@@ -29,6 +28,8 @@ public class CrateGenerator extends LevelGenerator {
 	public PropertyMap mapMaxY = null;
 	public PropertyMap boxProbability = null;
 	
+	public LevelGenerator floor = null;
+	
 	public CrateGenerator(LevelGenerator parent) {
 		super(parent);
 	}
@@ -44,6 +45,7 @@ public class CrateGenerator extends LevelGenerator {
 	
 	@Override
 	public void generate(Level l, Shape s) {
+		floor.generate(l, s);
 		Random r = GameController.random;
 		LinkedList<Box> bl = new LinkedList<>();
 		for(PointI p : s) if(r.nextFloat() <= boxProbability.getFloatAt(p)){

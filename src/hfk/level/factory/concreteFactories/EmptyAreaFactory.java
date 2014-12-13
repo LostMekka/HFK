@@ -7,7 +7,7 @@ import hfk.Shape;
 import hfk.level.Level;
 import hfk.level.Tile;
 import hfk.level.factory.LevelFactory;
-import hfk.level.factory.generators.RandomFloorGenerator;
+import hfk.level.factory.generators.RandomPrimitiveGenerator;
 
 /**
  *
@@ -15,11 +15,11 @@ import hfk.level.factory.generators.RandomFloorGenerator;
  */
 public class EmptyAreaFactory extends LevelFactory{
 
-	private RandomFloorGenerator floor;
+	private RandomPrimitiveGenerator floor;
 	
 	public EmptyAreaFactory(int width, int height) {
 		super(width, height);
-		floor = new RandomFloorGenerator(this);
+		floor = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.floor, this);
 		floor.addPrimitiveTileType(0, 0, 0, 1f);
 		floor.addPrimitiveTileType(0, 0, 1, 0.1f);
 	}

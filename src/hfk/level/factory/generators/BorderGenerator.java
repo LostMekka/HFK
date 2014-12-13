@@ -1,9 +1,10 @@
 package hfk.level.factory.generators;
 
+import hfk.Box;
+import hfk.PointCloud;
 import hfk.PointI;
 import hfk.Shape;
 import hfk.level.Level;
-import hfk.level.factory.LevelFactory;
 import hfk.level.factory.LevelGenerator;
 
 /**
@@ -12,21 +13,22 @@ import hfk.level.factory.LevelGenerator;
  */
 public class BorderGenerator extends LevelGenerator {
 
-	public BorderGenerator(LevelGenerator parent) {
-		super(parent);
-	}
+	public LevelGenerator walls;
+	public LevelGenerator floor;
+	public int border;
+	public Shape lastInsideShape = null;
 
+	public BorderGenerator(int border, LevelGenerator parent) {
+		super(parent);
+		this.border = border;
+	}
+	
 	@Override
 	public void generate(Level l, Shape s) {
-		PointI p = new PointI();
-		for(p.x=0; p.x<l.getWidth(); p.x++){
-			for(p.y=0; p.y<l.getHeight(); p.y++){
-				if(!s.isInside(p)){
-					PrimitiveTileType t = getRandomPrimitiveTileType();
-					l.getTile(p).addWall(t.type, t.subtype, t.variant);
-				}
-			}
-		}
+		lastInsideShape = s.clone();
+		Shape outside = lastInsideShape.subtractBorder(border);
+		floor.generate(l, outside);
+		walls.generate(l, outside);
 	}
 
 }
