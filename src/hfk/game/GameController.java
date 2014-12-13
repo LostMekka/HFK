@@ -22,33 +22,15 @@ import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
-import hfk.items.weapons.AutoShotgun;
-import hfk.items.weapons.CheatRifle;
-import hfk.items.weapons.DoubleBarrelShotgun;
-import hfk.items.weapons.EnergyPistol;
-import hfk.items.weapons.GrenadeLauncher;
-import hfk.items.weapons.Machinegun;
 import hfk.items.weapons.Pistol;
-import hfk.items.weapons.PlasmaMachinegun;
-import hfk.items.weapons.PlasmaStorm;
-import hfk.items.weapons.PumpActionShotgun;
-import hfk.items.weapons.RocketLauncher;
-import hfk.items.weapons.SniperRifle;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
-import hfk.level.Tile;
-import hfk.level.UsableLevelItem;
-import hfk.level.factory.generators.CrateGenerator;
-import hfk.level.factory.generators.RandomFloorGenerator;
 import hfk.level.factory.LevelFactory;
-import hfk.level.factory.RoomsFactory;
-import hfk.level.factory.concreteFactories.CrateAreaFactory;
-import hfk.level.factory.concreteFactories.EmptyAreaFactory;
+import hfk.level.factory.concreteFactories.RoomsFactory;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
 import hfk.net.NetState;
 import hfk.net.NetStateObject;
-import hfk.net.NetStatePart;
 import hfk.skills.SkillSet;
 import hfk.stats.Damage;
 import java.util.Collection;
@@ -69,7 +51,8 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class GameController {
 	
-	public static final boolean CHEAT_MAPREVEAL = false;
+	public static boolean CHEAT_MAPREVEAL = false;
+	
 	public static final String VERSION = "0.1.1";
 	
 	public static final float SQRT2 = (float)Math.sqrt(2);
@@ -267,7 +250,7 @@ public class GameController {
 		levelCount = 0;
 		PointF pp = new PointF();
 		player = new Player(pp);
-		printBalanceInfo();
+		//printBalanceInfo();
 		player.inventory.equipWeaponFromGround(new Pistol(0, pp));
 		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
 		if(musicIsOn) startMusic();
@@ -287,7 +270,7 @@ public class GameController {
 		int s = 25 + levelCount + 2*LevelFactory.LEVEL_BORDER;
 		int d = getLevelDifficultyLimit(levelCount, true);
 		int r = getLevelRarityLimit(levelCount, true);
-		LevelFactory f = new CrateAreaFactory(s, s);
+		LevelFactory f = new RoomsFactory(s, s);
 		level = f.create(d, r);
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
