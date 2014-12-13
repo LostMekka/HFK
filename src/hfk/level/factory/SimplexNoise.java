@@ -97,10 +97,10 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
   
   public static double noise(double xin, double yin, float scale, PointF offset, float rotation){
 	  double sin = Math.sin(rotation);
-	  double cos = Math.sin(rotation);
+	  double cos = Math.cos(rotation);
 	  double x = xin;
 	  xin = x*cos - yin*sin;
-	  yin = yin*cos + x*cos;
+	  yin = yin*cos + x*sin;
 	  return noise(scale * (xin + offset.x), scale * (yin + offset.y));
   }
   

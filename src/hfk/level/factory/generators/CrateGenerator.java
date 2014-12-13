@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package hfk.level.factory.generators;
 
 import hfk.Box;
@@ -40,7 +34,7 @@ public class CrateGenerator extends LevelGenerator {
 		mapMaxX = PropertyMap.createRandom(width, height, 6, 0, 2f, 4.8f);
 		mapMinY = PropertyMap.createRandom(width, height, 6, 0, 1.2f, 3f);
 		mapMaxY = PropertyMap.createRandom(width, height, 6, 0, 2f, 4.8f);
-		boxProbability = PropertyMap.createRandom(width, height, 7, 0, -0.03f, 0.12f);
+		boxProbability = PropertyMap.createRandom(width, height, 7, 0, -0.06f, 0.12f);
 	}
 	
 	@Override
