@@ -64,7 +64,7 @@ public class Box extends Shape{
 	
 	@Override
 	public Box getBoundingBox() {
-		return this;
+		return new Box(this);
 	}
 	
 	@Override
