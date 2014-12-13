@@ -79,7 +79,7 @@ public class Tile{
 				new PointI(2, SPECIALOFFSET+1), 
 				new PointI(2, SPECIALOFFSET), 
 				new PointI(2, SPECIALOFFSET+1)};
-		d.aniLen = new int[]{200,200,800,500};
+		d.aniLen = new int[]{200,800,500,200};
 		d.size = new PointF(1f, 0.57f);
 		d.hp = 60;
 		data.addFirst(d);
@@ -96,6 +96,7 @@ public class Tile{
 			data.addFirst(d);
 		}
 		updateData();
+		animationTimer = GameController.random.nextInt(animationMaxTimer);
 	}
 	
 	public Tile(){
@@ -130,15 +131,24 @@ public class Tile{
 		return !curr.size.isZero();
 	}
 	
+	private int getAnimationIndex(int timer, int maxTime, int[] times){
+		int t = timer % maxTime;
+		for(int i=0; i<times.length; i++){
+			if(t <= times[i]) return i;
+			t -= times[i];
+		}
+		return 0;
+	}
+	
 	public Image getImage(){
 		PointI p = curr.imgPos;
-		if(curr.aniPos != null) p = curr.aniPos[animationTimer % animationMaxTimer];
+		if(curr.aniPos != null) p = curr.aniPos[getAnimationIndex(animationTimer, animationMaxTimer, curr.aniLen)];
 		return sheet.getSprite(p.x, p.y);
 	}
 	
 	public Image getFloorImage(){
 		PointI p = nextFull.imgPos;
-		if(nextFull.aniPos != null) p = nextFull.aniPos[animationTimer % floorAnimationMaxTimer];
+		if(nextFull.aniPos != null) p = nextFull.aniPos[getAnimationIndex(animationTimer, floorAnimationMaxTimer, nextFull.aniLen)];
 		return sheet.getSprite(p.x, p.y);
 	}
 	
