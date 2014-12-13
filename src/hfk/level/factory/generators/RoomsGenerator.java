@@ -225,7 +225,6 @@ public class RoomsGenerator extends LevelGenerator {
 				empty.generate(l, a.shape);
 			}
 		}
-		drawDebug(rooms, areas, null, wallShape, "a");
 		// generate wall and door area
 		floors.generate(l, wallShape);
 		floors.generate(l, floorOnlyShape);
