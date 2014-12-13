@@ -11,6 +11,7 @@ import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.Resources;
+import hfk.items.AmmoItem;
 import hfk.items.InventoryItem;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
@@ -174,8 +175,16 @@ public abstract class Weapon extends InventoryItem {
 	public void weaponSelected(){}
 	
 	public void weaponUnSelected(){
+		Mob m = getParentMob();
+		// cancel reloading
+		if(state == WeaponState.cooldownReload){
+			InventoryItem i = new AmmoItem(pos.clone(), AmmoType.values()[clipToReload], reloadAmount);
+			if(m != null) i = m.inventory.addItem(i);
+			if(i != null) GameController.get().dropItem(i, null, false);
+			setReady();
+		}
+		// do weapon specific stuff
 		if(type.isSubTypeOf(WeaponType.zoomable)){
-			Mob m = getParentMob();
 			if(m != null && zoom){
 				zoom = false;
 				effects.remove(zoomEffect);
@@ -497,12 +506,8 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	@Override
-	public void update(int time){
-		if(getParentMob() == null){
-			// fancy weapon updates are only done when the weapon is in an inventory or it is a bionic weapon
-			super.update(time);
-			return;
-		}
+	public void update(int time, boolean isEquipped, boolean isHeld){
+		// accuracy cooldown
 		currentScatter -= time / 1000f * totalStats.scatterCoolRate;
 		if(currentScatter < totalStats.minScatter) currentScatter = totalStats.minScatter;
 		if(currentScatter > totalStats.maxScatter) currentScatter = totalStats.maxScatter;
@@ -516,6 +521,11 @@ public abstract class Weapon extends InventoryItem {
 				clips[i] += a;
 				if(clips[i] > totalStats.clipSize[i]) clips[i] = Math.round(totalStats.clipSize[i]);
 			}
+		}
+		if(!isHeld){
+			// fancy weapon updates are only done when the weapon is in an inventory or it is a bionic weapon
+			super.update(time, isEquipped, isHeld);
+			return;
 		}
 		// from here on: cooldown stuff, only when not ready!
 		if(state == WeaponState.ready) return;

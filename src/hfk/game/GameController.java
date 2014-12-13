@@ -22,6 +22,7 @@ import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
+import hfk.items.weapons.EnergyPistol;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
@@ -393,9 +394,10 @@ public class GameController {
 	}
 	
 	public void dropItem(InventoryItem i, Mob m, boolean useLookAngle){
-		float a = m.getLookAngle();
-		if(!useLookAngle) a = (float)(2d * Math.PI * random.nextDouble());
-		i.pos = m.pos.clone();
+		float a = (m == null || !useLookAngle)
+				? (float)(2d * Math.PI * random.nextDouble())
+				: m.getLookAngle();
+		if(m != null) i.pos = m.pos.clone();
 		float v = random.nextFloat() * 2f + 3f;
 		i.vel.x = v * (float)Math.cos(a);
 		i.vel.y = v * (float)Math.sin(a);

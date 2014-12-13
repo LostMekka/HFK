@@ -297,6 +297,13 @@ public final class Inventory implements StatsModifier {
 		return w.pullTrigger();
 	}
 	
+	public void update(int time){
+		for(InventoryItem i : getEquippedItems()){
+			i.update(time, true, i == getActiveWeapon());
+		}
+		for(InventoryItem i : list) i.update(time, false, false);
+	}
+	
 	public void recalculateStats(){
 		if(parent == null) return;
 		updateMSC(parent.totalStats);

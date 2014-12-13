@@ -148,7 +148,7 @@ public abstract class InventoryItem implements StatsModifier {
 		GameController.get().renderer.drawStringOnScreen(label, p.x + LABEL_BORDER + 1, p.y + LABEL_BORDER + 1, getDisplayColor(), 1f);
 	}
 	
-	public void update(int time){
+	public void update(int time, boolean isEquipped, boolean isHeld){
 		if(label == null) initLabel();
 		float t = time / 1000f;
 		// own position

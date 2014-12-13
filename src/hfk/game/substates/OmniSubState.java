@@ -43,7 +43,7 @@ public class OmniSubState extends GameSubState {
 		// updates
 		ctrl.level.update(time);
 		for(InventoryItem i1 : ctrl.items){
-			i1.update(time);
+			i1.update(time, false, false);
 			if(!i1.vel.isZero()){
 				PointF corr = ctrl.level.doCollision(i1.pos, i1.size).corr;
 				if(!corr.isZero()){

@@ -265,9 +265,10 @@ public abstract class Mob implements StatsModifier {
 		stateTextTimer = Math.max(0, stateTextTimer - time);
 		safetyTimer = Math.min(safetyTimer + time, timeToFeelSafe);
 		animation.update(time);
+		inventory.update(time);
+		if(bionicWeapon != null) bionicWeapon.update(time, true, true);
 		Weapon w = getActiveWeapon();
 		if(w != null){
-			w.update(time);
 			w.pos = pos;
 			// reload if: clip empty or not quite empty but feeling safe
 			if(autoReloadWeapon && (w.mustReload() || (safetyTimer >= timeToFeelSafe && w.canReload()))) w.reload();
