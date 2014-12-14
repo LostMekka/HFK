@@ -24,6 +24,10 @@ public class PointCloud extends Shape {
 		if(c.b != null) b = new Box(c.b);
 	}
 	
+	public PointCloud(Shape s) {
+		for(PointI p : s) l.add(new PointI(p));
+	}
+	
 	public void addPoint(PointI p){
 		if(!l.contains(p)){
 			l.add(p);
