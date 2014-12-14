@@ -7,11 +7,13 @@
 package hfk.level.factory;
 
 import hfk.Box;
+import hfk.PointCloud;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.Shape;
 import hfk.game.GameController;
 import hfk.items.InventoryItem;
+import hfk.level.ExplosiveBarrel;
 import hfk.level.Level;
 import hfk.level.Stairs;
 import hfk.level.Tile;
@@ -29,6 +31,8 @@ public abstract class LevelFactory extends LevelGenerator {
 	public static final float LEVEL_MINMOBDISTANCE = 12f;
 	public static final String PROP_TILEVARIANT = "tileVariant";
 	
+	public PropertyMap barrelChance = null;
+	
 	private final PointI size;
 
 	public LevelFactory(int width, int height) {
@@ -40,20 +44,39 @@ public abstract class LevelFactory extends LevelGenerator {
 	public abstract Tile getDefaultTile();
 	
 	public Level create(int difficulty, int rarity){
+		// generate tiles
 		Level l = new Level(size.x, size.y, getDefaultTile());
 		generate(l, new Box(0, 0, size.x, size.y));
-		Shape spawnArea = getLegalSpawnArea();
-		l.setSpawnPoint(spawnArea.getRandomPointInside());
+		// add spawn
+		PointCloud s = new PointCloud(getLegalSpawnArea());
+		PointI spawn = s.getRandomPointInside();
+		l.setSpawnPoint(spawn);
+		s.remove(spawn);
+		// add other stuff
 		LinkedList<PointI> ex = new LinkedList<>();
-		addStairs(l, spawnArea, ex);
-		addItems(l, spawnArea, rarity, ex);
-		addMobs(l, spawnArea, difficulty, ex);
+		addStairs(l, s, ex);
+		addItems(l, s, rarity, ex);
+		addMobs(l, s, difficulty, ex);
+		if(barrelChance != null) addBarrels(l, s, ex);
 		return l;
 	}
 
 	@Override
 	public PointI getLevelSize() {
 		return size;
+	}
+	
+	public Box getLevelBox(){
+		return new Box(0, 0, size.x, size.y);
+	}
+	
+	public void addBarrels(Level l, Shape area, LinkedList<PointI> ex){
+		for(PointI p : area){
+			if(GameController.random.nextFloat() <= barrelChance.getFloatAt(p)){
+				ex.add(p);
+				l.items.add(new ExplosiveBarrel(p));
+			}
+		}
 	}
 
 	public void addStairs(Level l, Shape area, LinkedList<PointI> ex){
