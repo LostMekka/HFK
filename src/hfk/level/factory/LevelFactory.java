@@ -29,7 +29,7 @@ public abstract class LevelFactory extends LevelGenerator {
 	public static final float LEVEL_MINMOBDISTANCE = 12f;
 	public static final String PROP_TILEVARIANT = "tileVariant";
 	
-	private PointI size;
+	private final PointI size;
 
 	public LevelFactory(int width, int height) {
 		super(null);
