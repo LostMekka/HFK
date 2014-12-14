@@ -65,7 +65,7 @@ public class RoomsFactory extends LevelFactory{
 		border = new BorderGenerator(LEVEL_BORDER, this);
 		border.floor = floor;
 		border.walls = walls;
-		barrelChance = PropertyMap.createRandom(width, width, 8, 0, 0f, 0.5f);
+		barrelChance = PropertyMap.createRandom(width, width, 7, 1, -0.1f, 0.17f);
 	}
 
 	@Override
