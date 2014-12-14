@@ -60,7 +60,7 @@ public class Main {
 			if(fullscreen){
 				c.setDisplayMode(w, h, true);
 			} else {
-				c.setDisplayMode(w-20, h-140, false);
+				c.setDisplayMode(w-400, h-250, false);
 			}
 			c.setShowFPS(false);
 			c.setAlwaysRender(true);
