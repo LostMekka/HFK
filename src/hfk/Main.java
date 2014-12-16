@@ -1,6 +1,7 @@
 package hfk;
 
 import hfk.game.HFKGame;
+import hfk.game.Resources;
 import hfk.level.factory.PropertyMap;
 import java.util.Random;
 import java.util.logging.Level;
@@ -49,7 +50,10 @@ public class Main {
 		for(String arg : args) {
 			System.out.println(arg);
 			if(arg.equalsIgnoreCase("-windowed")) fullscreen = false;
-			if(arg.equalsIgnoreCase("-nomusic")) System.setProperty("nomusic", "true");
+			if(arg.equalsIgnoreCase("-nomusic")){
+				System.setProperty("nomusic", "true");
+				Resources.setStreaming(true);
+			}
 			if(arg.equalsIgnoreCase("-server")) System.setProperty("mode", "server");
 			if(arg.equalsIgnoreCase("-client")) System.setProperty("mode", "client");
 		}

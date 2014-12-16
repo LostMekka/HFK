@@ -91,6 +91,7 @@ public class Resources {
 	private static String lastName = "NONE";
 	private static float total = 0f;
 	private static int state = 0, count = 0, count2 = 0;
+	private static boolean streaming = false;
 	private Resources(){}
 	public static void addLoadingProgressListener(LoadingProgressListener pl){
 		listeners.add(pl);
@@ -115,6 +116,10 @@ public class Resources {
 	
 	private static void notifyDone(){
 		for(LoadingProgressListener pl : listeners) pl.onDone();
+	}
+	
+	public static void setStreaming(boolean b){
+		streaming = b;
 	}
 	
 	public static void loadBit(){
@@ -189,7 +194,7 @@ public class Resources {
 				case 5:
 					if(count < musicNames.length){
 						lastName = musicNames[count];
-						Music m = new Music("data/" + lastName);
+						Music m = new Music("data/" + lastName, streaming);
 						music.put(lastName, m);
 						count++;
 						count2++;
