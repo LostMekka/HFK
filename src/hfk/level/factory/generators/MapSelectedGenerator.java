@@ -21,9 +21,9 @@ public class MapSelectedGenerator extends LevelGenerator{
 	public PropertyMap map = null;
 	
 	private LevelGenerator[] generators;
-	private int[] borders;
+	private float[] borders;
 
-	public MapSelectedGenerator(LevelGenerator[] generators, int[] borders, LevelGenerator parent) {
+	public MapSelectedGenerator(LevelGenerator[] generators, float[] borders, LevelGenerator parent) {
 		super(parent);
 		if(generators.length != borders.length + 1) throw new IllegalArgumentException("array sizes do not match!");
 		this.generators = generators;
