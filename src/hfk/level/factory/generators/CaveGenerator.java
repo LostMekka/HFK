@@ -36,7 +36,7 @@ public class CaveGenerator extends LevelGenerator {
 	public LevelGenerator floor = null;
 	public LevelGenerator tunnelWalls = null;
 	public LevelGenerator tunnelFloor = null;
-	public float minFloorRatio = 0.5f;
+	public float minFloorRatio = 0.8f;
 	public float additionalTunnelChance = 0f;
 	public PointCloud lastSpawnArea = null;
 	
@@ -46,7 +46,7 @@ public class CaveGenerator extends LevelGenerator {
 
 	@Override
 	public void generateDefaultPropertyMaps(int width, int height) {
-		wallMap = PropertyMap.createRandom(width, height, 6, 2, -1.4f, 1f);
+		wallMap = PropertyMap.createRandom(width, height, 7, 1, -1.4f, 1f);
 		wallMap.fadeOutEllypse(0.3f, 1f, 1f);
 	}
 	
@@ -103,7 +103,10 @@ public class CaveGenerator extends LevelGenerator {
 		while(!areas.isEmpty()){
 			LinkedList<Connection> valid = new LinkedList<>();
 			for(Connection c : connections) if(connectsToOneOf(c, connectedAreas)) valid.add(c);
-			Connection c = valid.get(r.nextInt(valid.size()));
+			if(valid.isEmpty()){
+				int i=0;
+			}
+			Connection c = valid.get(r.nextInt(valid.size()+1));
 			connections.remove(c);
 			markTunnel(isFloor, isTunnel, c.path);
 			PointCloud a = connectedAreas.contains(c.a1) ? c.a2 : c.a1;
@@ -122,15 +125,15 @@ public class CaveGenerator extends LevelGenerator {
 		for(PointI sp : s){
 			if(isFloor[sp.x][sp.y]){
 				if(isTunnel[sp.x][sp.y]){
-					floorArea.addPoint(sp);
+					tunnelArea.addPoint(sp);
 				} else {
 					floorArea.addPoint(sp);
 				}
 			} else {
 				if(isTunnel[sp.x][sp.y]){
-					floorArea.addPoint(sp);
+					tunnelWallArea.addPoint(sp);
 				} else {
-					floorArea.addPoint(sp);
+					wallArea.addPoint(sp);
 				}
 			}
 		}
@@ -139,6 +142,7 @@ public class CaveGenerator extends LevelGenerator {
 		floor.generate(l, floorArea);
 		tunnelFloor.generate(l, tunnelArea);
 		tunnelWalls.generate(l, tunnelWallArea);
+		lastSpawnArea = floorArea;
 	}
 	
 	private void mark(boolean[][] a, PointCloud s, boolean val){
@@ -174,7 +178,7 @@ public class CaveGenerator extends LevelGenerator {
 			if(dy != 0){
 				pa[0].y += dy; pa[1].x++; pa[2].x--;
 			}
-			for(PointI pe : pa) if(wallMap.getFloatAt(pe) < 1){
+			for(PointI pe : pa) if(wallMap.getFloatAt(pe) < 0f){
 				if(marks[pe.x][pe.y]){
 					// connection found! is it the first for this area pair?
 					ConnectNode n2 = getNode(pe, toExpand);
@@ -222,15 +226,18 @@ public class CaveGenerator extends LevelGenerator {
 		for(PointCloud c : areas) for(PointI p1 : c){
 			PointI[] pa = new PointI[]{new PointI(p1), new PointI(p1), new PointI(p1), new PointI(p1)};
 			pa[0].x++; pa[1].x--; pa[2].y++; pa[3].y--;
-			for(PointI p2 : pa) if(!marks[p2.x][p2.y] && wallMap.getFloatAt(p2) < 1){
-				nodes.add(new ConnectNode(p2, null, c));
+			for(PointI p : pa){
+				if(p.x<0 || p.y<0 || p.x>=marks.length || p.y>=marks[0].length) continue;
+				if(!marks[p.x][p.y] && wallMap.getFloatAt(p) < 0f){
+					nodes.add(new ConnectNode(p, null, c));
+				}
 			}
 		}
 		return nodes;
 	}
 	
 	private PointCloud getArea(PointI p, boolean[][] marks, boolean[][] isFloor){
-		if(marks[p.x][p.y] || wallMap.getFloatAt(p) >= 1) return null;
+		if(marks[p.x][p.y] || wallMap.getFloatAt(p) >= 0f) return null;
 		// found a point that has not been flooded. flood it!
 		PointCloud ans = new PointCloud();
 		ans.addPoint(p);
@@ -242,11 +249,14 @@ public class CaveGenerator extends LevelGenerator {
 			PointI pe = toExpand.remove();
 			PointI[] pa = new PointI[]{new PointI(pe), new PointI(pe), new PointI(pe), new PointI(pe)};
 			pa[0].x++; pa[1].x--; pa[2].y++; pa[3].y--;
-			for(PointI pp : pa) if(!marks[pe.x][pe.y] && wallMap.getFloatAt(pe) < 1){
-				ans.addPoint(pp);
-				toExpand.add(pp);
-				marks[pp.x][pp.y] = true;
-				isFloor[pp.x][pp.y] = true;
+			for(PointI pp : pa){
+				if(pp.x<0 || pp.y<0 || pp.x>=marks.length || pp.y>=marks[0].length) continue;
+				if(!marks[pp.x][pp.y] && wallMap.getFloatAt(pp) < 0f){
+					ans.addPoint(pp);
+					toExpand.add(pp);
+					marks[pp.x][pp.y] = true;
+					isFloor[pp.x][pp.y] = true;
+				}
 			}
 		}
 		return ans;
