@@ -52,7 +52,7 @@ public class CaveGenerator extends LevelGenerator {
 
 	@Override
 	public void generateDefaultPropertyMaps(int width, int height) {
-		wallMap = PropertyMap.createRandom(width, height, 6, 1, -1.2f, 1f);
+		wallMap = PropertyMap.createRandom(width, height, 5, 1, -1.2f, 1f);
 		wallMap.fadeOutEllypse(0.75f, 1f, 1f);
 	}
 	
