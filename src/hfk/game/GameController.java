@@ -254,7 +254,7 @@ public class GameController {
 		PointF pp = new PointF();
 		player = new Player(pp);
 		//printBalanceInfo();
-		player.inventory.equipWeaponFromGround(new CheatRifle(0, pp));
+		player.inventory.equipWeaponFromGround(new Pistol(0, pp));
 		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
 		if(musicIsOn) startMusic();
 		currSubState = gameplaySubState;
@@ -273,7 +273,6 @@ public class GameController {
 		int s = 25 + levelCount + 2*LevelFactory.LEVEL_BORDER;
 		int d = getLevelDifficultyLimit(levelCount, true);
 		int r = getLevelRarityLimit(levelCount, true);
-		CHEAT_MAPREVEAL = true;
 		LevelFactory f = new CaveAreaFactory(s, s);
 		level = f.create(d, r);
 		//level.print();
