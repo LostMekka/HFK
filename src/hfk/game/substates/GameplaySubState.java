@@ -15,6 +15,7 @@ import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
 import hfk.level.UsableLevelItem;
 import hfk.mobs.Player;
+import hfk.skills.Skill;
 import hfk.stats.Damage;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -220,7 +221,17 @@ public class GameplaySubState extends GameSubState{
 		int h = gc.getHeight();
 		int sh = r.getStringHeight("a") + 4;
 		int y = 20;
+		int y2 = 20;
 		int x = 20;
+		LinkedList<Skill> sl = ctrl.player.getTrackedSkillsList();
+		if(!sl.isEmpty()){
+			int x2 = gc.getWidth() - 200;
+			r.drawStringOnScreen("tracked skills:", x2, y2, Color.white, 1f); y2 += sh;
+			for(Skill s : sl){
+				Color c = s.canLevelUp() ? Color.green : Color.white;
+				r.drawStringOnScreen(s.name + " : " + s.getCost(), x2, y2, c, 1f); y2 += sh;
+			}
+		}
 		r.drawStringOnScreen("hp : " + ctrl.player.hp + " / " + ctrl.player.totalStats.getMaxHP(), x, y, Color.white, 1f); y += sh;
 		r.drawStringOnScreen("xp : " + ctrl.player.xp, x, y, Color.white, 1f); y += sh;
 		r.drawStringOnScreen("level : " + ctrl.getLevelCount(), x, y, Color.white, 1f); y += sh;

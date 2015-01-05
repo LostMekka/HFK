@@ -61,6 +61,10 @@ public class Player extends Mob {
 		return trackedSkills.contains(s);
 	}
 	
+	public LinkedList<Skill> getTrackedSkillsList(){
+		return trackedSkills;
+	}
+	
 	@Override
 	public int getDifficultyScore() {
 		return -1;
