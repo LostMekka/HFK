@@ -49,6 +49,7 @@ public class InputMap implements MouseListener {
 	public static final String A_RESTARTGAME = "restartgame";
 	
 	public static final String A_SELECTSKILL = "selectskill";
+	public static final String A_TRACKSKILL = "trackskill";
 	
 	public static final String[] A_QUICKSLOTS = new String[10];
 	static { for(int i=0; i<10; i++) A_QUICKSLOTS[i] = "quickslot" + i; }

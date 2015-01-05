@@ -12,6 +12,8 @@ import hfk.game.InputMap;
 import hfk.menu.MenuBox;
 import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
+import hfk.mobs.Mob;
+import hfk.mobs.Player;
 import hfk.skills.Skill;
 import hfk.skills.SkillSet;
 import java.util.HashMap;
@@ -35,12 +37,15 @@ public class SkillsSubState extends GameSubState {
 	private Skill selectedSkill = null;
 	private int selectedIndex = -1, offset = 0;
 	private SkillSet set = null;
+	private Mob parent = null;
+	private Player player = null;
 	
 	public SkillsSubState(InputMap inputMap) {
 		super(inputMap);
 		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_CLOSE_SKILLS);
 		inputMap.addKey(Input.KEY_K, InputMap.A_CLOSE_SKILLS);
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_SELECTSKILL);
+		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_TRACKSKILL);
 	}
 
 	public SkillSet getSkillSet() {
@@ -52,6 +57,8 @@ public class SkillsSubState extends GameSubState {
 		selectedIndex = -1;
 		selectedSkill = null;
 		offset = 0;
+		parent = set.getParent();
+		player = parent instanceof Player ? (Player)parent : null;
 	}
 	
 	@Override
@@ -109,9 +116,14 @@ public class SkillsSubState extends GameSubState {
 		} else {
 			deselect();
 		}
-		// use or drop selected item
-		if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill != null){
-			if(selectedSkill.canLevelUp()) selectedSkill.levelUp();
+		// level up or track skill
+		if(selectedSkill != null){
+			if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
+				selectedSkill.levelUp();
+			}
+			if(in.isMousePressed(InputMap.A_TRACKSKILL) && player != null){
+				player.toggleTrackSkill(selectedSkill);
+			}
 		}
 	}
 
@@ -141,8 +153,12 @@ public class SkillsSubState extends GameSubState {
 			} else {
 				c = req ? Color.green : new Color(0.8f, 0.8f, 0f);
 			}
-			r.drawStringOnScreen(s.name + " (" + s.getLevel() + ")", 
+			if(player != null && player.isTrackedSkill(s)) r.drawStringOnScreen("X", 
 					8 + mbSkills.getInsideX(), 
+					7 + mbSkills.getInsideY() + n * SKILLS_LINE_HEIGHT, 
+					c, 1f);
+			r.drawStringOnScreen(s.name + " (" + s.getLevel() + ")", 
+					28 + mbSkills.getInsideX(), 
 					7 + mbSkills.getInsideY() + n * SKILLS_LINE_HEIGHT, 
 					c, 1f);
 			n++;
@@ -208,6 +224,14 @@ public class SkillsSubState extends GameSubState {
 			case superMaxed:
 				r.drawStringOnScreen("cannot have more super skills!", x, y, Color.red, 1f); y += DESC_LINE_HEIGHT;
 				break;
+		}
+		if(player != null){
+			if(player.isTrackedSkill(s)){
+				str = "right click this skill to remove it from the whishlist";
+			} else {
+				str = "right click this skill to add it to the whishlist";
+			}
+			r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
 		}
 		y += DESC_LINE_HEIGHT;
 		String[] descr = r.wordWrapString(s.description, mbDescr.getInsideWidth());

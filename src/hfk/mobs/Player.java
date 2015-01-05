@@ -21,7 +21,7 @@ import org.newdawn.slick.Animation;
  */
 public class Player extends Mob {
 
-	private LinkedList<Skill> whishlist = new LinkedList<>();
+	private LinkedList<Skill> trackedSkills = new LinkedList<>();
 	
 	public Player(PointF pos){
 		super(pos);
@@ -38,6 +38,29 @@ public class Player extends Mob {
 		autoUseWeapon = false;
 	}
 
+	public boolean trackSkill(Skill s){
+		s = skills.getSkill(s.name);
+		if(trackedSkills.contains(s)) return false;
+		trackedSkills.add(s);
+		return true;
+	}
+	
+	public boolean untrackSkill(Skill s){
+		s = skills.getSkill(s.name);
+		return trackedSkills.remove(s);
+	}
+	
+	public void toggleTrackSkill(Skill s){
+		s = skills.getSkill(s.name);
+		if(trackedSkills.remove(s)) return;
+		trackedSkills.add(s);
+	}
+	
+	public boolean isTrackedSkill(Skill s){
+		s = skills.getSkill(s.name);
+		return trackedSkills.contains(s);
+	}
+	
 	@Override
 	public int getDifficultyScore() {
 		return -1;
