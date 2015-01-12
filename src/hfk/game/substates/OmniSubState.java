@@ -109,6 +109,7 @@ public class OmniSubState extends GameSubState {
 		for(Mob m : ctrl.mobs) m.draw();
 		for(Shot s : ctrl.shots) s.draw();
 		for(Explosion e : ctrl.explosions) e.draw(r, gc);
+		r.executeLayerBatches();
 		for(IngameText t : ctrl.texts) t.draw();
 	}
 	

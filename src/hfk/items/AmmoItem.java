@@ -86,7 +86,7 @@ public class AmmoItem extends InventoryItem {
 
 	@Override
 	public void render() {
-		GameController.get().renderer.drawImage(image, pos, 0.5f, true);
+		GameController.get().renderer.drawImage(image, pos, 0.5f, true, GameRenderer.LayerType.items);
 	}
 	
 }

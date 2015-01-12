@@ -571,11 +571,10 @@ public abstract class Weapon extends InventoryItem {
 		p.y += lengthOffset * Math.sin(angle);
 		Mob m = getParentMob();
 		boolean drawOutside = m == null || GameController.get().shouldDrawMobOutsideVisionRange(m);
-		if(Math.abs(angle) > Math.PI/2){
-			GameController.get().renderer.drawImage(flippedImg, p, 1f, angle, drawOutside);
-		} else {
-			GameController.get().renderer.drawImage(img, p, 1f, angle, drawOutside);
-		}
+		Image i = Math.abs(angle) > Math.PI/2 ? flippedImg : img;
+		GameRenderer.LayerType l = parentInventory == null ? 
+				GameRenderer.LayerType.items : GameRenderer.LayerType.mob2;
+		GameController.get().renderer.drawImage(i, p, 1f, angle, drawOutside, l);
 	}
 	
 	public void renderInformation(int x, int y, boolean colored){

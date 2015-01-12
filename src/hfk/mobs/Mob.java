@@ -10,6 +10,7 @@ import hfk.PointF;
 import hfk.PointI;
 import hfk.Shot;
 import hfk.game.GameController;
+import hfk.game.GameRenderer;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
@@ -467,7 +468,7 @@ public abstract class Mob implements StatsModifier {
 	
 	public void draw(){
 		GameController ctrl = GameController.get();
-		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos, ctrl.shouldDrawMobOutsideVisionRange(this));
+		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos, ctrl.shouldDrawMobOutsideVisionRange(this), GameRenderer.LayerType.mob1);
 		Weapon w = getActiveWeapon();
 		if(w != null && w != bionicWeapon) w.render();
 		// reloading progress bar

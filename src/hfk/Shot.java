@@ -7,6 +7,7 @@
 package hfk;
 
 import hfk.game.GameController;
+import hfk.game.GameRenderer;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.mobs.Mob;
@@ -58,7 +59,7 @@ public class Shot {
 	}
 
 	public void draw(){
-		GameController.get().renderer.drawImage(img, pos, 1f, angle, false);
+		GameController.get().renderer.drawImage(img, pos, 1f, angle, false, GameRenderer.LayerType.projectiles);
 	}
 	
 	public void update(int time){

@@ -45,7 +45,7 @@ public class Explosion {
 		GameController ctrl = GameController.get();
 		PointF p = ctrl.transformTilesToScreen(pos);
 		float rad = ctrl.transformTilesToScreen(radius);
-		r.drawImage(animation.getCurrentFrame(), pos, maxRadius, false);
+		r.drawImage(animation.getCurrentFrame(), pos, maxRadius, false, GameRenderer.LayerType.projectiles);
 //		r.getGraphics().setColor(Color.white);
 //		r.getGraphics().drawOval(p.x-rad, p.y-rad, 2*rad, 2*rad);
 	}

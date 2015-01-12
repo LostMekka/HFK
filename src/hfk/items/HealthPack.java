@@ -7,6 +7,7 @@ package hfk.items;
 
 import hfk.PointF;
 import hfk.game.GameController;
+import hfk.game.GameRenderer;
 import hfk.game.Resources;
 import hfk.mobs.Mob;
 import org.newdawn.slick.Color;
@@ -55,7 +56,7 @@ public class HealthPack extends InventoryItem {
 
 	@Override
 	public void render() {
-		GameController.get().renderer.drawImage(image, pos, true);
+		GameController.get().renderer.drawImage(image, pos, true, GameRenderer.LayerType.items);
 	}
 	
 }

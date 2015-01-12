@@ -30,6 +30,11 @@ import org.newdawn.slick.SlickException;
  */
 public class GameRenderer {
 
+	public enum LayerType{
+		floor, debris, items, mob1, mob2, mob3, 
+		particles, projectiles, walls, flying1, flying2, flying3
+	}
+	
 	public static final Color COLOR_TEXT_NORMAL = new Color(0f, 0.35f, 0.65f, 1f);
 	public static final Color COLOR_TEXT_INACTIVE = new Color(0.45f, 0.45f, 0.45f, 1f);
 	public static final Color COLOR_MENU_BG = new Color(1f, 1f, 1f, 0.7f);
@@ -42,15 +47,18 @@ public class GameRenderer {
 	public static final Color COLOR_LOOT_INRANGE_LINE = new Color(0f, 0f, 1f, 0.8f);
 	public static final Color COLOR_LOOT_SELECTED_BG = new Color(1f, 1f, 1f, 0.8f);
 	public static final Color COLOR_LOOT_SELECTED_LINE = new Color(0f, 0f, 1f, 1f);
+	public static final Color RENDER_FOG = new Color(0.5f, 0.5f, 0.5f);
 	public static final int MIN_TEXT_HEIGHT = 20;
 
 	private static final float BIG_FONT_SCALE = 6f;
 	
 	private final GameContainer container;
 	private Font font = null, font_big = null;
+	private RenderBatch[] layers = new RenderBatch[LayerType.values().length];
 
 	public GameRenderer(GameContainer container) {
 		this.container = container;
+		for(int i=0; i<layers.length; i++) layers[i] = new RenderBatch(this);
 	}
 	
 	public Graphics getGraphics(){
@@ -282,79 +290,18 @@ public class GameRenderer {
 		return lines.toArray(new String[lines.size()]);
 	}
 	
-	public void drawImage(Image i, PointF pos, boolean ignoreVisionRange){
-		drawImage(i, pos, 1f, ignoreVisionRange);
+	public void drawImage(Image i, PointF pos, boolean ignoreVisionRange, LayerType l){
+		drawImage(i, pos, 1f, 0f, ignoreVisionRange, l);
 	}
-	
-	private static final Color RENDER_FOG = new Color(0.5f, 0.5f, 0.5f);
-	public void drawImage(Image i, PointF pos, float scale, boolean ignoreVisionRange){
-		float sx = i.getWidth() / GameController.SPRITE_SIZE;
-		float sy = i.getHeight() / GameController.SPRITE_SIZE;
-		GameController ctrl = GameController.get();
-		LinkedList<PointI> tiles = new LinkedList<>();
-		boolean isFirst = true;
-		boolean isV = false;
-		boolean isS = false;
-		boolean allTheSame = true;
-		for(int x=Math.round(pos.x - scale * sx * 0.499f); x<=Math.round(pos.x + scale * sx * 0.499f); x++){
-			for(int y=Math.round(pos.y - scale * sy * 0.499f); y<=Math.round(pos.y + scale * sy * 0.499f); y++){
-				PointI p = new PointI(x, y);
-				if(isFirst){
-					isFirst = false;
-					isV = ctrl.level.isVisible(p);
-					isS = ctrl.level.isScouted(p);
-				} else {
-					if(isV != ctrl.level.isVisible(p) || isS != ctrl.level.isScouted(p)) allTheSame = false;
-			}
-				tiles.add(p);
-		}
-		}
-		float zoom = ctrl.getZoom();
-		PointF screenPos = ctrl.getScreenPos();
-		if(allTheSame){
-			if(isV || (ignoreVisionRange && isS)){
-				if(isV){
-					i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
-							ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
-							zoom * scale);
-				} else {
-					i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
-							ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
-							zoom * scale, RENDER_FOG);
-				}
-			}
-		} else {
-			int one = Math.round(ctrl.transformTilesToScreen(1));
-			for(PointI p : tiles){
-				boolean bright = ctrl.level.isVisible(p);
-				if(bright || (ignoreVisionRange && ctrl.level.isScouted(p))){
-					getGraphics().setClip(
-							Math.round(ctrl.transformTilesToScreen(p.x - screenPos.x - 0.5f)), 
-							Math.round(ctrl.transformTilesToScreen(p.y - screenPos.y - 0.5f)), 
-							one, one);
-					if(bright){
-						i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
-								ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
-								zoom * scale);
-					} else {
-						i.draw( ctrl.transformTilesToScreen(pos.x - screenPos.x - scale * sx * 0.5f), 
-								ctrl.transformTilesToScreen(pos.y - screenPos.y - scale * sy * 0.5f), 
-								zoom * scale, RENDER_FOG);
-					}
-				}
-			}
-			getGraphics().clearClip();
-		}
+
+	public void drawImage(Image i, PointF pos, float scale, boolean ignoreVisionRange, LayerType l){
+		drawImage(i, pos, scale, 0f, ignoreVisionRange, l);
 	}
-	
-	public void drawImage(Image i, PointF pos, float scale, float angle, boolean ignoreVisionRange){
-		GameController ctrl = GameController.get();
-		float zoom = ctrl.getZoom();
-		i.setCenterOfRotation(scale * zoom * i.getWidth() / 2f, scale * zoom * i.getHeight() / 2f);
-		i.setRotation(angle / (float)Math.PI * 180f);
-		drawImage(i, pos, scale, ignoreVisionRange);
+
+	public void drawImage(Image i, PointF pos, float scale, float angle, boolean ignoreVisionRange, LayerType l){
+		layers[l.ordinal()].drawImage(i, pos, scale, angle, ignoreVisionRange);
 	}
-	
+
 	public void drawDebugPath(PointF start, LinkedList<PointF> path){
 		GameController gc = GameController.get();
 		Graphics g = container.getGraphics();
@@ -376,6 +323,10 @@ public class GameRenderer {
 		mmStairsTimer = (mmStairsTimer + time) % MM_MAX_TIMER;
 	}
 
+	public void executeLayerBatches(){
+		for(RenderBatch layer : layers) layer.execute();
+	}
+	
 	public void render(GameController ctrl) throws SlickException{
 		ctrl.omniSubState.render(ctrl, this, container);
 		ctrl.getCurrSubState().render(ctrl, this, container);

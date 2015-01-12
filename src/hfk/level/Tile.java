@@ -9,6 +9,7 @@ package hfk.level;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
+import hfk.game.GameRenderer;
 import hfk.game.Resources;
 import java.io.Serializable;
 import java.util.LinkedList;
@@ -154,9 +155,13 @@ public class Tile{
 	
 	public void draw(PointF pos){
 		if(curr != nextFull && (curr.size.x < 1f || curr.size.y < 1f)){
-			GameController.get().renderer.drawImage(getFloorImage(), pos, true);
+			GameController.get().renderer.drawImage(getFloorImage(), pos, true, GameRenderer.LayerType.floor);
 		}
-		GameController.get().renderer.drawImage(getImage(), pos, true);
+		if(curr.size.isZero()){
+			GameController.get().renderer.drawImage(getImage(), pos, true, GameRenderer.LayerType.floor);
+		} else {
+			GameController.get().renderer.drawImage(getImage(), pos, true, GameRenderer.LayerType.walls);
+		}
 	}
 	
 	public void update(int time){
