@@ -1,4 +1,4 @@
-										package hfk.level.factory.generators;
+package hfk.level.factory.generators;
 
 import hfk.Box;
 import hfk.PointCloud;
@@ -181,6 +181,7 @@ public class CaveGenerator extends LevelGenerator {
 	private void markTunnel(boolean[][] isFloor, boolean[][] isTunnel, PointCloud path){
 		for(PointI p : path){
 			isFloor[p.x][p.y] = true;
+			if(path.getPointCount() <= 3) continue;
 			isTunnel[p.x][p.y] = true;
 			if(!isFloor[p.x+1][p.y]) isTunnel[p.x+1][p.y] = true;
 			if(!isFloor[p.x-1][p.y]) isTunnel[p.x-1][p.y] = true;
