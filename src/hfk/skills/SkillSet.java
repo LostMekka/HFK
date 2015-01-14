@@ -11,6 +11,7 @@ import hfk.game.GameController;
 import hfk.items.weapons.CheatRifle;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
+import hfk.mobs.Player;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
@@ -269,6 +270,9 @@ public class SkillSet implements StatsModifier {
 			if(superCount > superMax) throw new RuntimeException("super skill limit exceeded");
 		}
 		if(changedSkill == spiderSenses) GameController.get().recalcVisibleTiles = true;
+		if(parent instanceof Player && changedSkill.getLevel() == changedSkill.getMaxLevel()){
+			((Player)parent).untrackSkill(changedSkill);
+		}
 		totalXpSpent += cost;
 		levelCount++;
 	}
