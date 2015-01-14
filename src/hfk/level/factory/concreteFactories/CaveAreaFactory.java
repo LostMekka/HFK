@@ -37,8 +37,10 @@ public class CaveAreaFactory extends LevelFactory{
 		tunnelFloor.addTileTemplate(TileTemplate.createSimplePrimitive(true, 0, -1), 1f);
 		tunnelFloor.addTileTemplate(TileTemplate.createSimplePrimitive(true, 1, -1), 0.4f);
 		tunnelWalls = new RandomTemplateGenerator(this);
-		tunnelWalls.addTileTemplate(TileTemplate.createSimplePrimitive(false, 0, -1), 1f);
-		tunnelWalls.addTileTemplate(TileTemplate.createSimplePrimitive(false, 1, -1), 0.3f);
+		TileLayer tal = TileLayer.createPrimitiveLayer(false, 0, new int[]{0,1}, true, 200, true, false);
+		TileLayer tbl = TileLayer.createPrimitiveLayer(false, 1, new int[]{0,1}, true, 200, true, false);
+		tunnelWalls.addTileTemplate(new TileTemplate(tal), 1f);
+		tunnelWalls.addTileTemplate(new TileTemplate(tbl), 1f);
 		RandomTemplateGenerator caveFloorA = new RandomTemplateGenerator(this);
 		RandomTemplateGenerator caveFloorB = new RandomTemplateGenerator(this);
 		RandomTemplateGenerator caveWallsA = new RandomTemplateGenerator(this);
