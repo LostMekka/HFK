@@ -5,10 +5,12 @@
  */
 package hfk.game;
 
+import hfk.level.tiles.Tile;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.newdawn.slick.AngelCodeFont;
 import org.newdawn.slick.Font;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Music;
 import org.newdawn.slick.SlickException;
@@ -26,7 +28,7 @@ public class Resources {
 		"font_big",
 	};
 	private static final String[] spriteSheetNames = {
-		"tiles.png",
+		"tiles2.png",
 		"player.png",
 		"e_star.png",
 		"e_scout.png",
@@ -105,6 +107,7 @@ public class Resources {
 	private static final HashMap<String, Sound> sounds = new HashMap<>();
 	private static final HashMap<String, Music> music = new HashMap<>();
 	private static final HashMap<String, Font> fonts = new HashMap<>();
+	private static final int MUSIC_MULTIPLIER = 5;
 	
 	private static void notify(float p){
 		for(LoadingProgressListener pl : listeners) pl.onProgress(p);
@@ -126,7 +129,12 @@ public class Resources {
 		try {
 			switch(state){
 				case 0:
-					total = fontNames.length + spriteSheetNames.length + imageNames.length + soundNames.length + musicNames.length;
+					total = fontNames.length
+							+ spriteSheetNames.length
+							+ imageNames.length
+							+ soundNames.length
+							+ musicNames.length * MUSIC_MULTIPLIER
+							+ 13;
 					state++;
 					count = 0;
 					notify(0f);
@@ -196,6 +204,23 @@ public class Resources {
 						lastName = musicNames[count];
 						Music m = new Music("data/" + lastName, streaming);
 						music.put(lastName, m);
+						count += MUSIC_MULTIPLIER;
+						count2 += MUSIC_MULTIPLIER;
+						notify(count2/total);
+					} else {
+						count = 0;
+						state++;
+						notify("generating tile textures");
+					}
+					return;
+				case 6:
+					if(count < 12){
+						Tile.createTileSheet(count / 2);
+						count += 2;
+						count2 += 2;
+						notify(count2/total);
+					} else if(count == 12){
+						Tile.initSheets();
 						count++;
 						count2++;
 						notify(count2/total);

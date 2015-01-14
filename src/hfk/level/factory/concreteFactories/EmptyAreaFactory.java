@@ -5,9 +5,10 @@ package hfk.level.factory.concreteFactories;
 import hfk.Box;
 import hfk.Shape;
 import hfk.level.Level;
-import hfk.level.Tile;
+import hfk.level.tiles.Tile;
 import hfk.level.factory.LevelFactory;
-import hfk.level.factory.generators.RandomPrimitiveGenerator;
+import hfk.level.factory.generators.RandomTemplateGenerator;
+import hfk.level.tiles.TileTemplate;
 
 /**
  *
@@ -15,13 +16,13 @@ import hfk.level.factory.generators.RandomPrimitiveGenerator;
  */
 public class EmptyAreaFactory extends LevelFactory{
 
-	private RandomPrimitiveGenerator floor;
+	private RandomTemplateGenerator floor;
 	
 	public EmptyAreaFactory(int width, int height) {
 		super(width, height);
-		floor = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.floor, this);
-		floor.addPrimitiveTileType(0, 0, 0, 1f);
-		floor.addPrimitiveTileType(0, 0, 1, 0.1f);
+		floor = new RandomTemplateGenerator(this);
+		floor.addTileTemplate(TileTemplate.createSimplePrimitive(true, 0, -1), 1f);
+		floor.addTileTemplate(TileTemplate.createSimplePrimitive(true, 1, -1), 0.1f);
 	}
 
 	@Override
@@ -32,8 +33,8 @@ public class EmptyAreaFactory extends LevelFactory{
 	@Override
 	public Tile getDefaultTile() {
 		Tile t = new Tile();
-		t.addWall(0, 0, 0);
-		t.addFloor(0, 0, 0);
+		t.addLayersFromTemplate(TileTemplate.createSimplePrimitive(false, 0, -1));
+		t.addLayersFromTemplate(TileTemplate.createSimplePrimitive(true, 0, -1));
 		return t;
 	}
 

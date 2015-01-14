@@ -16,7 +16,7 @@ import hfk.items.InventoryItem;
 import hfk.level.ExplosiveBarrel;
 import hfk.level.Level;
 import hfk.level.Stairs;
-import hfk.level.Tile;
+import hfk.level.tiles.Tile;
 import hfk.mobs.Mob;
 import java.util.LinkedList;
 import java.util.Random;

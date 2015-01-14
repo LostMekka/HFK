@@ -471,6 +471,11 @@ public abstract class Mob implements StatsModifier {
 		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos, ctrl.shouldDrawMobOutsideVisionRange(this), GameRenderer.LayerType.mob1);
 		Weapon w = getActiveWeapon();
 		if(w != null && w != bionicWeapon) w.render();
+	}
+	
+	public void drawStatus(){
+		GameController ctrl = GameController.get();
+		Weapon w = getActiveWeapon();
 		// reloading progress bar
 		boolean relBar = false;
 		if(w != null && w.isReloading() && ctrl.shouldDrawReloadBar(this)){
@@ -499,11 +504,11 @@ public abstract class Mob implements StatsModifier {
 			len -= 3;
 			g.fillRect(p.x + 2, p.y + 2, len * Math.max(0f, Math.min(1f, (float)hp / totalStats.getMaxHP())), 4);
 		}
-//		if(stateTextTimer > 0 && this != ctrl.player){
-//			PointF p = pos.clone();
-//			p.y -= 0.5f;
-//			ctrl.renderer.drawString(stateText, p, Color.red, 1f, true);
-//		}
+		if(stateTextTimer > 0 && this != ctrl.player){
+			PointF p = pos.clone();
+			p.y -= 0.5f;
+			ctrl.renderer.drawString(stateText, p, Color.red, 1f, true);
+		}
 		if(showCollisionDebug) drawCollisionDebugInfo();
 		if(showPathDebug) drawPathDebugInfo();
 	}

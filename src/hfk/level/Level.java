@@ -6,6 +6,7 @@
 
 package hfk.level;
 
+import hfk.level.tiles.Tile;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.game.GameController;
@@ -49,7 +50,7 @@ public class Level implements Serializable{
 	public void print(){
 		for(int y=0; y<getHeight(); y++){
 			for(int x=0; x<getWidth(); x++){
-				System.out.print(tiles[x][y] == null ? "X " : (tiles[x][y].isWall() ? "[]" : "  "));
+				System.out.print(tiles[x][y] == null ? "X " : (tiles[x][y].isCollidable() ? "[]" : "  "));
 			}
 			System.out.println();
 		}
@@ -226,33 +227,39 @@ public class Level implements Serializable{
 	
 	public void damageTile(PointI pos, int dmg, PointF shotPos){
 		if(!isInLevel(pos)) return;
+		// damage only usable level item when present
+		for(UsableLevelItem i : items) if(!isMarkedForRemoval(i)){
+			if(i.pos.equals(pos)){
+				int bx = Math.round(16f * (1f - i.size.x));
+				int by = Math.round(16f * (1f - i.size.y));
+				if(i.damage(dmg)){
+					requestDeleteItem(i);
+					GameController.get().createDebris(pos.toFloat(), i.img, bx, by, 0.5f);
+					GameController.get().recalcVisibleTiles = true;
+				} else {
+					addDebrisFromDamage(pos, shotPos, dmg, bx, by, i.img);
+				}
+				return;
+			}
+		}
 		Tile tile = tiles[pos.x][pos.y];
 		// TODO: also allow floor tiles to get damaged
-		if(tile.isWall()){
-			Image i = tile.getImage();
-			boolean tileChanged = tile.damage(dmg);
-			int bx = Math.round(16f * (1f - tile.getSizeX()));
-			int by = Math.round(16f * (1f - tile.getSizeY()));
-			if(tileChanged){
-				GameController.get().createDebris(pos.toFloat(), i, bx, by, 0.5f);
-				GameController.get().recalcVisibleTiles = true;
-			} else {
-				addDebrisFromDamage(pos, shotPos, dmg, bx, by, tiles[pos.x][pos.y].getImage());
-			}
-		} else {
-			for(UsableLevelItem i : items) if(!isMarkedForRemoval(i)){
-				if(i.pos.equals(pos)){
-					int bx = Math.round(16f * (1f - i.size.x));
-					int by = Math.round(16f * (1f - i.size.y));
-					if(i.damage(dmg)){
-						requestDeleteItem(i);
-						GameController.get().createDebris(pos.toFloat(), i.img, bx, by, 0.5f);
-						GameController.get().recalcVisibleTiles = true;
-					} else {
-						addDebrisFromDamage(pos, shotPos, dmg, bx, by, i.img);
-					}
+		Image i = tile.getImage();
+		boolean tileChanged = tile.damage(dmg);
+		int bx = Math.round(16f * (1f - tile.getSizeX()));
+		int by = Math.round(16f * (1f - tile.getSizeY()));
+		if(tileChanged){
+			PointI p = new PointI();
+			for(p.x=pos.x-1; p.x<=pos.x+1; p.x++){
+				for(p.y=pos.y-1; p.y<=pos.y+1; p.y++){
+					Tile t = getTile(p);
+					if(t != null) t.calcBorders(false, this, p);
 				}
 			}
+			GameController.get().createDebris(pos.toFloat(), i, bx, by, 0.5f);
+			GameController.get().recalcVisibleTiles = true;
+		} else {
+			addDebrisFromDamage(pos, shotPos, dmg, bx, by, tiles[pos.x][pos.y].getImage());
 		}
 	}
 	private static final float DEBRIS_POINT_DISTANCE = 0.52f;
@@ -304,7 +311,7 @@ public class Level implements Serializable{
 	
 	public boolean isWallTile(int x, int y){
 		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
-		return tiles[x][y].isWall();
+		return tiles[x][y].isCollidable();
 	}
 	
 	public boolean isImpassable(int x, int y){
@@ -313,7 +320,7 @@ public class Level implements Serializable{
 	
 	public boolean isImpassable(int x, int y, boolean ignoreDoors){
 		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
-		if(tiles[x][y].isWall()) return true;
+		if(tiles[x][y].isCollidable()) return true;
 		for(UsableLevelItem i : items) if(i.pos.x == x && i.pos.y == y){
 			if(ignoreDoors && i instanceof Door) return false;
 			return i.blocksMovement();
@@ -323,7 +330,7 @@ public class Level implements Serializable{
 	
 	public boolean isSightBlocking(int x, int y){
 		if(x<0 || y<0 || x>=getWidth() || y>=getHeight()) return true;
-		if(tiles[x][y].isWall()) return true;
+		if(!tiles[x][y].isTransparent()) return true;
 		for(UsableLevelItem i : items) if(i.pos.x == x && i.pos.y == y){
 			return i.blocksSight();
 		}

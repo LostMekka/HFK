@@ -5,7 +5,7 @@ package hfk.level.factory.concreteFactories;
 import hfk.Box;
 import hfk.Shape;
 import hfk.level.Level;
-import hfk.level.Tile;
+import hfk.level.tiles.Tile;
 import hfk.level.factory.LevelFactory;
 import hfk.level.factory.LevelGenerator;
 import hfk.level.factory.PropertyMap;
@@ -14,8 +14,10 @@ import hfk.level.factory.generators.CaveGenerator;
 import hfk.level.factory.generators.CrateGenerator;
 import hfk.level.factory.generators.CryoChamberGenerator;
 import hfk.level.factory.generators.MapSelectedGenerator;
-import hfk.level.factory.generators.RandomPrimitiveGenerator;
+import hfk.level.factory.generators.RandomTemplateGenerator;
 import hfk.level.factory.generators.RoomsGenerator;
+import hfk.level.tiles.TileLayer;
+import hfk.level.tiles.TileTemplate;
 
 /**
  *
@@ -23,32 +25,32 @@ import hfk.level.factory.generators.RoomsGenerator;
  */
 public class CaveAreaFactory extends LevelFactory{
 
-	private final RandomPrimitiveGenerator tunnelFloor;
-	private final RandomPrimitiveGenerator tunnelWalls;
+	private final LevelGenerator tunnelFloor;
+	private final LevelGenerator tunnelWalls;
 	private final MapSelectedGenerator caveFloor;
 	private final MapSelectedGenerator caveWalls;
 	private final CaveGenerator cave;
 	
 	public CaveAreaFactory(int width, int height) {
 		super(width, height);
-		tunnelFloor = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.floor, this);
-		tunnelFloor.addPrimitiveTileType(0, 0, 0, 1f);
-		tunnelFloor.addPrimitiveTileType(0, 0, 1, 0.1f);
-		tunnelWalls = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.wall, this);
-		tunnelWalls.addPrimitiveTileType(0, 0, 0, 1f);
-		tunnelWalls.addPrimitiveTileType(0, 0, 1, 0.1f);
-		RandomPrimitiveGenerator caveFloorA = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.floor, this);
-		caveFloorA.addPrimitiveTileType(1, 0, 0, 1f);
-		caveFloorA.addPrimitiveTileType(1, 0, 1, 0.1f);
-		RandomPrimitiveGenerator caveFloorB = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.floor, this);
-		caveFloorB.addPrimitiveTileType(1, 1, 0, 1f);
-		caveFloorB.addPrimitiveTileType(1, 1, 1, 0.1f);
-		RandomPrimitiveGenerator caveWallsA = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.wall, this);
-		caveWallsA.addPrimitiveTileType(1, 0, 0, 1f);
-		caveWallsA.addPrimitiveTileType(1, 0, 1, 0.1f);
-		RandomPrimitiveGenerator caveWallsB = new RandomPrimitiveGenerator(RandomPrimitiveGenerator.Type.wall, this);
-		caveWallsB.addPrimitiveTileType(1, 1, 0, 1f);
-		caveWallsB.addPrimitiveTileType(1, 1, 1, 0.1f);
+		tunnelFloor = new RandomTemplateGenerator(this);
+		tunnelFloor.addTileTemplate(TileTemplate.createSimplePrimitive(true, 0, -1), 1f);
+		tunnelFloor.addTileTemplate(TileTemplate.createSimplePrimitive(true, 1, -1), 0.4f);
+		tunnelWalls = new RandomTemplateGenerator(this);
+		tunnelWalls.addTileTemplate(TileTemplate.createSimplePrimitive(false, 0, -1), 1f);
+		tunnelWalls.addTileTemplate(TileTemplate.createSimplePrimitive(false, 1, -1), 0.3f);
+		RandomTemplateGenerator caveFloorA = new RandomTemplateGenerator(this);
+		RandomTemplateGenerator caveFloorB = new RandomTemplateGenerator(this);
+		RandomTemplateGenerator caveWallsA = new RandomTemplateGenerator(this);
+		RandomTemplateGenerator caveWallsB = new RandomTemplateGenerator(this);
+		TileLayer fal = TileLayer.createPrimitiveLayer(true, 2, new int[]{2}, true, -1, false, true);
+		TileLayer fbl = TileLayer.createPrimitiveLayer(true, 3, new int[]{3}, true, -1, false, true);
+		TileLayer wal = TileLayer.createPrimitiveLayer(false, 2, new int[]{2,3}, true, 200, true, false);
+		TileLayer wbl = TileLayer.createPrimitiveLayer(false, 3, new int[]{2,3}, true, 200, true, false);
+		caveFloorA.addTileTemplate(new TileTemplate(fal), 1f);
+		caveFloorB.addTileTemplate(new TileTemplate(fbl), 1f);
+		caveWallsA.addTileTemplate(new TileTemplate(wal), 1f);
+		caveWallsB.addTileTemplate(new TileTemplate(wbl), 1f);
 		caveFloor = new MapSelectedGenerator(new LevelGenerator[]{caveFloorA,caveFloorB}, new float[]{0.5f}, this);
 		caveWalls = new MapSelectedGenerator(new LevelGenerator[]{caveWallsA,caveWallsB}, new float[]{0.5f}, this);
 		caveFloor.map = PropertyMap.createRandom(width, height, 6, 2, 0f, 1f);
@@ -69,8 +71,8 @@ public class CaveAreaFactory extends LevelFactory{
 	@Override
 	public Tile getDefaultTile() {
 		Tile t = new Tile();
-		t.addWall(1, 0, 0);
-		t.addFloor(1, 0, 0);
+		t.addLayersFromTemplate(TileTemplate.createSimplePrimitive(false, 0, -1));
+		t.addLayersFromTemplate(TileTemplate.createSimplePrimitive(true, 0, -1));
 		return t;
 	}
 

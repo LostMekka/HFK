@@ -31,8 +31,8 @@ import org.newdawn.slick.SlickException;
 public class GameRenderer {
 
 	public enum LayerType{
-		floor, debris, items, mob1, mob2, mob3, 
-		particles, projectiles, walls, flying1, flying2, flying3
+		floor1, floor2, floor3, debris, items, mob1, mob2, mob3, 
+		particles, projectiles, walls1, walls2, walls3, flying1, flying2, flying3
 	}
 	
 	public static final Color COLOR_TEXT_NORMAL = new Color(0f, 0.35f, 0.65f, 1f);

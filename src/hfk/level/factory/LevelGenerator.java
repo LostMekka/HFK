@@ -4,6 +4,7 @@ import hfk.PointI;
 import hfk.RandomSelector;
 import hfk.Shape;
 import hfk.level.Level;
+import hfk.level.tiles.TileTemplate;
 
 /**
  *
@@ -11,29 +12,20 @@ import hfk.level.Level;
  */
 public abstract class LevelGenerator {
 	
-	public static class PrimitiveTileType{
-		public final int type, subtype, variant;
-		public PrimitiveTileType(int type, int subtype, int variant) {
-			this.type = type;
-			this.subtype = subtype;
-			this.variant = variant;
-		}
-	}
-	
 	private final LevelGenerator parent;
 	private final RandomSelector<LevelGenerator> innerGenerators = new RandomSelector<>();
-	private final RandomSelector<PrimitiveTileType> ran = new RandomSelector<>();
+	private final RandomSelector<TileTemplate> templates = new RandomSelector<>();
 
 	public LevelGenerator(LevelGenerator parent) {
 		this.parent = parent;
 	}
 	
-	public void addPrimitiveTileType(int type, int subtype, int variant, float p){
-		ran.addItem(new PrimitiveTileType(type, subtype, variant), p);
+	public void addTileTemplate(TileTemplate t, float p){
+		templates.addItem(t, p);
 	}
 	
-	public PrimitiveTileType getRandomPrimitiveTileType(){
-		return ran.getRandomItem();
+	public TileTemplate getRandomTileTemplate(){
+		return templates.getRandomItem();
 	}
 
 	public PointI getLevelSize(){

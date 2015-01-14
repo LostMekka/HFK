@@ -29,6 +29,7 @@ import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.level.factory.LevelFactory;
 import hfk.level.factory.concreteFactories.CaveAreaFactory;
+import hfk.level.factory.concreteFactories.EmptyAreaFactory;
 import hfk.level.factory.concreteFactories.RoomsFactory;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
@@ -273,8 +274,14 @@ public class GameController {
 		int s = 25 + levelCount + 2*LevelFactory.LEVEL_BORDER;
 		int d = getLevelDifficultyLimit(levelCount, true);
 		int r = getLevelRarityLimit(levelCount, true);
-		LevelFactory f = new CaveAreaFactory(s, s);
+		LevelFactory f = new RoomsFactory(s, s);
 		level = f.create(d, r);
+		for(int x=0; x<s; x++){
+			for(int y=0; y<s; y++){
+				PointI pos = new PointI(x, y);
+				level.getTile(pos).calcBorders(true, level, pos);
+			}
+		}
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
 		if(CHEAT_MAPREVEAL) for(PointI p : new Box(0, 0, s, s)) level.setScouted(p);
