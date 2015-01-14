@@ -14,7 +14,6 @@ import java.util.LinkedList;
 public class TileTemplate implements Serializable, Iterable<TileLayer> {
 	
 	public static TileTemplate createSimplePrimitive(boolean isFloor, int type, int hp){
-		if(!isFloor) type += 64;
 		TileLayer l = TileLayer.createPrimitiveLayer(isFloor, type, new int[]{type}, isFloor, hp, !isFloor, isFloor);
 		return new TileTemplate(l);
 	}
