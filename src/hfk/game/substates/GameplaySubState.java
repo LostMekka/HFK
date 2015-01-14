@@ -221,15 +221,25 @@ public class GameplaySubState extends GameSubState{
 		int h = gc.getHeight();
 		int sh = r.getStringHeight("a") + 4;
 		int y = 20;
-		int y2 = 20;
 		int x = 20;
 		LinkedList<Skill> sl = ctrl.player.getTrackedSkillsList();
 		if(!sl.isEmpty()){
-			int x2 = gc.getWidth() - 200;
-			r.drawStringOnScreen("tracked skills:", x2, y2, Color.white, 1f); y2 += sh;
+			String[] strings = new String[sl.size()];
+			Color[] colors = new Color[strings.length];
+			int i = 0;
+			int max = 0;
 			for(Skill s : sl){
-				Color c = s.canLevelUp() ? Color.green : Color.white;
-				r.drawStringOnScreen(s.name + " : " + s.getCost(), x2, y2, c, 1f); y2 += sh;
+				colors[i] = s.canLevelUp() ? Color.green : Color.white;
+				strings[i] = s.name + " : " + s.getCost();
+				int w = r.getStringWidth(strings[i]);
+				if(w > max) max = w;
+				i++;
+			}
+			int y2 = 20;
+			int x2 = gc.getWidth() - max - 10;
+			r.drawStringOnScreen("tracked skills:", x2 - 20, y2, Color.white, 1f); y2 += sh;
+			for(i=0; i<strings.length; i++){
+				r.drawStringOnScreen(strings[i], x2, y2, colors[i], 1f); y2 += sh;
 			}
 		}
 		r.drawStringOnScreen("hp : " + ctrl.player.hp + " / " + ctrl.player.totalStats.getMaxHP(), x, y, Color.white, 1f); y += sh;
