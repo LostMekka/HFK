@@ -59,6 +59,10 @@ public class Skill implements StatsModifier {
 	public int getMaxLevel() {
 		return maxLevel;
 	}
+	
+	public boolean isMaxed(){
+		return level >= maxLevel;
+	}
 
 	public String getDisplayName(){
 		return isSuperSkill ? "(S) " + name + " (" + level + ")" : name + " (" + level + ")";

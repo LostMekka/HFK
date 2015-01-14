@@ -270,7 +270,7 @@ public class SkillSet implements StatsModifier {
 			if(superCount > superMax) throw new RuntimeException("super skill limit exceeded");
 		}
 		if(changedSkill == spiderSenses) GameController.get().recalcVisibleTiles = true;
-		if(parent instanceof Player && changedSkill.getLevel() == changedSkill.getMaxLevel()){
+		if(parent instanceof Player && changedSkill.isMaxed()){
 			((Player)parent).untrackSkill(changedSkill);
 		}
 		totalXpSpent += cost;

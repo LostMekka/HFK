@@ -122,7 +122,7 @@ public class SkillsSubState extends GameSubState {
 				selectedSkill.levelUp();
 			}
 			if(in.isMousePressed(InputMap.A_TRACKSKILL) && player != null
-					&& selectedSkill.getLevel() < selectedSkill.getMaxLevel()){
+					&& !selectedSkill.isMaxed()){
 				player.toggleTrackSkill(selectedSkill);
 			}
 		}
@@ -226,7 +226,7 @@ public class SkillsSubState extends GameSubState {
 				r.drawStringOnScreen("cannot have more super skills!", x, y, Color.red, 1f); y += DESC_LINE_HEIGHT;
 				break;
 		}
-		if(player != null){
+		if(player != null && !selectedSkill.isMaxed()){
 			if(player.isTrackedSkill(s)){
 				str = "right click this skill to remove it from the whishlist";
 			} else {
