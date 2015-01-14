@@ -121,7 +121,8 @@ public class SkillsSubState extends GameSubState {
 			if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
 				selectedSkill.levelUp();
 			}
-			if(in.isMousePressed(InputMap.A_TRACKSKILL) && player != null){
+			if(in.isMousePressed(InputMap.A_TRACKSKILL) && player != null
+					&& selectedSkill.getLevel() < selectedSkill.getMaxLevel()){
 				player.toggleTrackSkill(selectedSkill);
 			}
 		}
