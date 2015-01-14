@@ -276,12 +276,6 @@ public class GameController {
 		int r = getLevelRarityLimit(levelCount, true);
 		LevelFactory f = new RoomsFactory(s, s);
 		level = f.create(d, r);
-		for(int x=0; x<s; x++){
-			for(int y=0; y<s; y++){
-				PointI pos = new PointI(x, y);
-				level.getTile(pos).calcBorders(true, level, pos);
-			}
-		}
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
 		if(CHEAT_MAPREVEAL) for(PointI p : new Box(0, 0, s, s)) level.setScouted(p);

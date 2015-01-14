@@ -47,6 +47,12 @@ public abstract class LevelFactory extends LevelGenerator {
 		// generate tiles
 		Level l = new Level(size.x, size.y, getDefaultTile());
 		generate(l, new Box(0, 0, size.x, size.y));
+		for(int x=0; x<size.x; x++){
+			for(int y=0; y<size.y; y++){
+				PointI pos = new PointI(x, y);
+				l.getTile(pos).calcBorders(true, l, pos);
+			}
+		}
 		// add spawn
 		PointCloud s = new PointCloud(getLegalSpawnArea());
 		PointI spawn = s.getRandomPointInside();
