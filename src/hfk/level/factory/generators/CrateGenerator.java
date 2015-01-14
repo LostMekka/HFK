@@ -7,6 +7,7 @@ import hfk.game.GameController;
 import hfk.level.Level;
 import hfk.level.factory.LevelGenerator;
 import hfk.level.factory.PropertyMap;
+import hfk.level.tiles.TileTemplate;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -62,8 +63,8 @@ public class CrateGenerator extends LevelGenerator {
 		}
 		// fill boxes
 		for(Box b : bl){
-			PrimitiveTileType t = getRandomPrimitiveTileType();
-			for(PointI p : b) l.getTile(p).addCrate(t.type, t.subtype, t.variant);
+			TileTemplate t = getRandomTileTemplate();
+			for(PointI p : b) l.getTile(p).addLayersFromTemplate(t);
 		}
 	}
 	
