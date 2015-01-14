@@ -68,6 +68,7 @@ public class Main {
 			}
 			c.setShowFPS(false);
 			c.setAlwaysRender(true);
+			c.setVSync(true);
 			c.start();
 		} catch (UnsupportedClassVersionError ex) {
 			Logger.getLogger(HFKGame.class.getName()).log(Level.SEVERE, null, ex);
