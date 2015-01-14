@@ -92,6 +92,15 @@ public class SkillSet implements StatsModifier {
 		}
 		skills.add(s);
 		
+		s = new Skill(parent, 6, "steady arms", "when you hold a weapon, you hold it tight. so tight in fact, that regardless of how much it struggles it cannot escape your grip!\n increases your scatter cool rate.");
+		for(int i=0; i<s.getMaxLevel(); i++){
+			WeaponStatsCard wsc = WeaponStatsCard.createBonus();
+			wsc.scatterCoolRate = 0.1f + 0.1f * i;
+			s.weaponStatsCards[i] = wsc;
+			s.costs[i] = 16 + 7*i;
+		}
+		skills.add(s);
+		
 		s = new Skill(parent, 5, "weapon juggler", "if surviving in a foreign universe has taught you one thing, it is that you need all the weapons you can get... at the same time! for each level of this skill you gain an extra weapon slot.");
 		for(int i=0; i<s.getMaxLevel(); i++){
 			MobStatsCard msc = MobStatsCard.createBonus();
