@@ -135,7 +135,7 @@ public class Tile implements Serializable{
 			sheets[i] = new SpriteSheet(sheetImages[i], 32, 32);
 		}
 		tmpGraphics = null;
-		renderDebugTiles();
+		//renderDebugTiles();
 	}
 	
 	private static void drawOnTile(Image i, int target, ImgPos mainPos, ImgPos tailPos, int[] offset) throws SlickException{
