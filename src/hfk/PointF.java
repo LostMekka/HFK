@@ -247,6 +247,10 @@ public class PointF {
 		return x == 0f && y == 0f;
 	}
 
+	public boolean isNaN() {
+		return Float.isNaN(x+y);
+	}
+
 	public void add(PointF p) {
 		x += p.x;
 		y += p.y;
