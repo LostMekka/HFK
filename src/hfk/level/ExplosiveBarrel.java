@@ -51,7 +51,7 @@ public class ExplosiveBarrel extends UsableLevelItem {
 	public void update(int time) {
 		animation.update(time);
 		img = animation.getCurrentFrame();
-		if(timer > 0){
+		if(timer >= 0){
 			timer -= time;
 			if(timer <= 0){
 				GameController.get().addExplosion(pos.toFloat(), dc.createDamage(), null, exSound);
@@ -62,6 +62,7 @@ public class ExplosiveBarrel extends UsableLevelItem {
 
 	@Override
 	public boolean damage(int dmg) {
+		if(timer >= 0) return false;
 		if(super.damage(dmg)) timer = GameController.random.nextInt(40) + 60;
 		return false;
 	}
