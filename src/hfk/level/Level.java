@@ -246,8 +246,9 @@ public class Level implements Serializable{
 		// TODO: also allow floor tiles to get damaged
 		Image i = tile.getImage();
 		boolean tileChanged = tile.damage(dmg);
-		int bx = Math.round(16f * (1f - tile.getSizeX()));
-		int by = Math.round(16f * (1f - tile.getSizeY()));
+		PointF tileSize = tile.getSize();
+		int bx = tileSize.x <= 0f ? 0 : Math.round(16f * (1f - tileSize.x));
+		int by = tileSize.y <= 0f ? 0 : Math.round(16f * (1f - tileSize.y));
 		if(tileChanged){
 			PointI p = new PointI();
 			for(p.x=pos.x-1; p.x<=pos.x+1; p.x++){
