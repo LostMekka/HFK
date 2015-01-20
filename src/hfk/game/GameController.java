@@ -472,7 +472,7 @@ public class GameController {
 	public void dealAreaDamage(PointF p, Damage damage, Shot s){
 		// TODO: intelligently damage tiles (maybe reduce damage to mobs too when behind a wall?)
 		float r = damage.getAreaRadius();
-		if(r <= 0) throw new RuntimeException("deeal area damage called without area damage object!");
+		if(r <= 0) throw new RuntimeException("deal area damage called without area damage object!");
 		for(Mob m : mobs) if(!mobsToRemove.contains(m)){
 			float dd = m.pos.squaredDistanceTo(p);
 			if(dd < (r + m.size/2f) * (r + m.size/2f)){
