@@ -20,7 +20,7 @@ public class Particle {
 	public PointF pos, vel;
 	public float size, rotation;
 	public int lifeTime = -1;
-	private final float acc = -0.1f;
+	private final float acc = -2.9f;
 
 	public Particle(Image img, int borderX, int borderY, PointF pos, float r) {
 		this(img, borderX, borderY, pos, GameController.random.nextFloat() * 2f * (float)Math.PI, r);
@@ -31,11 +31,10 @@ public class Particle {
 		this.pos = pos.clone();
 		rotation = GameController.random.nextFloat() * 2f * (float)Math.PI;
 		r *= GameController.random.nextFloat();
-		pos.x += r * Math.cos(dir);
-		pos.y += r * Math.sin(dir);
+		this.pos.x += r * Math.cos(dir);
+		this.pos.y += r * Math.sin(dir);
 		vel = new PointF(dir);
 		vel.multiply(GameController.random.nextFloat() * 6f + 0.5f);
-		size = Math.max(img.getWidth(), img.getHeight()) / GameController.SPRITE_SIZE;
 	}
 
 	public Particle(Image img, int borderX, int borderY, PointF pos, PointF vel, float rotation) {
@@ -43,7 +42,6 @@ public class Particle {
 		this.pos = pos.clone();
 		this.vel = vel.clone();
 		this.rotation = rotation;
-		size = Math.max(img.getWidth(), img.getHeight()) / GameController.SPRITE_SIZE;
 	}
 	
 	private void setImg(Image origImg, int borderX, int borderY){
@@ -54,6 +52,7 @@ public class Particle {
 		int x = GameController.random.nextInt(w-iw+1);
 		int y = GameController.random.nextInt(h-ih+1);
 		img = origImg.getSubImage(x+borderX, y+borderY, iw, ih);
+		size = Math.max(iw, ih) / GameController.SPRITE_SIZE;
 	}
 	
 	public void draw(){
@@ -65,21 +64,23 @@ public class Particle {
 	}
 	
 	public boolean update(int time){
-		// move
-		GameController.get().moveThing(pos, vel.x, vel.y, size, time, false);
-		PointF corr = GameController.get().level.doCollision(pos, size).corr;
-		if(!corr.isZero()){
-			pos.add(corr);
-			vel.bounce(corr, 0.5f);
-		}
-		// apply acceleration
-		PointF a = new PointF(vel.angle());
-		a.multiply(acc);
-		if(Math.signum(vel.x + a.x) != Math.signum(vel.x) || Math.signum(vel.y + a.y) != Math.signum(vel.y)){
-			vel.x = 0;
-			vel.y = 0;
-		} else {
-			vel.add(a);
+		if(!vel.isNaN() && !vel.isZero()){
+			// move
+			GameController.get().moveThing(pos, vel.x, vel.y, size, time, false);
+			PointF corr = GameController.get().level.doCollision(pos, size).corr;
+			if(!corr.isZero()){
+				pos.add(corr);
+				vel.bounce(corr, 0.5f);
+			}
+			// apply acceleration
+			float vOld = vel.length();
+			float vNew = vOld + acc * time / 1000;
+			if(Math.signum(vOld) != Math.signum(vNew)){
+				vel.x = 0;
+				vel.y = 0;
+			} else {
+				vel.multiply(vNew / vOld);
+			}
 		}
 		// calculate life time
 		if(lifeTime >= 0){

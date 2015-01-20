@@ -22,7 +22,6 @@ import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
-import hfk.items.weapons.CheatRifle;
 import hfk.items.weapons.EnergyPistol;
 import hfk.items.weapons.Pistol;
 import hfk.items.weapons.Weapon;
@@ -505,7 +504,7 @@ public class GameController {
 		float rm = 2.1f;
 		for(Particle part : particles){
 			float dd = part.pos.squaredDistanceTo(p);
-			if(dd < r*r*rm*rm){
+			if(dd > 0f && dd < r*r*rm*rm){
 				float force = 1f - dd/(r*r*rm*rm);
 				PointF vel = part.pos.clone();
 				vel.subtract(p);
