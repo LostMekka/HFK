@@ -131,9 +131,9 @@ public class RenderBatch {
 				item.i.setRotation(item.angle / (float)Math.PI * 180f);
 				if(item.clip != null) r.getGraphics().setClip(item.clip.x, item.clip.y, item.clip.w, item.clip.h);
 				if(item.color == null){
-					item.i.draw(item.pos.x, item.pos.y, item.scale);
+					item.i.draw(Math.round(item.pos.x), Math.round(item.pos.y), item.scale);
 				} else {
-					item.i.draw(item.pos.x, item.pos.y, item.scale, item.color);
+					item.i.draw(Math.round(item.pos.x), Math.round(item.pos.y), item.scale, item.color);
 				}
 				r.getGraphics().clearClip();
 			}
