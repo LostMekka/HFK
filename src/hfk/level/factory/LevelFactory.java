@@ -77,7 +77,7 @@ public abstract class LevelFactory extends LevelGenerator {
 	}
 	
 	public void addBarrels(Level l, Shape area, LinkedList<PointI> ex){
-		for(PointI p : area) if(!l.isWallTile(p.x, p.y) && !ex.contains(p)){
+		for(PointI p : area) if(!l.isImpassable(p.x, p.y) && !ex.contains(p)){
 			if(GameController.random.nextFloat() <= barrelChance.getFloatAt(p)){
 				ex.add(p);
 				l.items.add(new ExplosiveBarrel(p));
