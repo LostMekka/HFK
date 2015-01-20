@@ -247,8 +247,10 @@ public class Level implements Serializable{
 		Image i = tile.getImage();
 		boolean tileChanged = tile.damage(dmg);
 		PointF tileSize = tile.getSize();
-		int bx = tileSize.x <= 0f ? 0 : Math.round(16f * (1f - tileSize.x));
-		int by = tileSize.y <= 0f ? 0 : Math.round(16f * (1f - tileSize.y));
+		// if the tile has no size (prly floor), dont spawn debris
+		if(tileSize.x == 0f || tileSize.y == 0f) return;
+		int bx = Math.round(16f * (1f - tileSize.x));
+		int by = Math.round(16f * (1f - tileSize.y));
 		if(tileChanged){
 			PointI p = new PointI();
 			for(p.x=pos.x-1; p.x<=pos.x+1; p.x++){
