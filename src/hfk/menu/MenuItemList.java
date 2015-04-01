@@ -122,7 +122,7 @@ public class MenuItemList<T> extends MenuBox {
 					getX(), 
 					getY() + lineHeight * (selected - scrollOffset), 
 					getWidth() - 6, 
-					lineHeight - 1, 
+					lineHeight - 2, 
 					GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
 		}
 		// render item names
@@ -131,8 +131,14 @@ public class MenuItemList<T> extends MenuBox {
 		for(int i=0; i<scrollOffset; i++) iter.next();
 		while(iter.hasNext() && n < max){
 			Item<T> i = iter.next();
+			for(int f=0; f<flagCount; f++) if(i.flags[f]){
+				r.drawStringOnScreen(String.valueOf(flags[f]), 
+						8 + 12*f + getX(), 
+						7 + getY() + n*lineHeight, 
+						GameRenderer.COLOR_TEXT_INACTIVE, 1f);
+			}
 			r.drawStringOnScreen(i.name, 
-					8 + getX(), 
+					(flagCount > 0 ? 16 : 8) + 12*flagCount + getX(), 
 					7 + getY() + n*lineHeight, 
 					i.color, 1f);
 			n++;
