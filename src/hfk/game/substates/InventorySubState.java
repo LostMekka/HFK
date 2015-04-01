@@ -82,7 +82,7 @@ public class InventorySubState extends GameSubState{
 		float s = SplitMenuBox.getSplitRatioFromSecondSize(gc.getHeight(), descLineCount*DESCR_LINE_HEIGHT);
 		SplitMenuBox smb2 = new SplitMenuBox(smb1, SplitMenuBox.Location.topLeft, s, 1f);
 		mbInv = new SimpleMenuBox(smb2, SplitMenuBox.Location.topLeft);
-		invList = new MenuItemList(mbInv, true, new char[]{'X'});
+		invList = new MenuItemList(mbInv, true);
 		mbDescr = new SimpleMenuBox(smb2, SplitMenuBox.Location.bottomLeft);
 	}
 	
