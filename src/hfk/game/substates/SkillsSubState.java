@@ -10,6 +10,7 @@ import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
 import hfk.menu.MenuBox;
+import hfk.menu.MenuItemList;
 import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
 import hfk.mobs.Mob;
@@ -33,7 +34,9 @@ public class SkillsSubState extends GameSubState {
 	private static final int DESC_LINE_HEIGHT = GameRenderer.MIN_TEXT_HEIGHT;
 	public static final int SKILLS_LINE_HEIGHT = 30;
 	
-	private MenuBox mb, mbSkills, mbDescr;
+	private MenuBox mb, mbDescr;
+	private SimpleMenuBox mbSkills;
+	private MenuItemList<Skill> skillsList;
 	private Skill selectedSkill = null;
 	private int selectedIndex = -1, offset = 0;
 	private SkillSet set = null;
@@ -52,13 +55,18 @@ public class SkillsSubState extends GameSubState {
 		return set;
 	}
 
-	public void init(SkillSet s){
-		set = s;
+	public void init(SkillSet skillSet){
+		set = skillSet;
 		selectedIndex = -1;
 		selectedSkill = null;
 		offset = 0;
 		parent = set.getParent();
 		player = parent instanceof Player ? (Player)parent : null;
+		skillsList.clearList();
+		for(Skill s : set.getSkillList()){
+			skillsList.addListItem(s, s.getDisplayName(), s.getDisplayColor(), 
+					player != null && player.isTrackedSkill(s), s.isSuperSkill);
+		}
 	}
 	
 	@Override
@@ -66,6 +74,7 @@ public class SkillsSubState extends GameSubState {
 		SplitMenuBox smb = new SplitMenuBox(gc, 1f, 0.4f);
 		mb = smb;
 		mbSkills = new SimpleMenuBox(smb, SplitMenuBox.Location.topLeft);
+		skillsList = new MenuItemList<>(mbSkills, true, 'X', 'S');
 		mbDescr = new SimpleMenuBox(smb, SplitMenuBox.Location.topRight);
 	}
 
@@ -84,46 +93,20 @@ public class SkillsSubState extends GameSubState {
 		int mx = input.getMouseX();
 		int my = input.getMouseY();
 		
-		// inventory sub window
-		if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) scroll(-1);
-		if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) scroll(1);
-		if(mbSkills.isMouseInsideUsable(mx, my)){
-			update(mbSkills.getUsableRelativeMouseY(my), in, ctrl);
-		} else {
-			deselect();
-		}
-	}
-
-	private void scroll(int n){
-		int max = getSkillSlotCount();
-		if(max > set.size()) return;
-		offset += n;
-		offset = Math.max(0, offset);
-		offset = Math.min(set.size() - max, offset);
-	}
-
-	private void deselect() {
-		selectedIndex = -1;
-		selectedSkill = null;
-	}
-	
-	private void update(int my, InputMap in, GameController ctrl){
-		// get selected item
-		int i = my / SKILLS_LINE_HEIGHT;
-		selectedIndex = i + offset;
-		if(selectedIndex < set.size() && i < getSkillSlotCount()){
-			selectedSkill = set.getSkillList().get(selectedIndex);
-		} else {
-			deselect();
-		}
-		// level up or track skill
+		if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) skillsList.scroll(-1);
+		if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) skillsList.scroll(1);
+		skillsList.updateSelection(mx, my);
+		selectedSkill = skillsList.getSelectedObject();
 		if(selectedSkill != null){
 			if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
 				selectedSkill.levelUp();
+				skillsList.setItemColor(selectedSkill, selectedSkill.getDisplayColor());
+				skillsList.setItemName(selectedSkill, selectedSkill.getDisplayName());
 			}
 			if(in.isMousePressed(InputMap.A_TRACKSKILL) && player != null
 					&& !selectedSkill.isMaxed()){
 				player.toggleTrackSkill(selectedSkill);
+				skillsList.setItemFlag(selectedSkill, 0, player != null && player.isTrackedSkill(selectedSkill));
 			}
 		}
 	}
@@ -131,49 +114,7 @@ public class SkillsSubState extends GameSubState {
 	@Override
 	public void render(GameController ctrl, GameRenderer r, GameContainer gc) throws SlickException {
 		mb.render();
-		int max = getSkillSlotCount();
-		
-		// render skill list
-		if(selectedSkill != null){
-			r.drawMenuBox(
-					mbSkills.getUsableX(), 
-					mbSkills.getUsableY() + SKILLS_LINE_HEIGHT * (selectedIndex - offset), 
-					mbSkills.getUsableWidth(), 
-					SKILLS_LINE_HEIGHT, 
-					GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
-		}
-		Iterator<Skill> iter = set.getSkillList().iterator();
-		for(int i=0; i<offset; i++) iter.next();
-		int n = 0;
-		while(iter.hasNext() && n < max){
-			Skill s = iter.next();
-			Color c;
-			boolean req = s.canLevelUp();
-			if(s.getLevel() == 0){
-				c = req ? Color.white : GameRenderer.COLOR_TEXT_INACTIVE;
-			} else {
-				c = req ? Color.green : new Color(0.8f, 0.8f, 0f);
-			}
-			if(player != null && player.isTrackedSkill(s)) r.drawStringOnScreen("X", 
-					8 + mbSkills.getUsableX(), 
-					7 + mbSkills.getUsableY() + n * SKILLS_LINE_HEIGHT, 
-					c, 1f);
-			r.drawStringOnScreen(s.name + " (" + s.getLevel() + ")", 
-					28 + mbSkills.getUsableX(), 
-					7 + mbSkills.getUsableY() + n * SKILLS_LINE_HEIGHT, 
-					c, 1f);
-			n++;
-		}
-		
-		// render scroll bar if necessary
-		float size = set.size();
-		if(max < size){
-			float start = offset / size * mbSkills.getUsableHeight();
-			float ratio = max / size * mbSkills.getUsableHeight();
-			r.getGraphics().setColor(GameRenderer.COLOR_MENU_LINE);
-			r.getGraphics().fillRect(mbSkills.getBoxX() + 4, mbSkills.getUsableY() + start, 2, ratio);
-		}
-		
+
 		// render description
 		int x = mbDescr.getUsableX();
 		int y = mbDescr.getUsableY();
@@ -263,8 +204,4 @@ public class SkillsSubState extends GameSubState {
 		}
 	}
 	
-	private int getSkillSlotCount(){
-		return mbSkills.getUsableHeight() / SKILLS_LINE_HEIGHT;
-	}
-
 }
