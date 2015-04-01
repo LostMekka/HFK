@@ -6,6 +6,7 @@
 
 package hfk.skills;
 
+import hfk.game.GameRenderer;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
 import hfk.stats.DamageCard;
@@ -15,6 +16,7 @@ import hfk.stats.WeaponStatsCard;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import org.newdawn.slick.Color;
 
 /**
  *
@@ -65,7 +67,18 @@ public class Skill implements StatsModifier {
 	}
 
 	public String getDisplayName(){
-		return isSuperSkill ? "(S) " + name + " (" + level + ")" : name + " (" + level + ")";
+		return name + " (" + level + ")";
+	}
+	
+	public Color getDisplayColor(){
+		Color c;
+		boolean req = canLevelUp();
+		if(getLevel() == 0){
+			c = req ? Color.white : GameRenderer.COLOR_TEXT_INACTIVE;
+		} else {
+			c = req ? Color.green : new Color(0.8f, 0.8f, 0f);
+		}
+		return c;
 	}
 	
 	public void addRequirement(int ownLevel, Skill req, int reqLevel){
