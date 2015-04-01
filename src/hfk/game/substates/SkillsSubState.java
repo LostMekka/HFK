@@ -87,8 +87,8 @@ public class SkillsSubState extends GameSubState {
 		// inventory sub window
 		if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) scroll(-1);
 		if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) scroll(1);
-		if(mbSkills.isMouseInside(mx, my)){
-			update(mbSkills.getInsideMouseY(my), in, ctrl);
+		if(mbSkills.isMouseInsideUsable(mx, my)){
+			update(mbSkills.getUsableRelativeMouseY(my), in, ctrl);
 		} else {
 			deselect();
 		}
@@ -136,9 +136,9 @@ public class SkillsSubState extends GameSubState {
 		// render skill list
 		if(selectedSkill != null){
 			r.drawMenuBox(
-					mbSkills.getInsideX(), 
-					mbSkills.getInsideY() + SKILLS_LINE_HEIGHT * (selectedIndex - offset), 
-					mbSkills.getInsideWidth(), 
+					mbSkills.getUsableX(), 
+					mbSkills.getUsableY() + SKILLS_LINE_HEIGHT * (selectedIndex - offset), 
+					mbSkills.getUsableWidth(), 
 					SKILLS_LINE_HEIGHT, 
 					GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
 		}
@@ -155,12 +155,12 @@ public class SkillsSubState extends GameSubState {
 				c = req ? Color.green : new Color(0.8f, 0.8f, 0f);
 			}
 			if(player != null && player.isTrackedSkill(s)) r.drawStringOnScreen("X", 
-					8 + mbSkills.getInsideX(), 
-					7 + mbSkills.getInsideY() + n * SKILLS_LINE_HEIGHT, 
+					8 + mbSkills.getUsableX(), 
+					7 + mbSkills.getUsableY() + n * SKILLS_LINE_HEIGHT, 
 					c, 1f);
 			r.drawStringOnScreen(s.name + " (" + s.getLevel() + ")", 
-					28 + mbSkills.getInsideX(), 
-					7 + mbSkills.getInsideY() + n * SKILLS_LINE_HEIGHT, 
+					28 + mbSkills.getUsableX(), 
+					7 + mbSkills.getUsableY() + n * SKILLS_LINE_HEIGHT, 
 					c, 1f);
 			n++;
 		}
@@ -168,15 +168,15 @@ public class SkillsSubState extends GameSubState {
 		// render scroll bar if necessary
 		float size = set.size();
 		if(max < size){
-			float start = offset / size * mbSkills.getInsideHeight();
-			float ratio = max / size * mbSkills.getInsideHeight();
+			float start = offset / size * mbSkills.getUsableHeight();
+			float ratio = max / size * mbSkills.getUsableHeight();
 			r.getGraphics().setColor(GameRenderer.COLOR_MENU_LINE);
-			r.getGraphics().fillRect(mbSkills.getBoxX() + 4, mbSkills.getInsideY() + start, 2, ratio);
+			r.getGraphics().fillRect(mbSkills.getBoxX() + 4, mbSkills.getUsableY() + start, 2, ratio);
 		}
 		
 		// render description
-		int x = mbDescr.getInsideX();
-		int y = mbDescr.getInsideY();
+		int x = mbDescr.getUsableX();
+		int y = mbDescr.getUsableY();
 		String str = "super skills: ";
 		int w = r.getStringWidth(str);
 		r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f);
@@ -188,7 +188,7 @@ public class SkillsSubState extends GameSubState {
 		r.drawStringOnScreen("" + set.getParent().xp, x+w, y, Color.green, 1f); y += 2*DESC_LINE_HEIGHT;
 		
 		if(selectedSkill == null){
-			String[] sa = r.wordWrapString("hover over a skill to see a detailed description.", mbDescr.getInsideWidth());
+			String[] sa = r.wordWrapString("hover over a skill to see a detailed description.", mbDescr.getUsableWidth());
 			for(String s : sa){
 				r.drawStringOnScreen(s, x, y, GameRenderer.COLOR_TEXT_INACTIVE, 1f); y += DESC_LINE_HEIGHT;
 			}
@@ -235,7 +235,7 @@ public class SkillsSubState extends GameSubState {
 			r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
 		}
 		y += DESC_LINE_HEIGHT;
-		String[] descr = r.wordWrapString(s.description, mbDescr.getInsideWidth());
+		String[] descr = r.wordWrapString(s.description, mbDescr.getUsableWidth());
 		for(String line : descr){
 			r.drawStringOnScreen(line, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
 		}
@@ -264,7 +264,7 @@ public class SkillsSubState extends GameSubState {
 	}
 	
 	private int getSkillSlotCount(){
-		return mbSkills.getInsideHeight() / SKILLS_LINE_HEIGHT;
+		return mbSkills.getUsableHeight() / SKILLS_LINE_HEIGHT;
 	}
 
 }

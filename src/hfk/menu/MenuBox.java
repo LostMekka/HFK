@@ -34,10 +34,10 @@ public abstract class MenuBox {
 	}
 
 	public MenuBox(SimpleMenuBox parent) {
-		x = parent.getBoxX();
-		y = parent.getBoxY();
-		w = parent.getBoxWidth();
-		h = parent.getBoxHeight();
+		x = parent.getUsableX();
+		y = parent.getUsableY();
+		w = parent.getUsableWidth();
+		h = parent.getUsableHeight();
 		parent.setChild(this);
 	}
 
@@ -82,27 +82,27 @@ public abstract class MenuBox {
 		return h - 2 * BORDER;
 	}
 	
-	public int getInsideX(){
+	public int getUsableX(){
 		return x + 2 * BORDER;
 	}
 	
-	public int getInsideY(){
+	public int getUsableY(){
 		return y + 2 * BORDER;
 	}
 	
-	public int getInsideWidth(){
+	public int getUsableWidth(){
 		return w - 4 * BORDER;
 	}
 	
-	public int getInsideHeight(){
+	public int getUsableHeight(){
 		return h - 4 * BORDER;
 	}
 	
 	public boolean isMouseInside(int mouseX, int mouseY){
-		mouseX -= 2 * BORDER + x;
-		mouseY -= 2 * BORDER + y;
-		return mouseX >= 0 && mouseX < getInsideWidth() && 
-				mouseY >= 0 && mouseY < getInsideHeight();
+		mouseX -= x;
+		mouseY -= y;
+		return mouseX >= 0 && mouseX < getUsableWidth() && 
+				mouseY >= 0 && mouseY < getUsableHeight();
 	}
 	
 	public boolean isMouseInsideBox(int mouseX, int mouseY){
@@ -112,15 +112,46 @@ public abstract class MenuBox {
 				mouseY >= 0 && mouseY < getBoxHeight();
 	}
 	
-	public int getInsideMouseX(int mouseX){
+	public boolean isMouseInsideUsable(int mouseX, int mouseY){
 		mouseX -= 2 * BORDER + x;
-		if(mouseX < 0 || mouseX >= getInsideWidth()) return -1;
+		mouseY -= 2 * BORDER + y;
+		return mouseX >= 0 && mouseX < getUsableWidth() && 
+				mouseY >= 0 && mouseY < getUsableHeight();
+	}
+	
+	public int getRelativeMouseX(int mouseX){
+		mouseX -= x;
+		if(mouseX < 0 || mouseX >= getUsableWidth()) return -1;
 		return mouseX;
 	}
 	
-	public int getInsideMouseY(int mouseY){
+	public int getRelativeMouseY(int mouseY){
+		mouseY -= y;
+		if(mouseY < 0 || mouseY >= getUsableHeight()) return -1;
+		return mouseY;
+	}
+	
+	public int getBoxRelativeMouseX(int mouseX){
+		mouseX -= BORDER + x;
+		if(mouseX < 0 || mouseX >= getUsableWidth()) return -1;
+		return mouseX;
+	}
+	
+	public int getBoxRelativeMouseY(int mouseY){
+		mouseY -= BORDER + y;
+		if(mouseY < 0 || mouseY >= getUsableHeight()) return -1;
+		return mouseY;
+	}
+	
+	public int getUsableRelativeMouseX(int mouseX){
+		mouseX -= 2 * BORDER + x;
+		if(mouseX < 0 || mouseX >= getUsableWidth()) return -1;
+		return mouseX;
+	}
+	
+	public int getUsableRelativeMouseY(int mouseY){
 		mouseY -= 2 * BORDER + y;
-		if(mouseY < 0 || mouseY >= getInsideHeight()) return -1;
+		if(mouseY < 0 || mouseY >= getUsableHeight()) return -1;
 		return mouseY;
 	}
 	

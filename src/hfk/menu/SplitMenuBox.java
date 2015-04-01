@@ -43,11 +43,6 @@ public class SplitMenuBox extends MenuBox {
 		init(splitHoriz, splitVert);
 	}
 
-	public SplitMenuBox(SimpleMenuBox parent, float splitHoriz, float splitVert) {
-		super(parent);
-		init(splitHoriz, splitVert);
-	}
-
 	public SplitMenuBox(int x, int y, int w, int h, float splitHoriz, float splitVert) {
 		super(x, y, w, h);
 		init(splitHoriz, splitVert);

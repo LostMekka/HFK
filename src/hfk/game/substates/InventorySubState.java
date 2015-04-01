@@ -15,6 +15,7 @@ import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
 import hfk.menu.MenuBox;
+import hfk.menu.MenuItemList;
 import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
 import hfk.stats.Damage;
@@ -39,7 +40,9 @@ public class InventorySubState extends GameSubState{
 	private Inventory inventory = null;
 	private InventoryItem selectedInvItem = null, selectedGear = null;
 	private int inventoryOffset = 0, lastInventoryIndex = -1;
-	private MenuBox mb, mbInv, mbDescr, mbGear;
+	private MenuBox mb, mbDescr, mbGear;
+	private SimpleMenuBox mbInv;
+	private MenuItemList<InventoryItem> invList;
 	
 	public InventorySubState(InputMap inputMap) {
 		super(inputMap);
@@ -57,14 +60,19 @@ public class InventorySubState extends GameSubState{
 
 	public void init(Inventory i){
 		inventory = i;
-		inventoryOffset = 0;
-		deselectInventoryItem();
+		invList.unselect();
+		populateInventoryList();
 	}
 	
-	private int getVisibleItemCount(){
-		return mbInv.getInsideHeight() / INV_LINE_HEIGHT;
+	private void populateInventoryList(){
+		int sel = invList.getSelectedIndex();
+		invList.clearList();
+		for(InventoryItem i : inventory.getList()){
+			invList.addListItem(i, i.getDisplayName(), i.getDisplayColor(), null);
+		}
+		invList.selectIndex(sel);
 	}
-
+	
 	@Override
 	public void initAfterLoading(GameController ctrl, GameContainer gc) {
 		int descLineCount = 1 + Math.max(Damage.DAMAGE_TYPE_COUNT, Weapon.AMMO_TYPE_COUNT);
@@ -74,6 +82,7 @@ public class InventorySubState extends GameSubState{
 		float s = SplitMenuBox.getSplitRatioFromSecondSize(gc.getHeight(), descLineCount*DESCR_LINE_HEIGHT);
 		SplitMenuBox smb2 = new SplitMenuBox(smb1, SplitMenuBox.Location.topLeft, s, 1f);
 		mbInv = new SimpleMenuBox(smb2, SplitMenuBox.Location.topLeft);
+		invList = new MenuItemList(mbInv, true, new char[]{'X'});
 		mbDescr = new SimpleMenuBox(smb2, SplitMenuBox.Location.bottomLeft);
 	}
 	
@@ -93,51 +102,42 @@ public class InventorySubState extends GameSubState{
 		int mx = input.getMouseX();
 		int my = input.getMouseY();
 		
-		// inventory sub window
-		if(mbInv.isMouseInsideBox(mx, my)){
-			if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) scrollInventory(-1);
-			if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) scrollInventory(1);
-		}
-		if(mbInv.isMouseInside(mx, my)){
-			updateInventoryWindow(mbInv.getInsideMouseY(my), in, ctrl);
-		} else {
-			deselectInventoryItem();
-		}
+		updateInventoryWindow(mx, my, in, ctrl);
 		// gear sub window
 		if(mbGear.isMouseInsideBox(mx, my)){
 			if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) inventory.previousQuickSlot();
 			if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) inventory.nextQuickSlot();
 		}
-		if(mbGear.isMouseInside(mx, my)){
-			updateGearWindow(mbGear.getInsideMouseX(mx), mbGear.getInsideMouseY(my), in, ctrl);
+		if(mbGear.isMouseInsideUsable(mx, my)){
+			updateGearWindow(mbGear.getUsableRelativeMouseX(mx), mbGear.getUsableRelativeMouseY(my), in, ctrl);
 		} else {
 			selectedGear = null;
 		}
 	}
 	
-	private void deselectInventoryItem(){
-		lastInventoryIndex = -1;
-		selectedInvItem = null;
-	}
-	
-	private void updateInventoryWindow(int my, InputMap in, GameController ctrl){
-		// get selected item
-		int i = my / INV_LINE_HEIGHT;
-		lastInventoryIndex = i + inventoryOffset;
-		if(lastInventoryIndex < inventory.size() && i < getVisibleItemCount()){
-			selectedInvItem = inventory.getList().get(lastInventoryIndex);
-			if(selectedInvItem instanceof EmptyItem) deselectInventoryItem();
-		} else {
-			deselectInventoryItem();
+	private void updateInventoryWindow(int mx, int my, InputMap in, GameController ctrl){
+		if(mbInv.isMouseInsideBox(mx, my)){
+			if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) invList.scroll(-1);
+			if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) invList.scroll(1);
 		}
-		// use or drop selected item
-		if(in.isMousePressed(InputMap.A_INV_USE) && selectedInvItem != null){
-			inventory.useItem(selectedInvItem);
+		invList.updateSelection(mx, my);
+		selectedInvItem = invList.getSelectedObject();
+		if(selectedInvItem instanceof EmptyItem){
+			invList.unselect();
+			selectedInvItem = null;
 		}
-		if(in.isMousePressed(InputMap.A_INV_DROP) && selectedInvItem != null){
-			boolean dropped = inventory.removeItem(selectedInvItem);
-			if(dropped){
-				ctrl.dropItem(selectedInvItem, inventory.getParent(), true);
+		if(selectedInvItem != null){
+			// use or drop selected item
+			if(in.isMousePressed(InputMap.A_INV_USE) && selectedInvItem != null){
+				inventory.useItem(selectedInvItem);
+				populateInventoryList();
+			}
+			if(in.isMousePressed(InputMap.A_INV_DROP) && selectedInvItem != null){
+				boolean dropped = inventory.removeItem(selectedInvItem);
+				if(dropped){
+					ctrl.dropItem(selectedInvItem, inventory.getParent(), true);
+					populateInventoryList();
+				}
 			}
 		}
 	}
@@ -158,57 +158,16 @@ public class InventorySubState extends GameSubState{
 		}
 	}
 	
-	private void scrollInventory(int n){
-		int max = getVisibleItemCount();
-		if(max > inventory.size()) return;
-		inventoryOffset += n;
-		inventoryOffset = Math.max(0, inventoryOffset);
-		inventoryOffset = Math.min(inventory.size() - max, inventoryOffset);
-	}
-
 	@Override
 	public void render(GameController ctrl, GameRenderer r, GameContainer gc) throws SlickException {
 		mb.render();
-		renderInventorySlots(r);
 		renderGear(r);
 		renderDescription(r);
 	}
 	
-	private void renderInventorySlots(GameRenderer r){
-		// render selection box if necessary
-		if(selectedInvItem != null){
-			r.drawMenuBox(
-					mbInv.getInsideX(), 
-					mbInv.getInsideY() + INV_LINE_HEIGHT * (lastInventoryIndex - inventoryOffset), 
-					mbInv.getInsideWidth(), 
-					INV_LINE_HEIGHT, 
-					GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
-		}
-		// render item names
-		Iterator<InventoryItem> iter = inventory.getList().iterator();
-		int n = 0, max = getVisibleItemCount();
-		for(int i=0; i<inventoryOffset; i++) iter.next();
-		while(iter.hasNext() && n < max){
-			InventoryItem i = iter.next();
-			r.drawStringOnScreen(i.getDisplayName(), 
-					8 + mbInv.getInsideX(), 
-					7 + mbInv.getInsideY() + n*INV_LINE_HEIGHT, 
-					i.getDisplayColor(), 1f);
-			n++;
-		}
-		// render scroll bar if necessary
-		float size = inventory.size();
-		if(max < size){
-			float start = inventoryOffset / size * mbInv.getInsideHeight();
-			float ratio = max / size * mbInv.getInsideHeight();
-			r.getGraphics().setColor(GameRenderer.COLOR_MENU_LINE);
-			r.getGraphics().fillRect(mbInv.getBoxX() + 4, mbInv.getInsideY() + start, 2, ratio);
-		}
-	}
-	
 	private void renderGear(GameRenderer r){
-		int x = mbGear.getInsideX();
-		int y = mbGear.getInsideY();
+		int x = mbGear.getUsableX();
+		int y = mbGear.getUsableY();
 		int x2 = x + GEAR_TAB;
 		String str = "health: ";
 		int strW = r.getStringWidth(str);
@@ -224,7 +183,7 @@ public class InventorySubState extends GameSubState{
 				r.drawStringOnScreen("none", 8 + x2, 7 + y, GameRenderer.COLOR_TEXT_INACTIVE, 1f);
 			} else {
 				if(selectedGear == w){
-					r.drawMenuBox(x2, y, mbGear.getInsideWidth() - GEAR_TAB, INV_LINE_HEIGHT, 
+					r.drawMenuBox(x2, y, mbGear.getUsableWidth() - GEAR_TAB, INV_LINE_HEIGHT, 
 							GameRenderer.COLOR_MENUITEM_BG, GameRenderer.COLOR_MENUITEM_LINE);
 				}
 				r.drawStringOnScreen(w.getDisplayName(), 8 + x2, 7 + y, w.getDisplayColor(), 1f);
@@ -235,8 +194,8 @@ public class InventorySubState extends GameSubState{
 	
 	private void renderDescription(GameRenderer r){
 		InventoryItem item = selectedInvItem != null ? selectedInvItem : selectedGear;
-		int x = mbDescr.getInsideX();
-		int y = mbDescr.getInsideY();
+		int x = mbDescr.getUsableX();
+		int y = mbDescr.getUsableY();
 		if(item == null){
 			r.drawStringOnScreen("hover over an item to see a description here", x, y, GameRenderer.COLOR_TEXT_INACTIVE, 1f);
 			return;
