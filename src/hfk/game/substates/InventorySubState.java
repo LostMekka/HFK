@@ -19,7 +19,6 @@ import hfk.menu.MenuItemList;
 import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
 import hfk.stats.Damage;
-import java.util.Iterator;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -39,7 +38,6 @@ public class InventorySubState extends GameSubState{
 
 	private Inventory inventory = null;
 	private InventoryItem selectedInvItem = null, selectedGear = null;
-	private int inventoryOffset = 0, lastInventoryIndex = -1;
 	private MenuBox mb, mbDescr, mbGear;
 	private SimpleMenuBox mbInv;
 	private MenuItemList<InventoryItem> invList;

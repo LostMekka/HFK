@@ -18,7 +18,6 @@ import hfk.mobs.Player;
 import hfk.skills.Skill;
 import hfk.skills.SkillSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -38,7 +37,6 @@ public class SkillsSubState extends GameSubState {
 	private SimpleMenuBox mbSkills;
 	private MenuItemList<Skill> skillsList;
 	private Skill selectedSkill = null;
-	private int selectedIndex = -1, offset = 0;
 	private SkillSet set = null;
 	private Mob parent = null;
 	private Player player = null;
@@ -57,9 +55,7 @@ public class SkillsSubState extends GameSubState {
 
 	public void init(SkillSet skillSet){
 		set = skillSet;
-		selectedIndex = -1;
 		selectedSkill = null;
-		offset = 0;
 		parent = set.getParent();
 		player = parent instanceof Player ? (Player)parent : null;
 		skillsList.clearList();
