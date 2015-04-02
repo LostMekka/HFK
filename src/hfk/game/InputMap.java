@@ -34,11 +34,14 @@ public class InputMap implements MouseListener {
 	public static final String A_INV_DOWN = "inventory_down";
 	public static final String A_INV_USE = "use_invitem";
 	public static final String A_INV_DROP = "inventory_drop";
-	
 	public static final String A_OPEN_INVENTORY = "open_inventory";
 	public static final String A_CLOSE_INVENTORY = "close_inventory";
-	public static final String A_OPEN_SKILLS = "open_skills";
-	public static final String A_CLOSE_SKILLS = "close_skills";
+	
+	public static final String A_EXCHANGE_UP = "exchange_up";
+	public static final String A_EXCHANGE_DOWN = "exchange_down";
+	public static final String A_EXCHANGE_MOVE = "exchange_move";
+	public static final String A_EXCHANGE_SWAP = "exchange_swap";
+	public static final String A_EXCHANGE_CLOSE = "exchange_ close";
 	
 	public static final String A_NEWGAME = "newgame";
 	public static final String A_QUIT = "quit";
@@ -50,6 +53,8 @@ public class InputMap implements MouseListener {
 	
 	public static final String A_SELECTSKILL = "selectskill";
 	public static final String A_TRACKSKILL = "trackskill";
+	public static final String A_OPEN_SKILLS = "open_skills";
+	public static final String A_CLOSE_SKILLS = "close_skills";
 	
 	public static final String[] A_QUICKSLOTS = new String[10];
 	static { for(int i=0; i<10; i++) A_QUICKSLOTS[i] = "quickslot" + i; }

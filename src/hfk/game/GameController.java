@@ -14,6 +14,7 @@ import hfk.Particle;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.Shot;
+import hfk.game.substates.ExchangeSubState;
 import hfk.game.substates.GameOverSubState;
 import hfk.game.substates.GameplaySubState;
 import hfk.game.substates.InventorySubState;
@@ -92,6 +93,7 @@ public class GameController {
 
 	public GameOverSubState gameOverState;
 	public GameplaySubState gameplaySubState;
+	public ExchangeSubState exchangeSubState;
 	public InventorySubState inventorySubState;
 	public OmniSubState omniSubState;
 	public PauseSubState pauseSubState;
@@ -136,6 +138,7 @@ public class GameController {
 		inputMap = new InputMap(gc.getInput());
 		gameOverState = new GameOverSubState(inputMap);
 		gameplaySubState = new GameplaySubState(inputMap);
+		exchangeSubState = new ExchangeSubState(inputMap);
 		inventorySubState = new InventorySubState(inputMap);
 		omniSubState = new OmniSubState(inputMap);
 		pauseSubState = new PauseSubState(inputMap);
@@ -241,6 +244,7 @@ public class GameController {
 		renderer.initAfterLoading();
 		gameOverState.initAfterLoading(this, gc);
 		gameplaySubState.initAfterLoading(this, gc);
+		exchangeSubState.initAfterLoading(this, gc);
 		inventorySubState.initAfterLoading(this, gc);
 		omniSubState.initAfterLoading(this, gc);
 		pauseSubState.initAfterLoading(this, gc);
@@ -321,6 +325,14 @@ public class GameController {
 	public void reduceScreenShake(float t){
 		screenPosOffset.multiply((float)Math.pow(0.1, t/1000.0));
 		screenShake = Math.max(0f, screenShake - t/1000f);
+	}
+	
+	public void viewInventoryExchange(Inventory i1, Inventory i2){
+		boolean wasDifferentState = currSubState != exchangeSubState;
+		wasDifferentState |= i1 != exchangeSubState.getLeftInventory();
+		wasDifferentState |= i2 != exchangeSubState.getRightInventory();
+		currSubState = exchangeSubState;
+		if(wasDifferentState) exchangeSubState.init(i1, i2);
 	}
 	
 	public void viewInventory(Inventory i){
