@@ -38,6 +38,14 @@ public final class Inventory implements StatsModifier {
 		updateMSC(m.totalStats);
 	}
 	
+	/***
+	 * creates an inventory without parent.
+	 * @param statsCard the stats to use for inventory size and ammo stack size
+	 */
+	public Inventory(MobStatsCard statsCard) {
+		updateMSC(statsCard);
+	}
+	
 	public int size(){
 		return msc.getInventorySize();
 	}
