@@ -66,7 +66,7 @@ public class InventorySubState extends GameSubState{
 		int sel = invList.getSelectedIndex();
 		invList.clearList();
 		for(InventoryItem i : inventory.getList()){
-			invList.addListItem(i, i.getDisplayName(), i.getDisplayColor(), null);
+			invList.addListItem(i, i.getDisplayName(), i.getDisplayColor());
 		}
 		invList.selectIndex(sel);
 	}
