@@ -126,6 +126,10 @@ public final class Inventory implements StatsModifier {
 		return ammo[t.ordinal()];
 	}
 	
+	public int getMaxAmmoStackSize(Weapon.AmmoType t){
+		return msc.getAmmoSlotSize(t.ordinal());
+	}
+	
 	public boolean hasAmmo(Weapon.AmmoType t, int n){
 		return ammo[t.ordinal()] >= n;
 	}
