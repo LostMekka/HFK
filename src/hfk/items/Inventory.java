@@ -217,7 +217,7 @@ public final class Inventory implements StatsModifier {
 			removeItem(i);
 			i.parentInventory = null;
 		}
-		parent.recalculateCards();
+		if(parent != null) parent.recalculateCards();
 		return l;
 	}
 	
