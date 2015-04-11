@@ -38,7 +38,7 @@ public class ExpRandom {
 		negativeLambda = Math.log(1 - 1 / a);
 	}
 	
-	public double getNextFloat(){
+	public float getNextFloat(){
 		return (float)getNextDouble();
 	}
 	
@@ -46,7 +46,7 @@ public class ExpRandom {
 		return Math.log(1 - GameController.random.nextDouble() / a) / negativeLambda;
 	}
 	
-	public double getNextInt(int min, int max){
+	public int getNextInt(int min, int max){
 		// to make max inclusive, the max double value is actually 1 greater.
 		// the probability of getNextDouble actually returning (max + 1) is
 		// ridiculously low.
@@ -54,7 +54,7 @@ public class ExpRandom {
 		return Math.min(max, (int)getNextDouble(min, max + 1));
 	}
 	
-	public double getNextFloat(double min, double max){
+	public float getNextFloat(double min, double max){
 		return (float)getNextDouble(min, max);
 	}
 	
