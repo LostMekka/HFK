@@ -2,7 +2,7 @@
  */
 package hfk.level.factory.concreteFactories;
 
-import hfk.Box;
+import hfk.ExpRandom;
 import hfk.PointF;
 import hfk.Shape;
 import hfk.level.Level;
@@ -71,7 +71,8 @@ public class RoomsFactory extends LevelFactory{
 		border = new BorderGenerator(LEVEL_BORDER, this);
 		border.floor = floor;
 		border.walls = walls;
-		barrelChance = PropertyMap.createRandom(width, width, 7, 1, -0.1f, 0.17f);
+		ExpRandom ran = new ExpRandom(0.8);
+		barrelChance = PropertyMap.createRandom(width, width, 7, 1, -0.1f, ran.getNextFloat(0.08, 0.2));
 	}
 
 	@Override
