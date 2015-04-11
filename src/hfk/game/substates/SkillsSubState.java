@@ -96,6 +96,7 @@ public class SkillsSubState extends GameSubState {
 		if(selectedSkill != null){
 			if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
 				selectedSkill.levelUp();
+				if(selectedSkill.isMaxed()) skillsList.setItemFlag(selectedSkill, 0, false);
 				skillsList.setItemColor(selectedSkill, selectedSkill.getDisplayColor());
 				skillsList.setItemName(selectedSkill, selectedSkill.getDisplayName());
 			}
