@@ -19,7 +19,6 @@ import hfk.menu.MenuItemList;
 import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
 import hfk.stats.Damage;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
@@ -154,7 +153,8 @@ public class ExchangeSubState extends GameSubState{
 						int amount = Math.min(ai.getAmmoCount(), tStack - tLast);
 						if(amount > 0){
 							source.removeAmmo(t, amount);
-							target.addAmmo(t, amount);
+							int back = target.addAmmo(t, amount);
+							source.addAmmo(t, back);
 							populateInventoryLists();
 						}
 					} else if(source.removeItem(selectedItem)){
