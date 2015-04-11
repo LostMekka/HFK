@@ -55,7 +55,7 @@ public class RoomsFactory extends LevelFactory{
 		crates.mapMaxX = PropertyMap.createRandom(width, height, 7, 1, 2f, 4.2f);
 		crates.mapMinY = PropertyMap.createRandom(width, height, 7, 1, 1.2f, 3f);
 		crates.mapMaxY = PropertyMap.createRandom(width, height, 7, 1, 2f, 4.2f);
-		crates.boxProbability = PropertyMap.createRandom(width, height, 7, 1, -0.2f, 0.7f);
+		crates.boxProbability = PropertyMap.createRandom(width, height, 7, 1, -0.18f, 0.53f);
 		cryo = new CryoChamberGenerator(this);
 		cryo.generateDefaultPropertyMaps(width, height);
 		cryo.floor1 = floor;
