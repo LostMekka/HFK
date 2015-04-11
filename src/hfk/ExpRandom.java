@@ -23,7 +23,7 @@ public class ExpRandom {
 	private final double negativeLambda;
 
 	public ExpRandom() {
-		this(0.5);
+		this(0.9);
 	}
 	
 	/**
