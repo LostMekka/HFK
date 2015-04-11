@@ -166,9 +166,9 @@ public class SkillsSubState extends GameSubState {
 		}
 		if(player != null && !selectedSkill.isMaxed()){
 			if(player.isTrackedSkill(s)){
-				str = "right click this skill to remove it from the whishlist";
+				str = "right click to track this skill";
 			} else {
-				str = "right click this skill to add it to the whishlist";
+				str = "right click to untrack this skill";
 			}
 			r.drawStringOnScreen(str, x, y, GameRenderer.COLOR_TEXT_NORMAL, 1f); y += DESC_LINE_HEIGHT;
 		}
