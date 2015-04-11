@@ -7,6 +7,7 @@
 package hfk.game;
 
 import hfk.Box;
+import hfk.ExpRandom;
 import hfk.Explosion;
 import hfk.game.substates.GameSubState;
 import hfk.IngameText;
@@ -298,18 +299,16 @@ public class GameController {
 	public int getLevelDifficultyLimit(int level, boolean addRandomPart){
 		// TODO: use difficultyLevel
 		double d = Math.pow(level+3.4, 2.15);
-		if(addRandomPart) d *= 0.9f + 0.2f * random.nextDouble();
+		ExpRandom ran = new ExpRandom(0.75);
+		if(addRandomPart) d *= 1 + 0.35 * ran.getNextDouble();
 		return (int)d;
 	}
 	
 	public int getLevelRarityLimit(int level, boolean addRandomPart){
 		// TODO: use difficultyLevel
 		double r = 100 * Math.pow(level+5, 2.2);
-		if(addRandomPart){
-			double r2 = 5d;
-			for(int i=0; i<5; i++) r2 *= random.nextDouble();
-			r *= 1f + r2;
-		}
+		ExpRandom ran = new ExpRandom(0.9);
+		if(addRandomPart) r *= 1 + 0.6 * ran.getNextDouble();
 		return (int)r;
 	}
 	

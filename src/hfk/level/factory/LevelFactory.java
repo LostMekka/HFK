@@ -68,7 +68,7 @@ public abstract class LevelFactory extends LevelGenerator {
 		if(barrelChance != null) addBarrels(l, s, ex);
 		// add one chest per level. this will probably be changed in later versions
 		PointI chestPos = l.getNextFreeField(s.getRandomPointInside(), ex);
-		ExpRandom r = new ExpRandom(0.8);
+		ExpRandom r = new ExpRandom(0.9);
 		l.items.add(new Chest(chestPos, (int)(rarity * r.getNextDouble(0.15, 2))));
 		return l;
 	}
