@@ -143,16 +143,25 @@ public final class Inventory implements StatsModifier {
 		if(i instanceof Weapon) l = weapons;
 		return l;
 	}
+
+	public int getFreeSlots() {
+		return freeSlots;
+	}
 	
+	/**
+	 * Adds ammo to this inventory.
+	 * @param t the ammo type
+	 * @param n the ammo count
+	 * @return the amount rejected in case there was not enough space.
+	 */
 	public int addAmmo(Weapon.AmmoType t, int n){
 		int ss = msc.getAmmoSlotSize(t.ordinal());
 		if(ss == 0) return 0;
 		int max = ss * (int)Math.ceil((float)ammo[t.ordinal()] / (float)ss + (float)freeSlots) - ammo[t.ordinal()];
-		int rn = n;
-		if(n > max) rn = max;
+		int rn = Math.min(n, max);
 		ammo[t.ordinal()] += rn;
 		if(rn > 0) generateList();
-		return rn;
+		return n - rn;
 	}
 	
 	public boolean removeAmmo(Weapon.AmmoType t, int n){
@@ -174,8 +183,8 @@ public final class Inventory implements StatsModifier {
 			AmmoItem ai = (AmmoItem)i;
 			int s = ai.getAmmoCount();
 			int n = addAmmo(ai.getAmmoType(), s);
-			if(n == s) return null;
-			ai.setAmmoCount(s - n);
+			if(n == 0) return null;
+			ai.setAmmoCount(n);
 			return ai;
 		}
 		if(freeSlots <= 0) return i;
