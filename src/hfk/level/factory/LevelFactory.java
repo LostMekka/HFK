@@ -13,6 +13,7 @@ import hfk.PointI;
 import hfk.Shape;
 import hfk.game.GameController;
 import hfk.items.InventoryItem;
+import hfk.level.Chest;
 import hfk.level.ExplosiveBarrel;
 import hfk.level.Level;
 import hfk.level.Stairs;
@@ -64,6 +65,8 @@ public abstract class LevelFactory extends LevelGenerator {
 		addItems(l, s, rarity, ex);
 		addMobs(l, s, difficulty, ex);
 		if(barrelChance != null) addBarrels(l, s, ex);
+		PointI chestPos = l.getNextFreeField(s.getRandomPointInside(), ex);
+		l.items.add(new Chest(chestPos, rarity / 5));
 		return l;
 	}
 

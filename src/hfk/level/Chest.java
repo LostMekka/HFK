@@ -20,7 +20,7 @@ public class Chest extends UsableLevelItem {
 
 	private Inventory inv;
 
-	public Chest(PointI pos) {
+	public Chest(PointI pos, int maxRarity) {
 		super(pos);
 		img = Resources.getImage("chest.png");
 		hp = 70;
@@ -29,8 +29,12 @@ public class Chest extends UsableLevelItem {
 		card.setInventorySize(20);
 		for(int i=0; i<Weapon.AMMO_TYPE_COUNT; i++) card.setAmmoSlotSize(i, 1000);
 		inv = new Inventory(card);
-		inv.addAmmo(Weapon.AmmoType.bullet, 333);
-		for(int i=0; i<10; i++) inv.addItem(InventoryItem.create(new PointF(), 99999999));
+		InventoryItem i = InventoryItem.create(new PointF(), maxRarity);
+		while(i != null){
+			inv.addItem(i);
+			maxRarity -= i.getRarityScore();
+			i = InventoryItem.create(new PointF(), maxRarity);
+		}
 	}
 
 	@Override
