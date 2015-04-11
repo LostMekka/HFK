@@ -7,6 +7,7 @@
 package hfk.level.factory;
 
 import hfk.Box;
+import hfk.ExpRandom;
 import hfk.PointCloud;
 import hfk.PointF;
 import hfk.PointI;
@@ -65,8 +66,10 @@ public abstract class LevelFactory extends LevelGenerator {
 		addItems(l, s, rarity, ex);
 		addMobs(l, s, difficulty, ex);
 		if(barrelChance != null) addBarrels(l, s, ex);
+		// add one chest per level. this will probably be changed in later versions
 		PointI chestPos = l.getNextFreeField(s.getRandomPointInside(), ex);
-		l.items.add(new Chest(chestPos, rarity / 5));
+		ExpRandom r = new ExpRandom(0.8);
+		l.items.add(new Chest(chestPos, (int)(rarity * r.getNextDouble(0.15, 2))));
 		return l;
 	}
 
