@@ -58,6 +58,10 @@ public class SkillsSubState extends GameSubState {
 		selectedSkill = null;
 		parent = set.getParent();
 		player = parent instanceof Player ? (Player)parent : null;
+		populateList();
+	}
+	
+	private void populateList(){
 		skillsList.clearList();
 		for(Skill s : set.getSkillList()){
 			skillsList.addListItem(s, s.getDisplayName(), s.getDisplayColor(), 
@@ -96,9 +100,8 @@ public class SkillsSubState extends GameSubState {
 		if(selectedSkill != null){
 			if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
 				selectedSkill.levelUp();
-				if(selectedSkill.isMaxed()) skillsList.setItemFlag(selectedSkill, 0, false);
-				skillsList.setItemColor(selectedSkill, selectedSkill.getDisplayColor());
-				skillsList.setItemName(selectedSkill, selectedSkill.getDisplayName());
+				// colors of all skills may change -> repopulate the list
+				populateList();
 			}
 			if(in.isMousePressed(InputMap.A_TRACKSKILL) && player != null
 					&& !selectedSkill.isMaxed()){
