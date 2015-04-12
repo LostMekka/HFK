@@ -259,9 +259,9 @@ public class GameController {
 		PointF pp = new PointF();
 		player = new Player(pp);
 		//printBalanceInfo();
-		player.inventory.equipWeaponFromGround(new Pistol(0, pp));
-		player.inventory.addAmmo(Weapon.AmmoType.bullet, 50);
-		if(musicIsOn) startMusic();
+		Weapon weapon = new hfk.items.weapons.Pistol(0, pp);
+		player.inventory.equipWeaponFromGround(weapon);
+		player.inventory.addAmmoClips(weapon, 6);
 		currSubState = gameplaySubState;
 		playerIsAlive = true;
 		nextLevel();

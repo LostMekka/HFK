@@ -155,11 +155,15 @@ public final class Inventory implements StatsModifier {
 	 * @return the amount rejected in case there was not enough space.
 	 */
 	public int addAmmo(Weapon.AmmoType t, int n){
-		int ss = msc.getAmmoSlotSize(t.ordinal());
+		return addAmmo(t.ordinal(), n);
+	}
+
+	public int addAmmo(int ammoType, int n){
+		int ss = msc.getAmmoSlotSize(ammoType);
 		if(ss == 0) return 0;
-		int max = ss * (int)Math.ceil((float)ammo[t.ordinal()] / (float)ss + (float)freeSlots) - ammo[t.ordinal()];
+		int max = ss * (int)Math.ceil((float)ammo[ammoType] / (float)ss + (float)freeSlots) - ammo[ammoType];
 		int rn = Math.min(n, max);
-		ammo[t.ordinal()] += rn;
+		ammo[ammoType] += rn;
 		if(rn > 0) generateList();
 		return n - rn;
 	}
@@ -398,4 +402,20 @@ public final class Inventory implements StatsModifier {
 		l.add(i);
 	}
 
+	public void addAmmoClips(Weapon weapon, int n) {
+		int energyType = Weapon.AmmoType.energy.ordinal();
+		for (int ammoType = 0; ammoType < Weapon.AMMO_TYPE_COUNT; ammoType++) {
+			if (ammoType == energyType) {
+				continue;
+			}
+			int clipSize = weapon.totalStats.clipSize[ammoType];
+			if (clipSize > 0) {
+				addAmmo(ammoType, clipSize * n);
+			}
+		}
+	}
+
+	public void addActiveWeaponAmmoClips(int n) {
+		addAmmoClips(getActiveWeapon(), n);
+	}
 }
