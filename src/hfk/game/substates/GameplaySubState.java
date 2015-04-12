@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
@@ -55,12 +56,36 @@ public class GameplaySubState extends GameSubState{
 		for(int i=0; i<10; i++) inputMap.addKey(Input.KEY_1 + i, InputMap.A_QUICKSLOTS[i]);
 	}
 
+	private static final int MAX_HEALTH_TIMER = 300;
+	private static final Color HEALTH_COLOR_1 = new Color(1f, 0f, 0f);
+	private static final Color HEALTH_COLOR_2 = new Color(1f, 0.9f, 0.9f);
+	private static final Color HEALTH_COLOR_3 = new Color(0.4f, 0f, 0f);
+	private int healthTimer = 0;
+	private Color healthColor = new Color(0.3f, 1f, 0.3f);
+	private static final int MAX_SKILLS_TIMER = 1000;
+	private static final Color SKILLS_COLOR_1 = new Color(0f, 0.8f, 0f);
+	private static final Color SKILLS_COLOR_2 = new Color(0f, 0.4f, 0f);
+	private int skillsTimer = 0;
+	private Color skillsColor = new Color(0.3f, 1f, 0.3f);
+
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
+		Player player = ctrl.player;
+		healthTimer = (healthTimer + time) % MAX_HEALTH_TIMER;
+		healthColor = (player.hp < 20 && healthTimer < MAX_HEALTH_TIMER / 2) ?
+				HEALTH_COLOR_2 : HEALTH_COLOR_1;
+		skillsTimer = (skillsTimer + time) % MAX_SKILLS_TIMER;
+		float sc = Math.abs((float)skillsTimer / MAX_SKILLS_TIMER - 0.5f);
+		SKILLS_COLOR_1.r = 0.2f;
+		SKILLS_COLOR_1.g = 0.65f;
+		SKILLS_COLOR_1.b = 0.2f;
+		skillsColor.r = 0.2f + 0.4f * sc;
+		skillsColor.g = 0.6f + 0.2f * sc;
+		skillsColor.b = 0.2f + 0.4f * sc;
+		
 		InputMap in = getInputMap();
 		Input input = gc.getInput();
 		drawMap = input.isKeyDown(Input.KEY_TAB);
-		Player player = ctrl.player;
 		if(in.isKeyPressed(InputMap.A_PAUSE)){
 			ctrl.setCurrSubState(ctrl.pauseSubState);
 			return;
@@ -197,7 +222,7 @@ public class GameplaySubState extends GameSubState{
 			}
 		}
 	}
-
+	
 	@Override
 	public void render(GameController ctrl, GameRenderer r, GameContainer gc) throws SlickException {
 		// draw text boxes for loot and level items
@@ -217,51 +242,113 @@ public class GameplaySubState extends GameSubState{
 			if(selectedLevelItem != null) selectedLevelItem.drawNameBox();
 		}
 		
-		// draw hud text
-		int h = gc.getHeight();
-		int sh = r.getStringHeight("a") + 4;
-		int y = 20;
-		int x = 20;
+		// draw HUD
+		int hudBorder = 10;
+		Graphics g = r.getGraphics();
+		// health bar and level
+		int healthBarLen = 250;
+		int barHeight = 21;
+		g.setColor(HEALTH_COLOR_3);
+		g.drawRect(hudBorder, hudBorder, healthBarLen + 9, barHeight + 9);
+		g.setColor(healthColor);
+		g.fillRect(hudBorder + 1, hudBorder + 1, healthBarLen + 8, barHeight + 8);
+		g.setColor(Color.black);
+		g.fillRect(hudBorder + 3, hudBorder + 3, healthBarLen + 4, barHeight + 4);
+		int hp = healthBarLen * ctrl.player.hp / ctrl.player.totalStats.getMaxHP();
+		if(hp > 0){
+			g.setColor(healthColor);
+			g.fillRect(hudBorder + 5, hudBorder + 5, hp, barHeight);
+		}
+		if(hp < healthBarLen){
+			g.setColor(HEALTH_COLOR_3);
+			g.fillRect(hudBorder + 5 + hp, hudBorder + 5, healthBarLen - hp, barHeight);
+		}
+		String hpText = String.format("%d / %d", ctrl.player.hp, ctrl.player.totalStats.getMaxHP());
+		int hpTextLen = r.getStringWidth(hpText);
+		r.drawStringOnScreen(hpText, 
+				hudBorder + 5 + (healthBarLen - hpTextLen) / 2, 
+				hudBorder + 8, Color.white, 1f);
+		Color levCol = ctrl.mobs.size() <= 1
+				? GameRenderer.COLOR_TEXT_NORMAL
+				: Color.white;
+		String levStr = ctrl.mobs.size() <= 1
+				? String.format("level : %d %s", ctrl.getLevelCount(), "(clear)")
+				: String.format("level : %d", ctrl.getLevelCount());
+		r.drawStringOnScreen(levStr, hudBorder + 4, hudBorder + 35, levCol, 1f);
+		
+		// xp and skills
 		LinkedList<Skill> sl = ctrl.player.getTrackedSkillsList();
-		if(!sl.isEmpty()){
-			String[] strings = new String[sl.size()];
-			Color[] colors = new Color[strings.length];
+		int skCount = sl.size();
+		String[] strings = null;
+		int[] xpNeeded = null;
+		int skWidth = 0;
+		if(skCount > 0){
+			strings = new String[skCount];
+			xpNeeded = new int[skCount];
 			int i = 0;
-			int max = 0;
 			for(Skill s : sl){
-				colors[i] = s.canLevelUp() ? Color.green : Color.white;
 				strings[i] = s.name + " : " + s.getCost();
+				xpNeeded[i] = s.getCost();
 				int w = r.getStringWidth(strings[i]);
-				if(w > max) max = w;
+				if(w > skWidth) skWidth = w;
 				i++;
 			}
-			int y2 = 20;
-			int x2 = gc.getWidth() - max - 10;
-			r.drawStringOnScreen("tracked skills:", x2 - 20, y2, Color.white, 1f); y2 += sh;
-			for(i=0; i<strings.length; i++){
-				r.drawStringOnScreen(strings[i], x2, y2, colors[i], 1f); y2 += sh;
+		}
+		skWidth += 6;
+		if(skWidth < 200) skWidth = 200;
+		int skX = gc.getWidth() - skWidth - 9 - hudBorder;
+		int skY = hudBorder + 6;
+		int skHeight = 0;
+		if(skCount > 0) skHeight += 2 + (barHeight + 2) * skCount;
+		g.setColor(SKILLS_COLOR_2);
+		g.drawRect(skX - 5, skY - 3, skWidth + 9, skHeight + 24);
+		g.setColor(SKILLS_COLOR_1);
+		g.fillRect(skX - 4, skY - 2, skWidth + 8, skHeight + 23);
+		String xpText = String.format("xp : %d", ctrl.player.xp);
+		int xpTextLen = r.getStringWidth(xpText);
+		r.drawStringOnScreen(xpText, 
+				skX + (skWidth - xpTextLen) / 2, skY + 1, Color.white, 1f);
+		if(skCount > 0){
+			g.setColor(Color.black);
+			g.fillRect(skX - 2, skY + 19, skWidth + 4, skHeight);
+			for(int i=0; i<skCount; i++){
+				int xp = Math.min(skWidth, skWidth * ctrl.player.xp / xpNeeded[i]);
+				if(xp > 0){
+					g.setColor(xp == skWidth ? skillsColor : SKILLS_COLOR_1);
+					g.fillRect(skX, skY + 21 + i * 23, xp, barHeight);
+				}
+				if(xp < skWidth){
+					g.setColor(SKILLS_COLOR_2);
+					g.fillRect(skX + xp, skY + 21 + i * 23, skWidth - xp, barHeight);
+				}
+				xpTextLen = r.getStringWidth(strings[i]);
+				r.drawStringOnScreen(strings[i], 
+						skX + (skWidth - xpTextLen) / 2, 
+						skY + 24 + i * 23, Color.white, 1f);
 			}
 		}
-		r.drawStringOnScreen("hp : " + ctrl.player.hp + " / " + ctrl.player.totalStats.getMaxHP(), x, y, Color.white, 1f); y += sh;
-		r.drawStringOnScreen("xp : " + ctrl.player.xp, x, y, Color.white, 1f); y += sh;
-		r.drawStringOnScreen("level : " + ctrl.getLevelCount(), x, y, Color.white, 1f); y += sh;
-		r.drawStringOnScreen("enemies left : " + (ctrl.mobs.size()-1), x, y, Color.white, 1f); y += sh;
-		Weapon wpn = ctrl.player.getActiveWeapon();
-		if(wpn != null){
-			y = h - 20 - (1 + Math.max(Damage.DAMAGE_TYPE_COUNT, Weapon.AMMO_TYPE_COUNT)) * sh;
-			wpn.renderInformation(x, y, true);
-		}
+		
+		// mini map
 		if(drawMap){
 			r.drawMiniMap(new PointF(10, 10), 
 				new PointF(gc.getWidth()-20, gc.getHeight()-20), 
 				ctrl.level.getScoutedMin(), ctrl.level.getScoutedMax(), 0.5f);
 		} else {
 			int w = 300;
-			h = 300;
+			int h = 300;
 			PointF mmPos = new PointF(gc.getWidth()-w-1, gc.getHeight()-h-1);
 			r.drawMiniMap(mmPos, new PointF(w, h), 10, ctrl.player.pos, 0.3f);
 			r.getGraphics().setColor(new Color(0f, 0.8f, 1f, 0.1f));
 			r.getGraphics().drawRect(mmPos.x, mmPos.y, w, h);
+		}
+		
+		// rest of the HUD
+		Weapon wpn = ctrl.player.getActiveWeapon();
+		if(wpn != null){
+			int h = gc.getHeight();
+			int sh = r.getStringHeight("a") + 4;
+			int y = h - 20 - (1 + Math.max(Damage.DAMAGE_TYPE_COUNT, Weapon.AMMO_TYPE_COUNT)) * sh;
+			wpn.renderInformation(20, y, true);
 		}
 	}
 	
