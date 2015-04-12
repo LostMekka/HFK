@@ -63,8 +63,8 @@ public class GameplaySubState extends GameSubState{
 	private int healthTimer = 0;
 	private Color healthColor = new Color(0.3f, 1f, 0.3f);
 	private static final int MAX_SKILLS_TIMER = 1000;
-	private static final Color SKILLS_COLOR_1 = new Color(0f, 0.8f, 0f);
-	private static final Color SKILLS_COLOR_2 = new Color(0f, 0.4f, 0f);
+	private static final Color SKILLS_COLOR_1 = new Color(0.2f, 0.65f, 0.2f);
+	private static final Color SKILLS_COLOR_2 = new Color(0.1f, 0.4f, 0.1f);
 	private int skillsTimer = 0;
 	private Color skillsColor = new Color(0.3f, 1f, 0.3f);
 
@@ -76,9 +76,6 @@ public class GameplaySubState extends GameSubState{
 				HEALTH_COLOR_2 : HEALTH_COLOR_1;
 		skillsTimer = (skillsTimer + time) % MAX_SKILLS_TIMER;
 		float sc = Math.abs((float)skillsTimer / MAX_SKILLS_TIMER - 0.5f);
-		SKILLS_COLOR_1.r = 0.2f;
-		SKILLS_COLOR_1.g = 0.65f;
-		SKILLS_COLOR_1.b = 0.2f;
 		skillsColor.r = 0.2f + 0.4f * sc;
 		skillsColor.g = 0.6f + 0.2f * sc;
 		skillsColor.b = 0.2f + 0.4f * sc;
