@@ -1,0 +1,17 @@
+bugs
+ - items are rendered behind stairs
+
+
+changes
+ - display xp above tracked skills list instead of at the xp
+ - add mouse wheel events to InputMap
+ - remove exchange screen exchange flag? feels very un-intuitive...
+
+
+features
+ - dedicated map screen with custom waypoint markers
+ - emp weapons that remove some or all energy from enemies weapons and armor
+ - energy armor!
+ - armor !!!!
+ - land mines
+

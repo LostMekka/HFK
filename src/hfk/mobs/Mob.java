@@ -548,10 +548,10 @@ public abstract class Mob implements StatsModifier {
 	}
 
 	@Override
-	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
+	public void addDamageCardEffects(DamageCard card, InventoryItem i, Mob m) {
 		if(m != this) return;
-		skills.addDamageCardEffects(card, w, m);
-		inventory.addDamageCardEffects(card, w, m);
+		skills.addDamageCardEffects(card, i, m);
+		inventory.addDamageCardEffects(card, i, m);
 	}
 
 	@Override

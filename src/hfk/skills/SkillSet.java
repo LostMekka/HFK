@@ -8,6 +8,8 @@ package hfk.skills;
 
 import hfk.Shot;
 import hfk.game.GameController;
+import hfk.items.InventoryItem;
+import hfk.items.ItemType;
 import hfk.items.weapons.CheatRifle;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
@@ -54,7 +56,7 @@ public class SkillSet implements StatsModifier {
 		skills.add(s);
 		
 		s = new Skill(parent, 8, "explosive bullets", "all pistols deal extra fire damage.");
-		s.weaponType = Weapon.WeaponType.pistol;
+		s.itemType = ItemType.wPistol;
 		for(int i=0; i<s.getMaxLevel(); i++){
 			DamageCard dc = DamageCard.createBonus();
 			dc.setDieCount(Damage.DamageType.fire.ordinal(), (i+1)/2);
@@ -65,7 +67,7 @@ public class SkillSet implements StatsModifier {
 		skills.add(s);
 		
 		s = new Skill(parent, 8, "ricochet shells", "nothing says \"in your face\" more than a shotgun. you modified your shells so that pellets bounce off walls and travel further, which makes you the ultimate close-quarter badass.");
-		s.weaponType = Weapon.WeaponType.shotgun;
+		s.itemType = ItemType.wShotgun;
 		for(int i=0; i<s.getMaxLevel(); i++){
 			WeaponStatsCard wsc = WeaponStatsCard.createBonus();
 			wsc.shotBounces = i + 1;
@@ -82,7 +84,7 @@ public class SkillSet implements StatsModifier {
 		skills.add(shotgunDouble);
 		
 		s = new Skill(parent, 8, "rapid fire", "the machinegun is your best friend. why someone would use any other weapons is beyond your comprehension... this skill raises the fire rate of all machineguns.");
-		s.weaponType = Weapon.WeaponType.machinegun;
+		s.itemType = ItemType.wMachinegun;
 		for(int i=0; i<s.getMaxLevel(); i++){
 			WeaponStatsCard wsc = WeaponStatsCard.createBonus();
 			wsc.shotInterval = -0.05f*(i+2);
@@ -121,7 +123,7 @@ public class SkillSet implements StatsModifier {
 		skills.add(s);
 		
 		s = new Skill(parent, 1, "double reloader", "reloading every single bullet by itself annoys you so much that you just squeeze in a second one with each reload step. \n\"who cares if it is breaking the weapon, i have no time!\"");
-		s.weaponType = Weapon.WeaponType.singleReload;
+		s.itemType = ItemType.wSingleReload;
 		WeaponStatsCard wsc = WeaponStatsCard.createBonus();
 		wsc.reloadCount = new int[Weapon.AmmoType.values().length];
 		for(int i=0; i<wsc.reloadCount.length; i++) wsc.reloadCount[i] = 1;
@@ -291,8 +293,8 @@ public class SkillSet implements StatsModifier {
 	}
 	
 	@Override
-	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
-		for(Skill s : skills) s.addDamageCardEffects(card, w, m);
+	public void addDamageCardEffects(DamageCard card, InventoryItem i, Mob m) {
+		for(Skill s : skills) s.addDamageCardEffects(card, i, m);
 	}
 
 	@Override
@@ -307,7 +309,7 @@ public class SkillSet implements StatsModifier {
 	
 	public Shot modifyShot(Shot s, Weapon w, Mob m){
 		if(m != parent || w.type == null) return s;
-		if(w.type.isSubTypeOf(Weapon.WeaponType.grenadeLauncher)){
+		if(w.type.isSubTypeOf(ItemType.wGrenadeLauncher)){
 			s.smartGrenadeLevel = Math.max(grenadeSmart.getLevel(), s.smartGrenadeLevel);
 			s.manualDetonateLevel = Math.max(grenadeManual.getLevel(), s.manualDetonateLevel);
 		}
@@ -328,11 +330,11 @@ public class SkillSet implements StatsModifier {
 	
 	public boolean canAltFire(Weapon w){
 		if(w instanceof CheatRifle) return true;
-		if(w.type.isSubTypeOf(Weapon.WeaponType.zoomable)) return true;
-		if(w.type.isSubTypeOf(Weapon.WeaponType.grenadeLauncher)) return grenadeManual.getLevel() > 0;
-		if(w.type.isSubTypeOf(Weapon.WeaponType.shotgun)) switch(shotgunDouble.getLevel()){
+		if(w.type.isSubTypeOf(ItemType.wZoomable)) return true;
+		if(w.type.isSubTypeOf(ItemType.wGrenadeLauncher)) return grenadeManual.getLevel() > 0;
+		if(w.type.isSubTypeOf(ItemType.wShotgun)) switch(shotgunDouble.getLevel()){
 			case 0: return false;
-			case 1: return w.type.isSubTypeOf(Weapon.WeaponType.doubleBarrelShotgun);
+			case 1: return w.type.isSubTypeOf(ItemType.wDoubleBarrelShotgun);
 			case 2: return true;
 		}
 		return true;

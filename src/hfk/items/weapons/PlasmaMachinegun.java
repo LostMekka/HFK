@@ -8,6 +8,7 @@ package hfk.items.weapons;
 import hfk.PointF;
 import hfk.Shot;
 import hfk.game.Resources;
+import hfk.items.ItemType;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
 import hfk.stats.WeaponStatsCard;
@@ -22,7 +23,7 @@ public class PlasmaMachinegun extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("shot1.wav");
 		setImg("w_plasmamachinegun.png");
-		type = WeaponType.plasmaMachinegun;
+		type = ItemType.wPlasmaMachinegun;
 	}
 
 	@Override

@@ -5,7 +5,8 @@
  */
 package hfk.stats;
 
-import hfk.items.weapons.Weapon;
+import hfk.items.ItemType;
+
 
 /**
  *
@@ -13,7 +14,7 @@ import hfk.items.weapons.Weapon;
  */
 public abstract class ItemEffect {
 	
-	public Weapon.WeaponType weaponType = null;
+	public ItemType itemType = null;
 	
 	public MobStatsCard msc = MobStatsCard.createBonus();
 	public WeaponStatsCard wsc = WeaponStatsCard.createBonus();

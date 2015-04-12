@@ -9,6 +9,7 @@ import hfk.PointF;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.Resources;
+import hfk.items.ItemType;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
 import hfk.stats.WeaponStatsCard;
@@ -23,7 +24,7 @@ public class DamagedHuntingGun extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("w_sg_s.wav");
 		setImg("w_damagedhuntinggun.png");
-		type = WeaponType.damagedHuntingGun;
+		type = ItemType.wDamagedHuntingGun;
 	}
 
 	@Override

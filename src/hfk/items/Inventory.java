@@ -348,9 +348,9 @@ public final class Inventory implements StatsModifier {
 	}
 	
 	@Override
-	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
-		for(InventoryItem i : getEquippedItems()){
-			i.addDamageCardEffects(card, w, m);
+	public void addDamageCardEffects(DamageCard card, InventoryItem i ,Mob m) {
+		for(InventoryItem equipped : getEquippedItems()){
+			equipped.addDamageCardEffects(card, i, m);
 		}
 	}
 

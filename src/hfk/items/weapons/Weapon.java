@@ -13,6 +13,7 @@ import hfk.game.GameRenderer;
 import hfk.game.Resources;
 import hfk.items.AmmoItem;
 import hfk.items.InventoryItem;
+import hfk.items.ItemType;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
@@ -28,89 +29,6 @@ import org.newdawn.slick.Sound;
  */
 public abstract class Weapon extends InventoryItem {
 
-	public static class WeaponType{
-		// generic types
-		public static final WeaponType none = new WeaponType("!!no type!!");
-		public static final WeaponType cheatWeapon = new WeaponType("cheat weapon");
-		public static final WeaponType explosiveWeapon = new WeaponType("explosive weapon");
-		public static final WeaponType energyWeapon = new WeaponType("energy weapon");
-		public static final WeaponType plasmaWeapon = new WeaponType("plasma weapon");
-		public static final WeaponType zoomable = new WeaponType("zoomable");
-		public static final WeaponType shotgun = new WeaponType("shotgun");
-		public static final WeaponType machinegun = new WeaponType("machinegun");
-		public static final WeaponType automatic = new WeaponType("automatic weapon");
-		public static final WeaponType singleReload = new WeaponType("single reload");
-		// concrete types
-		public static final WeaponType autoShotgun = new WeaponType("auto shotgun");
-		public static final WeaponType cheatRifle = new WeaponType("cheat rifle");
-		public static final WeaponType damagedHuntingGun = new WeaponType("damaged hunting gun");
-		public static final WeaponType doubleBarrelShotgun = new WeaponType("double barrel shotgun");
-		public static final WeaponType energyPistol = new WeaponType("energy pistol");
-		public static final WeaponType grenadeLauncher = new WeaponType("grenade launcher");
-		public static final WeaponType pistol = new WeaponType("pistol");
-		public static final WeaponType plasmaMachinegun = new WeaponType("plasma machinegun");
-		public static final WeaponType plasmaStorm = new WeaponType("plasma storm");
-		public static final WeaponType pumpActionShotgun = new WeaponType("pump action shotgun");
-		public static final WeaponType rocketLauncher = new WeaponType("rocket launcher");
-		public static final WeaponType sniperRifle = new WeaponType("sniper rifle");
-		// init parents
-		static { 
-			// generic types
-			machinegun.setParents(new WeaponType[]{automatic});
-			// concrete types
-			cheatRifle.setParents(new WeaponType[]{cheatWeapon, grenadeLauncher});
-			autoShotgun.setParents(new WeaponType[]{shotgun, automatic, singleReload});
-			doubleBarrelShotgun.setParents(new WeaponType[]{shotgun});
-			energyPistol.setParents(new WeaponType[]{pistol, energyWeapon});
-			grenadeLauncher.setParents(new WeaponType[]{explosiveWeapon});
-			plasmaMachinegun.setParents(new WeaponType[]{machinegun, plasmaWeapon});
-			plasmaStorm.setParents(new WeaponType[]{machinegun, plasmaWeapon});
-			pumpActionShotgun.setParents(new WeaponType[]{shotgun, singleReload});
-			rocketLauncher.setParents(new WeaponType[]{explosiveWeapon});
-			sniperRifle.setParents(new WeaponType[]{zoomable, singleReload});
-		}
-		
-		private final String name;
-		private WeaponType[] parents = null;
-		private WeaponType(String name){ 
-			this.name = name;
-		}
-		private void setParents(WeaponType[] parents) {
-			this.parents = parents;
-			// test for cycles in parent relations
-			for(WeaponType parent : parents){
-				WeaponType[] path = parent.detectCycles(this, new WeaponType[0]);
-				if(path != null){
-					String s = "cycle in weapon type parent relation detected: ";
-					s += toString() + " -> ";
-					for(WeaponType t : path) s += t.toString() + " -> ";
-					s += toString();
-					throw new RuntimeException(s);
-				}
-			}
-		}
-		public WeaponType[] detectCycles(WeaponType t, WeaponType[] path){
-			if(this == t) return path;
-			if(parents != null) for(WeaponType parent : parents){
-				WeaponType[] newPath = new WeaponType[path.length+1];
-				System.arraycopy(path, 0, newPath, 0, path.length);
-				newPath[path.length] = this;
-				WeaponType[] ans = parent.detectCycles(t, newPath);
-				if(ans != null) return ans;
-			}
-			return null;
-		}
-		@Override
-		public String toString(){
-			return name;
-		}
-		public boolean isSubTypeOf(WeaponType t){
-			if(this == t) return true;
-			if(parents != null) for(WeaponType parent : parents) if(parent.isSubTypeOf(t)) return true;
-			return false;
-		}
-	}
-	
 	public static enum AmmoType {
 		bullet {
 			@Override public String getShortID(){ return "b"; }
@@ -142,7 +60,6 @@ public abstract class Weapon extends InventoryItem {
 	
 	public enum WeaponState { ready, cooldownShot, cooldownBurst, cooldownReload }
 	
-	public WeaponType type = WeaponType.none;
 	public Mob bionicParent = null;
 	public float currentScatter;
 	public float weaponLength = 0.5f, lengthOffset = 0.3f;
@@ -184,7 +101,7 @@ public abstract class Weapon extends InventoryItem {
 			setReady();
 		}
 		// do weapon specific stuff
-		if(type.isSubTypeOf(WeaponType.zoomable)){
+		if(type.isSubTypeOf(ItemType.wZoomable)){
 			if(m != null && zoom){
 				zoom = false;
 				effects.remove(zoomEffect);
@@ -420,7 +337,7 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public void pullAlternativeTriggerInternal(){
-		if(type.isSubTypeOf(WeaponType.grenadeLauncher)){
+		if(type.isSubTypeOf(ItemType.wGrenadeLauncher)){
 			boolean foundLevel2Shot = false;
 			for(Shot shot : GameController.get().shots){
 				if(!GameController.get().isMarkedForRemoval(shot) && shot.parent == this){
@@ -431,9 +348,9 @@ public abstract class Weapon extends InventoryItem {
 					}
 				}
 			}
-		} else if(type.isSubTypeOf(WeaponType.shotgun)){
+		} else if(type.isSubTypeOf(ItemType.wShotgun)){
 			pullTrigger(2, 100);
-		} else if(type.isSubTypeOf(WeaponType.zoomable) && zoomEffect != null){
+		} else if(type.isSubTypeOf(ItemType.wZoomable) && zoomEffect != null){
 			Mob m = getParentMob();
 			if(m != null){
 				if(zoom){
@@ -481,7 +398,7 @@ public abstract class Weapon extends InventoryItem {
 			s = initShot(s);
 			s.dmg = totalDamageCard.createDamage();
 			s.team = shotTeam;
-			s.isGrenade = type.isSubTypeOf(WeaponType.grenadeLauncher);
+			s.isGrenade = type.isSubTypeOf(ItemType.wGrenadeLauncher);
 			s.bounceCount = totalStats.shotBounces;
 			s.bounceProbability = totalStats.bounceProbability;
 			s.parent = this;

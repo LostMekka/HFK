@@ -44,6 +44,7 @@ public abstract class InventoryItem implements StatsModifier {
 	private static final PointF LABEL_OFFSET = new PointF(0f, -0.4f);
 	private static final float LABEL_BORDER = 4f;
 	
+	public ItemType type = ItemType.none;
 	public LinkedList<ItemEffect> effects = new LinkedList<>();
 	public PointF pos, vel = new PointF(0f, 0f);
 	public float angle = 0f, vAngle = 0f;
@@ -169,16 +170,16 @@ public abstract class InventoryItem implements StatsModifier {
 	}
 
 	@Override
-	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
+	public void addDamageCardEffects(DamageCard card, InventoryItem i, Mob m) {
 		for(ItemEffect e : effects){
-			if(e.dc != null && (e.weaponType == null || w.type.isSubTypeOf(e.weaponType))) card.add(e.dc);
+			if(e.dc != null && (e.itemType == null || i.type.isSubTypeOf(e.itemType))) card.add(e.dc);
 		}
 	}
 
 	@Override
 	public void addWeaponStatsCardEffects(WeaponStatsCard card, Weapon w, Mob m) {
 		for(ItemEffect e : effects){
-			if(e.wsc != null && (e.weaponType == null || w.type.isSubTypeOf(e.weaponType))) card.add(e.wsc);
+			if(e.wsc != null && (e.itemType == null || w.type.isSubTypeOf(e.itemType))) card.add(e.wsc);
 		}
 	}
 

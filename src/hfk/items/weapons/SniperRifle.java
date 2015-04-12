@@ -9,6 +9,7 @@ import hfk.PointF;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.Resources;
+import hfk.items.ItemType;
 import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import hfk.stats.DamageCard;
@@ -26,7 +27,7 @@ public class SniperRifle extends Weapon {
 		super(angle, position);
 		shotSound = Resources.getSound("w_p_s.wav");
 		setImg("w_sniperrifle.png");
-		type = WeaponType.sniperRifle;
+		type = ItemType.wSniperRifle;
 		zoomEffect = new ItemEffect() {
 			@Override
 			public String[] getDisplayStrings() {

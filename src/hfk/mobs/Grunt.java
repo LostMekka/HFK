@@ -9,6 +9,7 @@ import hfk.PointF;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.Resources;
+import hfk.items.ItemType;
 import hfk.items.weapons.Weapon;
 import hfk.skills.Skill;
 import hfk.stats.Damage;
@@ -35,7 +36,7 @@ public class Grunt extends Mob {
 		barrageTimeOnHit = 300;
 		barrageTimeOnLost = 300;
 		Weapon w = new Weapon(0.5f, pos) {
-			{shotTeam = Shot.Team.hostile; type = WeaponType.grenadeLauncher;}
+			{shotTeam = Shot.Team.hostile; type = ItemType.wGrenadeLauncher;}
 			@Override
 			public Shot initShot(Shot s) {
 				s.img = Resources.getImage("s_grenade.png");

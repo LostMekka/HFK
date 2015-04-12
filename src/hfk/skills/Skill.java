@@ -7,6 +7,8 @@
 package hfk.skills;
 
 import hfk.game.GameRenderer;
+import hfk.items.InventoryItem;
+import hfk.items.ItemType;
 import hfk.items.weapons.Weapon;
 import hfk.mobs.Mob;
 import hfk.stats.DamageCard;
@@ -26,7 +28,7 @@ public class Skill implements StatsModifier {
 	
 	public static enum SkillAvailability { available, cantAfford, isMaxed, isBlocked, reqNeeded, superMaxed }
 	
-	public Weapon.WeaponType weaponType = null;
+	public ItemType itemType = null;
 	public boolean isSuperSkill = false;
 	public String name, description;
 	public LinkedList<Skill> blocks = new LinkedList<>();
@@ -166,15 +168,15 @@ public class Skill implements StatsModifier {
 		return Math.round(costs[level] * parent.skills.getSkillCostMultiplier());
 	}
 	@Override
-	public void addDamageCardEffects(DamageCard card, Weapon w, Mob m) {
+	public void addDamageCardEffects(DamageCard card, InventoryItem i, Mob m) {
 		DamageCard c = getDamageCard();
-		if(c != null && (weaponType == null || w.type.isSubTypeOf(weaponType))) card.add(c);
+		if(c != null && (itemType == null || i.type.isSubTypeOf(itemType))) card.add(c);
 	}
 
 	@Override
 	public void addWeaponStatsCardEffects(WeaponStatsCard card, Weapon w, Mob m) {
 		WeaponStatsCard c = getWeaponStatsCard();
-		if(c != null && (weaponType == null || w.type.isSubTypeOf(weaponType))) card.add(c);
+		if(c != null && (itemType == null || w.type.isSubTypeOf(itemType))) card.add(c);
 	}
 
 	@Override
