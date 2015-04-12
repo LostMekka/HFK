@@ -95,12 +95,15 @@ public class Level implements Serializable{
 	
 	public boolean isScouted(PointI pos){
 		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+1 || pos.y >= getHeight()+1) return false;
-		return scouted[pos.x+1][pos.y+1];
+		return GameController.CHEAT_VISIBLE
+				|| GameController.CHEAT_SCOUTED
+				|| scouted[pos.x+1][pos.y+1];
 	}
 	
 	public boolean isVisible(PointI pos){
 		if(pos.x < -1 || pos.y < -1 || pos.x >= getWidth()+1 || pos.y >= getHeight()+1) return false;
-		return visible[pos.x+1][pos.y+1];
+		return GameController.CHEAT_VISIBLE
+				|| visible[pos.x+1][pos.y+1];
 	}
 	
 	public void setScouted(PointI pos){
@@ -133,30 +136,48 @@ public class Level implements Serializable{
 	}
 	
 	public boolean hasScoutedTiles(){
-		return scoutedMin != null;
+		return GameController.CHEAT_SCOUTED || scoutedMin != null;
 	}
 	
 	public PointI getScoutedMin(){
+		if (GameController.CHEAT_SCOUTED) {
+			return new PointI(0, 0);
+		}
 		return scoutedMin == null ? new PointI(-1, -1) : scoutedMin;
 	}
 	
 	public PointI getScoutedMax(){
+		if (GameController.CHEAT_SCOUTED) {
+			return new PointI(getWidth()-1, getHeight()-1);
+		}
 		return scoutedMax == null ? new PointI(-1, -1) : scoutedMax;
 	}
 	
 	public int getScoutedMinX(){
+		if (GameController.CHEAT_SCOUTED) {
+			return 0;
+		}
 		return scoutedMin == null ? -1 : scoutedMin.x;
 	}
 	
 	public int getScoutedMinY(){
+		if (GameController.CHEAT_SCOUTED) {
+			return 0;
+		}
 		return scoutedMin == null ? -1 : scoutedMin.y;
 	}
 	
 	public int getScoutedMaxX(){
+		if (GameController.CHEAT_SCOUTED) {
+			return getWidth() - 1;
+		}
 		return scoutedMax == null ? -1 : scoutedMax.x;
 	}
 	
 	public int getScoutedMaxY(){
+		if (GameController.CHEAT_SCOUTED) {
+			return getHeight() - 1;
+		}
 		return scoutedMax == null ? -1 : scoutedMax.y;
 	}
 	

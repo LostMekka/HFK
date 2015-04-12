@@ -38,4 +38,5 @@ public abstract class GameSubState {
 	public abstract void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException;
 	public abstract void render(GameController ctrl, GameRenderer r, GameContainer gc) throws SlickException;
 	
+	public void onNextLevel() {}
 }

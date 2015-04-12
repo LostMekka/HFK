@@ -51,6 +51,9 @@ public class InputMap implements MouseListener {
 	public static final String A_RESUMEGAME = "resumegame";
 	public static final String A_RESTARTGAME = "restartgame";
 	
+	public static final String A_CHEAT_OVERVIEW = "cheat_overview";
+	public static final String A_CHEAT_CLOSE    = "cheat_close";
+	
 	public static final String A_SELECTSKILL = "selectskill";
 	public static final String A_TRACKSKILL = "trackskill";
 	public static final String A_OPEN_SKILLS = "open_skills";

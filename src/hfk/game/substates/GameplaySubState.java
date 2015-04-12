@@ -38,6 +38,7 @@ public class GameplaySubState extends GameSubState{
 	
 	public GameplaySubState(InputMap inputMap) {
 		super(inputMap);
+		inputMap.addKey(Input.KEY_F1, InputMap.A_CHEAT_OVERVIEW);
 		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_PAUSE);
 		inputMap.addKey(Input.KEY_I, InputMap.A_OPEN_INVENTORY);
 		inputMap.addKey(Input.KEY_K, InputMap.A_OPEN_SKILLS);
@@ -98,6 +99,10 @@ public class GameplaySubState extends GameSubState{
 		if(in.isKeyPressed(InputMap.A_OPEN_SKILLS)){
 			ctrl.viewSkills(ctrl.player.skills);
 			lootMode = false;
+			return;
+		}
+		if(in.isKeyPressed(InputMap.A_CHEAT_OVERVIEW)){
+			ctrl.cheatOverview();
 			return;
 		}
 		lootMode = in.isKeyDown(InputMap.A_LOOT);

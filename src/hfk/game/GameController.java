@@ -6,7 +6,6 @@
 
 package hfk.game;
 
-import hfk.Box;
 import hfk.ExpRandom;
 import hfk.Explosion;
 import hfk.game.substates.GameSubState;
@@ -20,17 +19,14 @@ import hfk.game.substates.GameOverSubState;
 import hfk.game.substates.GameplaySubState;
 import hfk.game.substates.InventorySubState;
 import hfk.game.substates.OmniSubState;
+import hfk.game.substates.OverviewSubState;
 import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
-import hfk.items.weapons.EnergyPistol;
-import hfk.items.weapons.Pistol;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.level.factory.LevelFactory;
-import hfk.level.factory.concreteFactories.CaveAreaFactory;
-import hfk.level.factory.concreteFactories.EmptyAreaFactory;
 import hfk.level.factory.concreteFactories.RoomsFactory;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
@@ -56,7 +52,8 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class GameController {
 	
-	public static boolean CHEAT_MAPREVEAL = false;
+	public static boolean CHEAT_SCOUTED = false;
+	public static boolean CHEAT_VISIBLE = false;
 	
 	public static final String VERSION = "0.1.1";
 	
@@ -99,6 +96,8 @@ public class GameController {
 	public OmniSubState omniSubState;
 	public PauseSubState pauseSubState;
 	public SkillsSubState skillsSubState;
+	// payload: for development
+	public OverviewSubState overviewSubState;
 
 	public GameRenderer renderer;
 	public GameSettings settings;
@@ -144,6 +143,7 @@ public class GameController {
 		omniSubState = new OmniSubState(inputMap);
 		pauseSubState = new PauseSubState(inputMap);
 		skillsSubState = new SkillsSubState(inputMap);
+		overviewSubState = new OverviewSubState(inputMap);
 		currSubState = gameplaySubState;
 		renderer = new GameRenderer(gc);
 	}
@@ -174,6 +174,10 @@ public class GameController {
 
 	public float getZoom() {
 		return zoom;
+	}
+
+	public void setZoom(float zoom) {
+		this.zoom = zoom;
 	}
 
 	public PointF getScreenPos(){
@@ -250,6 +254,7 @@ public class GameController {
 		omniSubState.initAfterLoading(this, gc);
 		pauseSubState.initAfterLoading(this, gc);
 		skillsSubState.initAfterLoading(this, gc);
+		overviewSubState.initAfterLoading(this, gc);
 		newGame();
 	}
 	
@@ -282,7 +287,7 @@ public class GameController {
 		level = f.create(d, r);
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
-		if(CHEAT_MAPREVEAL) for(PointI p : new Box(0, 0, s, s)) level.setScouted(p);
+		currSubState.onNextLevel();
 	}
 	
 	public void printBalanceInfo(){
@@ -346,6 +351,13 @@ public class GameController {
 		if(wasDifferentState || s != skillsSubState.getSkillSet()) skillsSubState.init(s);
 	}
 	
+	public void cheatOverview() {
+		if (currSubState != overviewSubState) {
+			currSubState = overviewSubState;
+			overviewSubState.onActivate();
+		}
+	}
+
 	public void cameraShake(float amount){
 		screenShake = Math.max(amount, screenShake);
 	}
