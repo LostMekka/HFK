@@ -31,7 +31,7 @@ public class SplitMenuBox extends MenuBox {
 	
 	private MenuBox[] boxes = new MenuBox[Location.values().length];
 	private boolean sh = false, sv = false;
-	private int x1 = 0, y1 = 0, w1, h1, x2, y2, w2, h2;
+	private int x1, y1, w1, h1, x2, y2, w2, h2;
 
 	public SplitMenuBox(SplitMenuBox b, Location l, float splitHoriz, float splitVert) {
 		super(b, l);
@@ -49,6 +49,8 @@ public class SplitMenuBox extends MenuBox {
 	}
 
 	private void init(float splitHoriz, float splitVert){
+		x1 = getX();
+		y1 = getY();
 		sh = splitHoriz > 0f && splitHoriz < 1f;
 		sv = splitVert > 0f && splitVert < 1f;
 		if(!sh && !sv) throw new IllegalArgumentException("split menu box is not splitted at all");
