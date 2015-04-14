@@ -22,6 +22,7 @@ import org.newdawn.slick.Animation;
 public class Player extends Mob {
 
 	private final LinkedList<Skill> trackedSkills = new LinkedList<>();
+	private String name = null;
 	
 	public Player(PointF pos){
 		super(pos);
@@ -70,9 +71,13 @@ public class Player extends Mob {
 		return -1;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	@Override
 	public String getDisplayName() {
-		return "Player";
+		return name == null ? "Player" : name;
 	}
 
 	@Override
