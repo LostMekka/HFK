@@ -21,7 +21,7 @@ import org.newdawn.slick.Animation;
  */
 public class Player extends Mob {
 
-	private LinkedList<Skill> trackedSkills = new LinkedList<>();
+	private final LinkedList<Skill> trackedSkills = new LinkedList<>();
 	
 	public Player(PointF pos){
 		super(pos);
