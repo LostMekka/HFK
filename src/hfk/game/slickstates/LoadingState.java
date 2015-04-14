@@ -94,7 +94,9 @@ public class LoadingState extends BasicGameState implements LoadingProgressListe
 		GameController.set(ctrl);
 		if(noMusic != null && noMusic.equals("true")) GameController.get().musicIsOn = false;
 		GameController.get().initAfterLoading(sbg.getContainer());
-		sbg.enterState(HFKGame.STATEID_GAMEPLAY);
+		MenuState menuState = (MenuState)sbg.getState(HFKGame.STATEID_MENU);
+		menuState.initAfterLoading(sbg.getContainer());
+		sbg.enterState(HFKGame.STATEID_MENU);
 	}
 	
 }
