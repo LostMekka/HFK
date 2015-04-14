@@ -9,6 +9,7 @@ package hfk.game.substates;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
+import hfk.game.HFKGame;
 import hfk.game.InputMap;
 import hfk.menu.MenuBox;
 import hfk.menu.SimpleMenuBox;
@@ -41,7 +42,7 @@ public class PauseSubState extends GameSubState{
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		if(getInputMap().isKeyPressed(InputMap.A_RESTARTGAME)) ctrl.newGame();
-		if(getInputMap().isKeyPressed(InputMap.A_QUIT)) gc.exit();
+		if(getInputMap().isKeyPressed(InputMap.A_QUIT)) sbg.enterState(HFKGame.STATEID_MENU);
 		if(getInputMap().isKeyPressed(InputMap.A_RESUMEGAME)){
 			GameController.get().setCurrSubState(GameController.get().gameplaySubState);
 		}
@@ -56,7 +57,7 @@ public class PauseSubState extends GameSubState{
 		y = drawString(r, y, "------------------", Color.yellow, 2, w);
 		y = drawString(r, y, "esc : resume", Color.yellow, 2, w);
 		y = drawString(r, y, "r : restart", Color.yellow, 2, w);
-		y = drawString(r, y, "q : quit", Color.yellow, 2, w);
+		y = drawString(r, y, "q : quit to main menu", Color.yellow, 2, w);
 	}
 	
 	private int drawString(GameRenderer r, int y, String s, Color c, int scale, int w){

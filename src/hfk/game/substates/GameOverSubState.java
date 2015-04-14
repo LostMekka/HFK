@@ -9,6 +9,7 @@ package hfk.game.substates;
 import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
+import hfk.game.HFKGame;
 import hfk.game.InputMap;
 import hfk.menu.MenuBox;
 import hfk.menu.SimpleMenuBox;
@@ -30,7 +31,7 @@ public class GameOverSubState extends GameSubState {
 		super(inputMap);
 		inputMap.addKey(Input.KEY_SPACE, InputMap.A_NEWGAME);
 		inputMap.addKey(Input.KEY_Q, InputMap.A_QUIT);
-		// TODO: add menu key when there is a menu
+		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_MAINMENU);
 	}
 
 	@Override
@@ -41,6 +42,7 @@ public class GameOverSubState extends GameSubState {
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		if(getInputMap().isKeyPressed(InputMap.A_NEWGAME)) GameController.get().newGame();
+		if(getInputMap().isKeyPressed(InputMap.A_MAINMENU)) sbg.enterState(HFKGame.STATEID_MENU);
 		if(getInputMap().isKeyPressed(InputMap.A_QUIT)) gc.exit();
 	}
 
@@ -57,7 +59,8 @@ public class GameOverSubState extends GameSubState {
 		y = drawString(r, y, "damage taken: " + ctrl.player.totalDamageTaken, Color.yellow, 2, w);
 		y = drawString(r, y, "-------------------------------", Color.yellow, 2, w);
 		y = drawString(r, y, "space : retry", Color.yellow, 2, w);
-		y = drawString(r, y, "q : quit", Color.yellow, 2, w);
+		y = drawString(r, y, "escape : quit to menu", Color.yellow, 2, w);
+		y = drawString(r, y, "q : quit game", Color.yellow, 2, w);
 	}
 	
 	private int drawString(GameRenderer r, int y, String s, Color c, int scale, int w){
