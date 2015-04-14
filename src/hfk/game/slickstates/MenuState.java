@@ -60,6 +60,7 @@ public class MenuState extends BasicGameState{
 	@Override
 	public void update(GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		Input in = gc.getInput();
+		if(in.isKeyDown(Input.KEY_ESCAPE)) gc.exit();
 		if(in.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)){
 			GameController ctrl = GameController.get();
 			int b = buttons.getButtonIndexUnderMouse(in.getMouseX(), in.getMouseY());
