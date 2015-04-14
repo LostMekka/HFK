@@ -23,11 +23,11 @@ import hfk.items.weapons.SniperRifle;
 public class ItemType {
 
 	public static final ItemType none = new ItemType("!!no type!!");
+	public static final ItemType equippable = new ItemType("equippable");
 	
 //----- WEAPONS ----------------------------------------------------------------
 	// generic types
 	public static final ItemType weapon = new ItemType("weapon");
-	public static final ItemType weaponWithCheat = new ItemType("weapon(cheat)");
 	public static final ItemType wCheatWeapon = new ItemType("cheat weapon");
 	public static final ItemType wExplosiveWeapon = new ItemType("explosive weapon");
 	public static final ItemType wEnergyWeapon = new ItemType("energy weapon");
@@ -65,7 +65,8 @@ public class ItemType {
 	// init parents
 	static { 
 		// generic types
-		wCheatWeapon.setParents(new ItemType[]{weapon, weaponWithCheat});
+		weapon.setParents(new ItemType[]{equippable});
+		wCheatWeapon.setParents(new ItemType[]{weapon});
 		wExplosiveWeapon.setParents(new ItemType[]{weapon});
 		wEnergyWeapon.setParents(new ItemType[]{weapon});
 		wPlasmaWeapon.setParents(new ItemType[]{weapon});
@@ -75,6 +76,7 @@ public class ItemType {
 		wAutomatic.setParents(new ItemType[]{weapon});
 		wSingleReload.setParents(new ItemType[]{weapon});
 		wMachinegun.setParents(new ItemType[]{wAutomatic});
+		wPistol.setParents(new ItemType[]{weapon});
 		// concrete types
 		wCheatRifle.setParents(new ItemType[]{wCheatWeapon, wGrenadeLauncher});
 		wAutoShotgun.setParents(new ItemType[]{wShotgun, wAutomatic, wSingleReload});
