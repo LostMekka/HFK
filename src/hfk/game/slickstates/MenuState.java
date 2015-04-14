@@ -42,7 +42,7 @@ public class MenuState extends BasicGameState{
 		split = new SplitMenuBox(gc, f, 1f);
 		logoBox = new SimpleMenuBox(split, SplitMenuBox.Location.topLeft);
 		buttons = new ButtonsMenuBox(split, SplitMenuBox.Location.bottomLeft);
-		buttons.setButtons("new game: easy", "new game: medium", "new game: hard", "new game: insane", "exit");
+		buttons.setButtons(2, 800, "new game: easy", "new game: medium", "new game: hard", "new game: insane", "exit");
 	}
 	
 	@Override

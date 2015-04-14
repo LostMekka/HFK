@@ -31,13 +31,21 @@ public class ButtonsMenuBox extends SimpleMenuBox {
 	}
 	
 	public void setButtons(String... names){
+		setButtons(1, -1, names);
+	}
+	
+	public void setButtons(int textSize, int fixedWidth, String... names){
 		int mx = getUsableX() + getUsableWidth() / 2;
 		int my = getUsableY() + getUsableHeight() / 2;
-		int bh = Button.getDefaultHeight() + 4;
+		int bh = textSize * Button.getDefaultHeight() + 10;
 		int n = names.length;
 		buttons = new Button[n];
 		for(int i=0; i<n; i++){
-			buttons[i] = new Button(mx, my + i*bh - n*bh/2, names[i]);
+			if(fixedWidth<1){
+				buttons[i] = new Button(mx, my + i*bh - n*bh/2, names[i], textSize);
+			} else {
+				buttons[i] = new Button(mx, my + i*bh - n*bh/2, fixedWidth, names[i], textSize);
+			}
 		}
 	}
 	
