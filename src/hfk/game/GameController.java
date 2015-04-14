@@ -22,6 +22,7 @@ import hfk.game.substates.OmniSubState;
 import hfk.game.substates.OverviewSubState;
 import hfk.game.substates.PauseSubState;
 import hfk.game.substates.SkillsSubState;
+import hfk.items.HealthPack;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
@@ -266,7 +267,25 @@ public class GameController {
 		//printBalanceInfo();
 		Weapon weapon = new hfk.items.weapons.Pistol(0, pp);
 		player.inventory.equipWeaponFromGround(weapon);
-		player.inventory.addAmmoClips(weapon, 6);
+		switch(difficultyLevel){
+			case 0:
+				player.inventory.addAmmoClips(weapon, 10);
+				player.inventory.addItem(new HealthPack(pp, HealthPack.Type.medium));
+				player.inventory.addItem(new HealthPack(pp, HealthPack.Type.medium));
+				player.inventory.addItem(new HealthPack(pp, HealthPack.Type.medium));
+				break;
+			case 1:
+				player.inventory.addAmmoClips(weapon, 4);
+				player.inventory.addItem(new HealthPack(pp, HealthPack.Type.small));
+				break;
+			case 2:
+				player.inventory.addAmmoClips(weapon, 2);
+				break;
+			case 3:
+				player.inventory.addAmmoClips(weapon, 1);
+				player.hp = 25;
+				break;
+		}
 		currSubState = gameplaySubState;
 		playerIsAlive = true;
 		nextLevel();
@@ -302,24 +321,37 @@ public class GameController {
 	}
 	
 	public int getLevelDifficultyLimit(int level, boolean addRandomPart){
-		// TODO: use difficultyLevel
 		double d = Math.pow(level+3.4, 2.15);
+		switch(difficultyLevel){
+			case 0: d *= 0.7; break;
+			case 2: d *= 1.5; break;
+			case 3: d *= 2.5; break;
+		}
 		ExpRandom ran = new ExpRandom(0.75);
 		if(addRandomPart) d *= 1 + 0.35 * ran.getNextDouble();
 		return (int)d;
 	}
 	
 	public int getLevelRarityLimit(int level, boolean addRandomPart){
-		// TODO: use difficultyLevel
 		double r = 100 * Math.pow(level+5, 2.2);
+		switch(difficultyLevel){
+			case 0: r *= 0.8; break;
+			case 2: r *= 1.4; break;
+			case 3: r *= 1.8; break;
+		}
 		ExpRandom ran = new ExpRandom(0.9);
 		if(addRandomPart) r *= 1 + 0.6 * ran.getNextDouble();
 		return (int)r;
 	}
 	
 	public float getSkillCostIncreaseRate(){
-		// TODO: use difficultyLevel
-		return 1f/3f;
+		switch(difficultyLevel){
+			case 0: return 0.15f;
+			case 1: return 0.3f;
+			case 2: return 0.5f;
+			case 3: return 0.8f;
+		}
+		throw new RuntimeException("difficulty level not registered! (" + difficultyLevel + ")");
 	}
 	
 	public int getLevelCount(){
