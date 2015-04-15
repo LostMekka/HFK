@@ -39,9 +39,12 @@ public class InputMap implements MouseListener {
 	
 	public static final String A_EXCHANGE_UP = "exchange_up";
 	public static final String A_EXCHANGE_DOWN = "exchange_down";
+	public static final String A_EXCHANGE_USE = "exchange_use";
 	public static final String A_EXCHANGE_MOVE = "exchange_move";
-	public static final String A_EXCHANGE_SWAP = "exchange_swap";
-	public static final String A_EXCHANGE_CLOSE = "exchange_ close";
+	public static final String A_EXCHANGE_DROP = "exchange_drop";
+	public static final String A_EXCHANGE_UNLOAD = "exchange_unload";
+	public static final String A_EXCHANGE_ALTERNATIVE = "exchange_alt";
+	public static final String A_EXCHANGE_CLOSE = "exchange_close";
 	
 	public static final String A_NEWGAME = "newgame";
 	public static final String A_QUIT = "quit";

@@ -31,7 +31,7 @@ import org.newdawn.slick.state.StateBasedGame;
 public class ExchangeSubState extends GameSubState{
 
 	private Inventory invLeft = null, invRight = null;
-	private InventoryItem selectedItem = null, markedItem = null;
+	private InventoryItem selectedItem = null;
 	private boolean selectedIsLeft, markedIsLeft;
 	private SplitMenuBox mb;
 	private SimpleMenuBox mbLeft, mbRight, mbDescr;
@@ -42,8 +42,11 @@ public class ExchangeSubState extends GameSubState{
 		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_EXCHANGE_CLOSE);
 		inputMap.addKey(Input.KEY_UP, InputMap.A_EXCHANGE_UP);
 		inputMap.addKey(Input.KEY_DOWN, InputMap.A_EXCHANGE_DOWN);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_EXCHANGE_MOVE);
-		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_EXCHANGE_SWAP);
+		inputMap.addKey(Input.KEY_Q, InputMap.A_EXCHANGE_DROP);
+		inputMap.addKey(Input.KEY_R, InputMap.A_EXCHANGE_UNLOAD);
+		inputMap.addKey(Input.KEY_LSHIFT, InputMap.A_EXCHANGE_ALTERNATIVE);
+		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_EXCHANGE_MOVE);
+		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_EXCHANGE_USE);
 	}
 
 	public Inventory getLeftInventory() {
@@ -63,24 +66,20 @@ public class ExchangeSubState extends GameSubState{
 	}
 	
 	private void populateInventoryLists(){
-		boolean foundMarked = false;
 		// left
 		int sel = listLeft.getSelectedIndex();
 		listLeft.clearList();
 		for(InventoryItem i : invLeft.getList()){
-			foundMarked |= i == markedItem;
-			listLeft.addListItem(i, i.getDisplayName(), i.getDisplayColor(), i == markedItem);
+			listLeft.addListItem(i, i.getDisplayName(), i.getDisplayColor());
 		}
 		listLeft.selectIndex(sel);
 		// right
 		sel = listRight.getSelectedIndex();
 		listRight.clearList();
 		for(InventoryItem i : invRight.getList()){
-			foundMarked |= i == markedItem;
-			listRight.addListItem(i, i.getDisplayName(), i.getDisplayColor(), i == markedItem);
+			listRight.addListItem(i, i.getDisplayName(), i.getDisplayColor());
 		}
 		listRight.selectIndex(sel);
-		if(!foundMarked) markedItem = null;
 	}
 	
 	@Override
@@ -88,11 +87,11 @@ public class ExchangeSubState extends GameSubState{
 		int descLineCount = 1 + Math.max(Damage.DAMAGE_TYPE_COUNT, Weapon.AMMO_TYPE_COUNT);
 		mb = new SplitMenuBox(gc, 1f, 0.5f);
 		mbRight = new SimpleMenuBox(mb, SplitMenuBox.Location.topRight);
-		listRight = new MenuItemList(mbRight, true, 'X');
+		listRight = new MenuItemList(mbRight, true);
 		float s = SplitMenuBox.getSplitRatioFromSecondSize(gc.getHeight(), descLineCount*GameRenderer.MIN_TEXT_HEIGHT);
 		SplitMenuBox smb2 = new SplitMenuBox(mb, SplitMenuBox.Location.topLeft, s, 1f);
 		mbLeft = new SimpleMenuBox(smb2, SplitMenuBox.Location.topLeft);
-		listLeft = new MenuItemList(mbLeft, true, 'X');
+		listLeft = new MenuItemList(mbLeft, true);
 		mbDescr = new SimpleMenuBox(smb2, SplitMenuBox.Location.bottomLeft);
 	}
 	
@@ -139,69 +138,49 @@ public class ExchangeSubState extends GameSubState{
 		if(selectedItem != null){
 			Inventory source = selectedIsLeft ? invLeft : invRight;
 			Inventory target = selectedIsLeft ? invRight : invLeft;
-			MenuItemList<InventoryItem> selectedList = selectedIsLeft ? listLeft : listRight;
-			MenuItemList<InventoryItem> markedList = markedIsLeft ? listLeft : listRight;
-			if(in.isMousePressed(InputMap.A_EXCHANGE_MOVE) && selectedItem != null){
-				if(markedItem == null || selectedIsLeft == markedIsLeft){
-					// simple move. ammo items are handled differently
-					if(selectedItem instanceof AmmoItem){
-						AmmoItem ai = (AmmoItem)selectedItem;
-						Weapon.AmmoType t = ai.getAmmoType();
-						int tTotal = target.getAmmoCount(t);
-						int tStack = target.getMaxAmmoStackSize(t);
-						int tLast = tTotal % tStack;
-						int amount = Math.min(ai.getAmmoCount(), tStack - tLast);
-						if(amount > 0){
-							source.removeAmmo(t, amount);
-							int back = target.addAmmo(t, amount);
-							source.addAmmo(t, back);
-							populateInventoryLists();
-						}
-					} else if(source.removeItem(selectedItem)){
-						selectedItem = target.addItem(selectedItem);
-						// add remaining item back to source inventory
-						// (this could be remaining ammo or the whole item when target inv is full)
-						if(selectedItem != null) source.addItem(selectedItem);
+			if(in.isMousePressed(InputMap.A_EXCHANGE_MOVE)){
+				// move item. ammo items are handled differently
+				if(selectedItem instanceof AmmoItem){
+					// TODO: make ammo item a stackable item and check for stackable instead here
+					AmmoItem ai = (AmmoItem)selectedItem;
+					Weapon.AmmoType t = ai.getAmmoType();
+					int tTotal = target.getAmmoCount(t);
+					int tStack = target.getMaxAmmoStackSize(t);
+					int tLast = tTotal % tStack;
+					int amount = in.isKeyDown(InputMap.A_EXCHANGE_ALTERNATIVE)
+							? Math.min(tTotal, tStack*target.getFreeSlots() + tStack - tLast)
+							: Math.min(ai.getAmmoCount(), tStack - tLast);
+					if(amount > 0){
+						source.removeAmmo(t, amount);
+						int back = target.addAmmo(t, amount);
+						source.addAmmo(t, back);
 						populateInventoryLists();
 					}
-				} else {
-					// exchange move
-					if(source.removeItem(selectedItem)){
-						if(target.removeItem(markedItem)){
-							// removal successful. add items to opposite inventories
-							markedList.setItemFlag(markedItem, 0, false);
-							// the add calls should always return null,
-							// since there is at least one free slot.
-							InventoryItem i = target.addItem(selectedItem);
-							if(i != null) System.out.println("WARNING (exchange) target inventory returned something other than null");
-							i = source.addItem(markedItem);
-							if(i != null) System.out.println("WARNING (exchange) source inventory returned something other than null");
-							// clear item pointers, since they are invalid now
-							markedItem = null;
-							selectedItem = null;
-							populateInventoryLists();
-						} else {
-							// cannot remove marked item, roll back!
-							source.addItem(selectedItem);
-						}
-					}
+				} else if(source.removeItem(selectedItem)){
+					selectedItem = target.addItem(selectedItem);
+					// add remaining item back to source inventory
+					// (this could be remaining ammo or the whole item when target inv is full)
+					if(selectedItem != null) source.addItem(selectedItem);
+					populateInventoryLists();
 				}
-			}
-			if(in.isMousePressed(InputMap.A_EXCHANGE_SWAP) && selectedItem != null){
-				// mark item for exchange.
-				// ammo items cannot be marked, because they are handled differently
-				if(!(selectedItem instanceof AmmoItem)){
-					// first, clear the marked one, if it exists
-					if(markedItem != null) markedList.setItemFlag(markedItem, 0, false);
-					if(selectedItem == markedItem){
-						// tried to mark the already marked item. unmark it instead!
-						markedItem = null;
-					} else {
-						// selected item is not the marked one. mark it!
-						selectedList.setItemFlag(selectedItem, 0, true);
-						markedItem = selectedItem;
-						markedIsLeft = selectedIsLeft;
-					}
+			} else if(in.isMousePressed(InputMap.A_EXCHANGE_USE)){
+				// use item if possible
+				if(selectedItem.use(invLeft.getParent(), source == invLeft)){
+					if(selectedItem.destroyWhenUsed) source.removeItem(selectedItem);
+					populateInventoryLists();
+				}
+			} else if(in.isKeyPressed(InputMap.A_EXCHANGE_DROP)){
+				// drop item
+				if(source.removeItem(selectedItem)){
+					ctrl.dropItem(selectedItem, invLeft.getParent(), true);
+					populateInventoryLists();
+				}
+			} else if(in.isKeyPressed(InputMap.A_EXCHANGE_UNLOAD)){
+				// unload weapon. put ammo in left inventory
+				if(selectedItem instanceof Weapon){
+					Weapon w = (Weapon)selectedItem;
+					w.unloadToInventory(invLeft);
+					populateInventoryLists();
 				}
 			}
 		}
