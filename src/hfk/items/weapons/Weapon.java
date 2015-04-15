@@ -12,6 +12,7 @@ import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.Resources;
 import hfk.items.AmmoItem;
+import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.ItemType;
 import hfk.mobs.Mob;
@@ -19,6 +20,7 @@ import hfk.stats.Damage;
 import hfk.stats.DamageCard;
 import hfk.stats.ItemEffect;
 import hfk.stats.WeaponStatsCard;
+import java.util.ArrayList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Sound;
@@ -214,6 +216,27 @@ public abstract class Weapon extends InventoryItem {
 			}
 		}
 		return s;
+	}
+	
+	public ArrayList<AmmoItem> unloadToGround(){
+		ArrayList<AmmoItem> list = new ArrayList<>(AMMO_TYPE_COUNT);
+		for(int i=0; i<AMMO_TYPE_COUNT; i++){
+			if(i == AmmoType.energy.ordinal()) continue;
+			if(clips[i] > 0) list.add(new AmmoItem(pos.clone(), AmmoType.values()[i], clips[i]));
+		}
+		return list;
+	}
+
+	public int[] unloadToInventory(Inventory inv){
+		int[] amount = new int[AMMO_TYPE_COUNT];
+		for(AmmoType t : AmmoType.values()){
+			if(t == AmmoType.energy) continue;
+			int i = t.ordinal();
+			amount[i] = Math.min(clips[i], inv.getAmmoRoomLeft(t));
+			clips[i] -= amount[i];
+			inv.addAmmo(t, amount[i]);
+		}
+		return amount;
 	}
 
 	@Override
