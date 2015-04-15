@@ -149,6 +149,10 @@ public class GameController {
 		renderer = new GameRenderer(gc);
 	}
 
+	public InputMap getInputMap() {
+		return inputMap;
+	}
+
 	public long createIdFor(NetStateObject o){
 		long id = nextID;
 		nextID++;
