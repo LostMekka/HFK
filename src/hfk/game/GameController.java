@@ -666,7 +666,7 @@ public class GameController {
 	}
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int time) throws SlickException{
-//		if(inputMap.isKeyPressed(InputMap.A_CLOSE_INVENTORY)) nextLevel();
+		inputMap.update(time / 1000f);
 		timeStamp += time;
 		mousePosInPixels.x = gc.getInput().getMouseX();
 		mousePosInPixels.y = gc.getInput().getMouseY();
@@ -685,8 +685,6 @@ public class GameController {
 		shotsToRemove.clear();
 		explosionsToRemove.clear();
 		itemsToRemove.clear();
-		// update input
-		inputMap.update(time / 1000f); // must be last
 	}
 	
 	public void render() throws SlickException{
