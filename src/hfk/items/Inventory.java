@@ -124,6 +124,7 @@ public final class Inventory implements StatsModifier {
 	
 	public int getAmmoRoomLeft(Weapon.AmmoType type){
 		int stack = getMaxAmmoStackSize(type);
+		if(stack <= 0) return 0;
 		int last = ammo[type.ordinal()] % stack;
 		last = last == 0 ? 0 : stack - last;
 		return last + freeSlots * stack;
