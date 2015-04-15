@@ -2,6 +2,7 @@ package hfk.game.slickstates;
 
 import hfk.game.GameController;
 import hfk.game.HFKGame;
+import hfk.game.InputMap;
 import hfk.game.Resources;
 import hfk.menu.ButtonsMenuBox;
 import hfk.menu.SimpleMenuBox;
@@ -22,6 +23,7 @@ import org.newdawn.slick.state.StateBasedGame;
 public class MenuState extends BasicGameState{
 
 	private static final int logoSize = 5;
+	private static final String ESC = "menu_esc";
 	
 	private SimpleMenuBox logoBox;
 	private SplitMenuBox split;
@@ -37,6 +39,7 @@ public class MenuState extends BasicGameState{
 	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {}
 	
 	public void initAfterLoading(GameContainer gc){
+		GameController.get().getInputMap().addKey(Input.KEY_ESCAPE, ESC);
 		logo = Resources.getImage("logo.png");
 		float f = SplitMenuBox.getSplitRatioFromFirstSize(gc.getHeight(), (logo.getHeight()+4)*logoSize);
 		split = new SplitMenuBox(gc, f, 1f);
@@ -59,10 +62,12 @@ public class MenuState extends BasicGameState{
 
 	@Override
 	public void update(GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
+		GameController ctrl = GameController.get();
 		Input in = gc.getInput();
-		if(in.isKeyDown(Input.KEY_ESCAPE)) gc.exit();
+		InputMap map = ctrl.getInputMap();
+		map.update(time);
+		if(map.isKeyPressed(ESC)) gc.exit();
 		if(in.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)){
-			GameController ctrl = GameController.get();
 			int b = buttons.getButtonIndexUnderMouse(in.getMouseX(), in.getMouseY());
 			switch(b){
 				case 0: case 1: case 2: case 3:
