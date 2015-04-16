@@ -90,15 +90,15 @@ public class InventorySubState extends GameSubState{
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
-		if(in.isKeyPressed(InputMap.A_OPEN_SKILLS)){
+		if(in.isActionPressed(InputMap.A_OPEN_SKILLS)){
 			ctrl.viewSkills(ctrl.player.skills);
 			return;
 		}
-		if(in.isKeyPressed(InputMap.A_CLOSE_INVENTORY)){
+		if(in.isActionPressed(InputMap.A_CLOSE_INVENTORY)){
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
-		for(int i=0; i<10; i++) if(in.isKeyPressed(InputMap.A_QUICKSLOTS[i])) ctrl.player.inventory.setActiveQuickSlot(i);
+		for(int i=0; i<10; i++) if(in.isActionPressed(InputMap.A_QUICKSLOTS[i])) ctrl.player.inventory.setActiveQuickSlot(i);
 		Input input = gc.getInput();
 		int mx = input.getMouseX();
 		int my = input.getMouseY();
@@ -106,8 +106,8 @@ public class InventorySubState extends GameSubState{
 		updateInventoryWindow(mx, my, in, ctrl);
 		// gear sub window
 		if(mbGear.isMouseInsideBox(mx, my)){
-			if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) inventory.previousQuickSlot();
-			if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) inventory.nextQuickSlot();
+			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) inventory.previousQuickSlot();
+			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) inventory.nextQuickSlot();
 		}
 		if(mbGear.isMouseInsideUsable(mx, my)){
 			updateGearWindow(mbGear.getUsableRelativeMouseX(mx), mbGear.getUsableRelativeMouseY(my), in, ctrl);
@@ -118,8 +118,8 @@ public class InventorySubState extends GameSubState{
 	
 	private void updateInventoryWindow(int mx, int my, InputMap in, GameController ctrl){
 		if(mbInv.isMouseInsideBox(mx, my)){
-			if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) invList.scroll(-1);
-			if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) invList.scroll(1);
+			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) invList.scroll(-1);
+			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) invList.scroll(1);
 		}
 		invList.updateSelection(mx, my);
 		selectedInvItem = invList.getSelectedObject();
@@ -129,22 +129,22 @@ public class InventorySubState extends GameSubState{
 		}
 		if(selectedInvItem != null){
 			// use or drop selected item
-			if(in.isMousePressed(InputMap.A_INV_USE) && selectedInvItem != null){
+			if(in.isActionPressed(InputMap.A_INV_USE) && selectedInvItem != null){
 				inventory.useItem(selectedInvItem);
 				populateInventoryList();
 			}
-			if(in.isMousePressed(InputMap.A_INV_EQUIP) && selectedInvItem instanceof Weapon){
+			if(in.isActionPressed(InputMap.A_INV_EQUIP) && selectedInvItem instanceof Weapon){
 				inventory.equipItem(selectedInvItem);
 				populateInventoryList();
 			}
-			if(in.isKeyPressed(InputMap.A_INV_DROP) && selectedInvItem != null){
+			if(in.isActionPressed(InputMap.A_INV_DROP) && selectedInvItem != null){
 				boolean dropped = inventory.removeItem(selectedInvItem);
 				if(dropped){
 					ctrl.dropItem(selectedInvItem, inventory.getParent(), true);
 					populateInventoryList();
 				}
 			}
-			if(in.isKeyPressed(InputMap.A_INV_UNLOAD) && selectedInvItem instanceof Weapon){
+			if(in.isActionPressed(InputMap.A_INV_UNLOAD) && selectedInvItem instanceof Weapon){
 				Mob p = inventory.getParent();
 				if(p == null){
 					((Weapon)selectedInvItem).unloadToGround();
@@ -162,11 +162,11 @@ public class InventorySubState extends GameSubState{
 			int i = (my - 2*GEAR_HEADLINE_HEIGHT) / INV_LINE_HEIGHT;
 			if(i < inventory.getQuickSlotCount()) selectedGear = inventory.getQuickslot(i);
 			if(selectedGear != null){
-				if(in.isMousePressed(InputMap.A_INV_EQUIP)){
+				if(in.isActionPressed(InputMap.A_INV_EQUIP)){
 					inventory.unequipWeapon(i);
 					populateInventoryList();
 				}
-				if(in.isKeyPressed(InputMap.A_INV_DROP)){
+				if(in.isActionPressed(InputMap.A_INV_DROP)){
 					if(inventory.dropItem(selectedGear)) ctrl.dropItem(selectedGear, inventory.getParent(), true);
 				}
 			}

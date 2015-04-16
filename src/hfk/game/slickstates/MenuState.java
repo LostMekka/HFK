@@ -66,7 +66,7 @@ public class MenuState extends BasicGameState{
 		Input in = gc.getInput();
 		InputMap map = ctrl.getInputMap();
 		map.update(time);
-		if(map.isKeyPressed(ESC)) gc.exit();
+		if(map.isActionPressed(ESC)) gc.exit();
 		if(in.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)){
 			int b = buttons.getButtonIndexUnderMouse(in.getMouseX(), in.getMouseY());
 			switch(b){

@@ -56,7 +56,7 @@ public class OverviewSubState extends GameSubState {
 	
 	private void updateSubState(GameController ctrl) {
 		InputMap in = getInputMap();
-		if(in.isKeyPressed(InputMap.A_CHEAT_CLOSE)){
+		if(in.isActionPressed(InputMap.A_CHEAT_CLOSE)){
 			GameController.CHEAT_VISIBLE = false;
 			ctrl.setZoom(originalZoom);
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
@@ -75,10 +75,10 @@ public class OverviewSubState extends GameSubState {
 	private void updateCamera(int time) {
 		float vx = 0, vy = 0;
 		InputMap in = getInputMap();
-		if(in.isKeyDown(InputMap.A_MOVE_RIGHT)) vx++;
-		if(in.isKeyDown(InputMap.A_MOVE_LEFT)) vx--;
-		if(in.isKeyDown(InputMap.A_MOVE_DOWN)) vy++;
-		if(in.isKeyDown(InputMap.A_MOVE_UP)) vy--;
+		if(in.isActionDown(InputMap.A_MOVE_RIGHT)) vx++;
+		if(in.isActionDown(InputMap.A_MOVE_LEFT)) vx--;
+		if(in.isActionDown(InputMap.A_MOVE_DOWN)) vy++;
+		if(in.isActionDown(InputMap.A_MOVE_UP)) vy--;
 		cameraPos.x += vx * cameraSpeed * time / 1000f;
 		cameraPos.y += vy * cameraSpeed * time / 1000f;
 	}

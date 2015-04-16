@@ -39,7 +39,7 @@ public class OmniSubState extends GameSubState {
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		ctrl.reduceScreenShake(time);
-		if(getInputMap().isKeyPressed(InputMap.A_TOGGLEMUSIC)) ctrl.toggleMusic();
+		if(getInputMap().isActionPressed(InputMap.A_TOGGLEMUSIC)) ctrl.toggleMusic();
 		// updates
 		ctrl.level.update(time);
 		for(InventoryItem i1 : ctrl.items){

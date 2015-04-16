@@ -41,9 +41,9 @@ public class GameOverSubState extends GameSubState {
 	
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
-		if(getInputMap().isKeyPressed(InputMap.A_NEWGAME)) GameController.get().newGame();
-		if(getInputMap().isKeyPressed(InputMap.A_MAINMENU)) sbg.enterState(HFKGame.STATEID_MENU);
-		if(getInputMap().isKeyPressed(InputMap.A_QUIT)) gc.exit();
+		if(getInputMap().isActionPressed(InputMap.A_NEWGAME)) GameController.get().newGame();
+		if(getInputMap().isActionPressed(InputMap.A_MAINMENU)) sbg.enterState(HFKGame.STATEID_MENU);
+		if(getInputMap().isActionPressed(InputMap.A_QUIT)) gc.exit();
 	}
 
 	@Override

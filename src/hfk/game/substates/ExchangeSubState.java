@@ -98,15 +98,15 @@ public class ExchangeSubState extends GameSubState{
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
-		if(in.isKeyPressed(InputMap.A_OPEN_INVENTORY)){
+		if(in.isActionPressed(InputMap.A_OPEN_INVENTORY)){
 			ctrl.viewInventory(ctrl.player.inventory);
 			return;
 		}
-		if(in.isKeyPressed(InputMap.A_OPEN_SKILLS)){
+		if(in.isActionPressed(InputMap.A_OPEN_SKILLS)){
 			ctrl.viewSkills(ctrl.player.skills);
 			return;
 		}
-		if(in.isKeyPressed(InputMap.A_EXCHANGE_CLOSE)){
+		if(in.isActionPressed(InputMap.A_EXCHANGE_CLOSE)){
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
@@ -114,12 +114,12 @@ public class ExchangeSubState extends GameSubState{
 		int my = gc.getInput().getMouseY();
 		// handle scrolling
 		if(mbLeft.isMouseInsideBox(mx, my)){
-			if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) listLeft.scroll(-1);
-			if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) listLeft.scroll(1);
+			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) listLeft.scroll(-1);
+			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) listLeft.scroll(1);
 		}
 		if(mbRight.isMouseInsideBox(mx, my)){
-			if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) listRight.scroll(-1);
-			if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) listRight.scroll(1);
+			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) listRight.scroll(-1);
+			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) listRight.scroll(1);
 		}
 		// handle selection
 		listLeft.updateSelection(mx, my);
@@ -138,7 +138,7 @@ public class ExchangeSubState extends GameSubState{
 		if(selectedItem != null){
 			Inventory source = selectedIsLeft ? invLeft : invRight;
 			Inventory target = selectedIsLeft ? invRight : invLeft;
-			if(in.isMousePressed(InputMap.A_EXCHANGE_MOVE)){
+			if(in.isActionPressed(InputMap.A_EXCHANGE_MOVE)){
 				// move item. ammo items are handled differently
 				if(selectedItem instanceof AmmoItem){
 					// TODO: make ammo item a stackable item and check for stackable instead here
@@ -147,7 +147,7 @@ public class ExchangeSubState extends GameSubState{
 					int tTotal = target.getAmmoCount(t);
 					int tStack = target.getMaxAmmoStackSize(t);
 					int tLast = tTotal % tStack;
-					int amount = in.isKeyDown(InputMap.A_EXCHANGE_ALTERNATIVE)
+					int amount = in.isActionDown(InputMap.A_EXCHANGE_ALTERNATIVE)
 							? Math.min(tTotal, tStack*target.getFreeSlots() + tStack - tLast)
 							: Math.min(ai.getAmmoCount(), tStack - tLast);
 					if(amount > 0){
@@ -163,19 +163,19 @@ public class ExchangeSubState extends GameSubState{
 					if(selectedItem != null) source.addItem(selectedItem);
 					populateInventoryLists();
 				}
-			} else if(in.isMousePressed(InputMap.A_EXCHANGE_USE)){
+			} else if(in.isActionPressed(InputMap.A_EXCHANGE_USE)){
 				// use item if possible
 				if(selectedItem.use(invLeft.getParent(), source == invLeft)){
 					if(selectedItem.destroyWhenUsed) source.removeItem(selectedItem);
 					populateInventoryLists();
 				}
-			} else if(in.isKeyPressed(InputMap.A_EXCHANGE_DROP)){
+			} else if(in.isActionPressed(InputMap.A_EXCHANGE_DROP)){
 				// drop item
 				if(source.removeItem(selectedItem)){
 					ctrl.dropItem(selectedItem, invLeft.getParent(), true);
 					populateInventoryLists();
 				}
-			} else if(in.isKeyPressed(InputMap.A_EXCHANGE_UNLOAD)){
+			} else if(in.isActionPressed(InputMap.A_EXCHANGE_UNLOAD)){
 				// unload weapon. put ammo in left inventory
 				if(selectedItem instanceof Weapon && invLeft.getParent() != null){
 					invLeft.getParent().unloadWeapon((Weapon)selectedItem);

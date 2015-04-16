@@ -41,9 +41,9 @@ public class PauseSubState extends GameSubState{
 
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
-		if(getInputMap().isKeyPressed(InputMap.A_RESTARTGAME)) ctrl.newGame();
-		if(getInputMap().isKeyPressed(InputMap.A_QUIT)) sbg.enterState(HFKGame.STATEID_MENU);
-		if(getInputMap().isKeyPressed(InputMap.A_RESUMEGAME)){
+		if(getInputMap().isActionPressed(InputMap.A_RESTARTGAME)) ctrl.newGame();
+		if(getInputMap().isActionPressed(InputMap.A_QUIT)) sbg.enterState(HFKGame.STATEID_MENU);
+		if(getInputMap().isActionPressed(InputMap.A_RESUMEGAME)){
 			GameController.get().setCurrSubState(GameController.get().gameplaySubState);
 		}
 	}

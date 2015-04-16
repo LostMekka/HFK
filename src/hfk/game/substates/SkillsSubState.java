@@ -82,28 +82,28 @@ public class SkillsSubState extends GameSubState {
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
 		Input input = gc.getInput();
-		if(in.isKeyPressed(InputMap.A_OPEN_INVENTORY)){
+		if(in.isActionPressed(InputMap.A_OPEN_INVENTORY)){
 			ctrl.viewInventory(ctrl.player.inventory);
 			return;
 		}
-		if(in.isKeyPressed(InputMap.A_CLOSE_SKILLS)){
+		if(in.isActionPressed(InputMap.A_CLOSE_SKILLS)){
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
 		int mx = input.getMouseX();
 		int my = input.getMouseY();
 		
-		if(in.isKeyPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) skillsList.scroll(-1);
-		if(in.isKeyPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) skillsList.scroll(1);
+		if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) skillsList.scroll(-1);
+		if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) skillsList.scroll(1);
 		skillsList.updateSelection(mx, my);
 		selectedSkill = skillsList.getSelectedObject();
 		if(selectedSkill != null){
-			if(in.isMousePressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
+			if(in.isActionPressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
 				selectedSkill.levelUp();
 				// colors of all skills may change -> repopulate the list
 				populateList();
 			}
-			if(in.isMousePressed(InputMap.A_TRACKSKILL) && player != null
+			if(in.isActionPressed(InputMap.A_TRACKSKILL) && player != null
 					&& !selectedSkill.isMaxed()){
 				player.toggleTrackSkill(selectedSkill);
 				skillsList.setItemFlag(selectedSkill, 0, player != null && player.isTrackedSkill(selectedSkill));
