@@ -420,17 +420,16 @@ public final class Inventory implements StatsModifier {
 		list = new LinkedList<>();
 		list.addAll(weapons);
 		list.addAll(misc);
-		for(int i=0; i<Weapon.AMMO_TYPE_COUNT; i++){
-			Weapon.AmmoType t = Weapon.AmmoType.values()[i];
+		for(Weapon.AmmoType t : Weapon.AmmoType.values()){
+			if(t == Weapon.AmmoType.energy) continue;
+			int i = t.ordinal();
 			int a = ammo[i];
 			int ss = msc.getAmmoSlotSize(i);
 			if(ss == 0) continue;
 			int ns = a / ss;
 			int rest = a - ns * ss;
 			for(int n=0; n<ns; n++) list.add(new AmmoItem(new PointF(), t, ss));
-			AmmoItem ai = new AmmoItem(new PointF(), t, rest);
-			ai.parentInventory = this;
-			if(rest != 0) list.add(ai);
+			if(rest > 0) list.add(new AmmoItem(new PointF(), t, rest));
 		}
 		freeSlots = msc.getInventorySize() - list.size();
 		for(int i=0; i<freeSlots; i++) list.add(new EmptyItem(new PointF()));
