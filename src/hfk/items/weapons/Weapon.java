@@ -100,7 +100,9 @@ public abstract class Weapon extends InventoryItem {
 		// cancel reloading
 		if(state == WeaponState.reloading){
 			for(AmmoType t : AmmoType.values()){
-				InventoryItem i = new AmmoItem(pos.clone(), t, reloadAmounts[t.ordinal()]);
+				int ti = t.ordinal();
+				if(t == AmmoType.energy || reloadAmounts[ti] <= 0) continue;
+				InventoryItem i = new AmmoItem(pos.clone(), t, reloadAmounts[ti]);
 				if(m != null && m.skills.shouldKeepAmmoOnCancelReload()) i = m.inventory.addItem(i);
 				if(i != null) GameController.get().dropItem(i, null, false);
 			}
