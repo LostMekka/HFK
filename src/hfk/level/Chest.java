@@ -46,6 +46,10 @@ public class Chest extends UsableLevelItem {
 		}
 		return true;
 	}
+
+	public Inventory getInv() {
+		return inv;
+	}
 	
 	@Override
 	public boolean isSquare() {
