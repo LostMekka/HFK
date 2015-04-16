@@ -23,6 +23,8 @@ public class PlasmaStorm extends Weapon {
 	public PlasmaStorm(float angle, PointF position) {
 		super(angle, position);
 		shotSound = Resources.getSound("shot1.wav");
+		reloadStartSound = Resources.getSound("reload_s_pr.wav");
+		reloadEndSound = Resources.getSound("reload_e_pr.wav");
 		setImg("w_plasmaStorm.png");
 		type = ItemType.wPlasmaStorm;
 	}

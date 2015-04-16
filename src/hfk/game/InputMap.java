@@ -22,8 +22,9 @@ public class InputMap implements MouseListener {
 	public static final String A_MOVE_LEFT = "move_left";
 	public static final String A_MOVE_RIGHT = "move_right";
 	public static final String A_LOOT = "loot";
+	public static final String A_LOOT_USE = "loot_use";
 	public static final String A_LOOT_GRAB = "loot_grab";
-	public static final String A_LOOT_USE = "loot";
+	public static final String A_LOOT_UNLOAD = "loot_unload";
 	public static final String A_SHOOT = "shoot";
 	public static final String A_SHOOT_ALTERNATIVE = "shoot_alternative";
 	public static final String A_RELOAD = "reload";
@@ -32,10 +33,12 @@ public class InputMap implements MouseListener {
 	
 	public static final String A_INV_UP = "inventory_up";
 	public static final String A_INV_DOWN = "inventory_down";
-	public static final String A_INV_USE = "use_invitem";
+	public static final String A_INV_USE = "inventory_use";
+	public static final String A_INV_EQUIP = "inventory_equip";
 	public static final String A_INV_DROP = "inventory_drop";
-	public static final String A_OPEN_INVENTORY = "open_inventory";
-	public static final String A_CLOSE_INVENTORY = "close_inventory";
+	public static final String A_INV_UNLOAD = "inventory_unload";
+	public static final String A_OPEN_INVENTORY = "inventory_open";
+	public static final String A_CLOSE_INVENTORY = "inventory_close";
 	
 	public static final String A_EXCHANGE_UP = "exchange_up";
 	public static final String A_EXCHANGE_DOWN = "exchange_down";
@@ -158,6 +161,7 @@ public class InputMap implements MouseListener {
 		}
 	}
 	
+	// TODO: merge isKeyDown and isMouseDown. it is a pain in the ass to separate these in the code
 	public boolean isKeyDown(String action){
 		for(Data d : getData(action, keys)){
 			if(d.isDown) return true;

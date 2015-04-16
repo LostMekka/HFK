@@ -250,6 +250,45 @@ public final class Inventory implements StatsModifier {
 		return true;
 	}
 	
+	public boolean equipItem(InventoryItem i){
+		LinkedList<InventoryItem> l = getListFor(i);
+		if(i instanceof Weapon){
+			if(l.contains(i)){
+				return equipWeaponFromInventory((Weapon)i);
+			} else {
+				return equipWeaponFromGround((Weapon)i);
+			}
+		}
+		// TODO: equip armor
+		return false;
+	}
+	
+	public boolean unequipItem(InventoryItem i){
+		if(i instanceof Weapon){
+			for(int wi=0; wi<quickSlots.length; wi++){
+				if(quickSlots[wi] == i) return unequipWeapon(wi);
+			}
+		}
+		// TODO: unequip armor
+		return false;
+	}
+	
+	public boolean dropItem(InventoryItem i){
+		LinkedList<InventoryItem> l = getListFor(i);
+		if(l.remove(i)) return true;
+		// item is not in the list. maybe equipped?
+		if(i instanceof Weapon){
+			for(int wi=0; wi<quickSlots.length; wi++){
+				if(quickSlots[wi] == i){
+					dropWeapon(wi);
+					return true;
+				}
+			}
+		}
+		// TODO: drop armor
+		return false;
+	}
+	
 	public boolean equipWeaponFromInventory(Weapon w){
 		Weapon tmp = quickSlots[activeQuickSlot];
 		if(tmp != null && !tmp.isReady()) return false;
@@ -321,6 +360,7 @@ public final class Inventory implements StatsModifier {
 		w.weaponUnSelected();
 		quickSlots[index] = null;
 		w.parentInventory = null;
+		w.initLabel();
 		parent.recalculateCards();
 		return w;
 	}

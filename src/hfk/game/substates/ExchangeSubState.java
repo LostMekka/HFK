@@ -45,8 +45,8 @@ public class ExchangeSubState extends GameSubState{
 		inputMap.addKey(Input.KEY_Q, InputMap.A_EXCHANGE_DROP);
 		inputMap.addKey(Input.KEY_R, InputMap.A_EXCHANGE_UNLOAD);
 		inputMap.addKey(Input.KEY_LSHIFT, InputMap.A_EXCHANGE_ALTERNATIVE);
-		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_EXCHANGE_MOVE);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_EXCHANGE_USE);
+		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_EXCHANGE_MOVE);
+		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_EXCHANGE_USE);
 	}
 
 	public Inventory getLeftInventory() {
@@ -177,9 +177,8 @@ public class ExchangeSubState extends GameSubState{
 				}
 			} else if(in.isKeyPressed(InputMap.A_EXCHANGE_UNLOAD)){
 				// unload weapon. put ammo in left inventory
-				if(selectedItem instanceof Weapon){
-					Weapon w = (Weapon)selectedItem;
-					w.unloadToInventory(invLeft);
+				if(selectedItem instanceof Weapon && invLeft.getParent() != null){
+					invLeft.getParent().unloadWeapon((Weapon)selectedItem);
 					populateInventoryLists();
 				}
 			}

@@ -91,6 +91,7 @@ public abstract class Mob implements StatsModifier {
 	private Door lastDoor = null;
 	private boolean enteredLastDoor = false;
 	private PointF lastDoorExitPoint = null;
+	private Weapon weaponToUnload = null;
 	
 	public static Mob createMob(PointF pos, int maxDifficulty, int level){
 		// TODO: think of a less wasteful way to do this!!!
@@ -209,6 +210,7 @@ public abstract class Mob implements StatsModifier {
 	}
 	
 	public void startBarrage(PointF target, int time){
+		// TODO: only start barrage if mob has clear line of fire. else move into position first
 		barrageTimer = Math.max(time, barrageTimer);
 		if(target != null) lastPlayerPos = target.clone();
 	}
@@ -223,7 +225,7 @@ public abstract class Mob implements StatsModifier {
 	}
 	
 	public final void alert(boolean forceSound, boolean forceText){
-		if(this == GameController.get().player) return;
+		if(this instanceof Player) return;
 		if(alertSound != null && (forceSound || lastPlayerTime < 0)) GameController.get().playSoundAt(alertSound, pos);
 		if(forceText || lastPlayerTime < 0) setStateText("!");
 		safetyTimer = 0;
@@ -260,6 +262,15 @@ public abstract class Mob implements StatsModifier {
 		}
 	}
 	
+	public boolean unloadWeapon(Weapon w){
+		Weapon aw = getActiveWeapon();
+		if(aw != null && !aw.isReady()) return false; // using equipped weapon right now
+		if(weaponToUnload != null) return false; // already unloading something
+		if(!w.unloadToInventory(inventory)) return false;
+		weaponToUnload = w;
+		return true;
+	}
+	
 	public final void update(int time){
 		GameController ctrl = GameController.get();
 		pullTriggerDelayTimer = Math.max(0, pullTriggerDelayTimer - time);
@@ -268,6 +279,18 @@ public abstract class Mob implements StatsModifier {
 		animation.update(time);
 		inventory.update(time);
 		if(bionicWeapon != null) bionicWeapon.update(time, true, true);
+		if(weaponToUnload != null){
+			float d = totalStats.getMaxPickupRange();
+			if(weaponToUnload.pos.squaredDistanceTo(pos) > d*d){
+				weaponToUnload.stopUnloading();
+				weaponToUnload = null;
+			} else if(weaponToUnload.isReady()){
+				weaponToUnload = null;
+			} else {
+				// do nothing while unloading a weapon
+				return;
+			}
+		}
 		Weapon w = getActiveWeapon();
 		if(w != null){
 			w.pos = pos;
@@ -476,9 +499,9 @@ public abstract class Mob implements StatsModifier {
 	public void drawStatus(){
 		GameController ctrl = GameController.get();
 		Weapon w = getActiveWeapon();
-		// reloading progress bar
+		// reloading / unloading progress bar
 		boolean relBar = false;
-		if(w != null && w.isReloading() && ctrl.shouldDrawReloadBar(this)){
+		if(weaponToUnload != null || w != null && w.isReloading() && ctrl.shouldDrawReloadBar(this)){
 			PointF p = pos.clone();
 			p.x -= 0.5f;
 			p.y -= 0.6f;
@@ -488,7 +511,7 @@ public abstract class Mob implements StatsModifier {
 			g.setColor(Color.white);
 			g.drawRect(p.x, p.y, len, 7);
 			len -= 3;
-			g.fillRect(p.x + 2, p.y + 2, len * w.getProgress(), 4);
+			g.fillRect(p.x + 2, p.y + 2, len * (weaponToUnload != null ? weaponToUnload : w).getProgress(), 4);
 			relBar = true;
 		}
 		// health bar

@@ -18,6 +18,7 @@ import hfk.menu.MenuBox;
 import hfk.menu.MenuItemList;
 import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
+import hfk.mobs.Mob;
 import hfk.stats.Damage;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -48,8 +49,10 @@ public class InventorySubState extends GameSubState{
 		inputMap.addKey(Input.KEY_I, InputMap.A_CLOSE_INVENTORY);
 		inputMap.addKey(Input.KEY_UP, InputMap.A_INV_UP);
 		inputMap.addKey(Input.KEY_DOWN, InputMap.A_INV_DOWN);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_INV_USE);
-		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_INV_DROP);
+		inputMap.addKey(Input.KEY_Q, InputMap.A_INV_DROP);
+		inputMap.addKey(Input.KEY_R, InputMap.A_INV_UNLOAD);
+		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_INV_EQUIP);
+		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_INV_USE);
 	}
 
 	public Inventory getInventory() {
@@ -62,7 +65,7 @@ public class InventorySubState extends GameSubState{
 		populateInventoryList();
 	}
 	
-	private void populateInventoryList(){
+	public void populateInventoryList(){
 		int sel = invList.getSelectedIndex();
 		invList.clearList();
 		for(InventoryItem i : inventory.getList()){
@@ -130,11 +133,23 @@ public class InventorySubState extends GameSubState{
 				inventory.useItem(selectedInvItem);
 				populateInventoryList();
 			}
-			if(in.isMousePressed(InputMap.A_INV_DROP) && selectedInvItem != null){
+			if(in.isMousePressed(InputMap.A_INV_EQUIP) && selectedInvItem instanceof Weapon){
+				inventory.equipItem(selectedInvItem);
+				populateInventoryList();
+			}
+			if(in.isKeyPressed(InputMap.A_INV_DROP) && selectedInvItem != null){
 				boolean dropped = inventory.removeItem(selectedInvItem);
 				if(dropped){
 					ctrl.dropItem(selectedInvItem, inventory.getParent(), true);
 					populateInventoryList();
+				}
+			}
+			if(in.isKeyPressed(InputMap.A_INV_UNLOAD) && selectedInvItem instanceof Weapon){
+				Mob p = inventory.getParent();
+				if(p == null){
+					((Weapon)selectedInvItem).unloadToGround();
+				} else {
+					p.unloadWeapon((Weapon)selectedInvItem);
 				}
 			}
 		}
@@ -147,13 +162,12 @@ public class InventorySubState extends GameSubState{
 			int i = (my - 2*GEAR_HEADLINE_HEIGHT) / INV_LINE_HEIGHT;
 			if(i < inventory.getQuickSlotCount()) selectedGear = inventory.getQuickslot(i);
 			if(selectedGear != null){
-				if(in.isMouseDown(InputMap.A_INV_USE)){
+				if(in.isMousePressed(InputMap.A_INV_EQUIP)){
 					inventory.unequipWeapon(i);
 					populateInventoryList();
 				}
-				if(in.isMouseDown(InputMap.A_INV_DROP)){
-					Weapon w = inventory.dropWeapon(i);
-					if(w != null) ctrl.dropItem(w, inventory.getParent(), true);
+				if(in.isKeyPressed(InputMap.A_INV_DROP)){
+					if(inventory.dropItem(selectedGear)) ctrl.dropItem(selectedGear, inventory.getParent(), true);
 				}
 			}
 		}

@@ -21,6 +21,7 @@ import hfk.stats.DamageCard;
 import hfk.stats.ItemEffect;
 import hfk.stats.WeaponStatsCard;
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Sound;
@@ -60,7 +61,7 @@ public abstract class Weapon extends InventoryItem {
 	}
 	public static final int AMMO_TYPE_COUNT = AmmoType.values().length;
 	
-	public enum WeaponState { ready, cooldownShot, cooldownBurst, cooldownReload }
+	public enum WeaponState { ready, cooldownShot, cooldownBurst, reloading, unloading }
 	
 	public Mob bionicParent = null;
 	public float currentScatter;
@@ -70,17 +71,18 @@ public abstract class Weapon extends InventoryItem {
 	public WeaponStatsCard basicStats, totalStats;
 	public DamageCard basicDamageCard, totalDamageCard;
 	public Shot.Team shotTeam = Shot.Team.dontcare;
-	public Sound[] reloadStartSound = new Sound[AMMO_TYPE_COUNT];
-	public Sound[] reloadEndSound = new Sound[AMMO_TYPE_COUNT];
+	public Sound reloadStartSound = null;
+	public Sound reloadEndSound = null;
 	public Color displayColor = Color.yellow;
 	public ItemEffect zoomEffect = null;
 	
 	private final int[] clips = new int[AMMO_TYPE_COUNT];
 	private final float[] ammoRegenCounter = new float[AMMO_TYPE_COUNT];
 	private WeaponState state = WeaponState.ready;
-	private int clipToReload = -1, reloadAmount = 0, timer = 0, timerStart = 1, burstShotCount = 0, burstTimeBetweenShots = -1;
-	private boolean reloadAll = true;
+	private int timer = 0, timerStart = 1, burstShotCount = 0, burstTimeBetweenShots = -1;
 	private boolean zoom = false;
+	private int[] reloadAmounts = new int[AMMO_TYPE_COUNT];
+	private Inventory loadTarget = null;
 	
 
 	public abstract Shot initShot(Shot s);
@@ -96,10 +98,12 @@ public abstract class Weapon extends InventoryItem {
 	public void weaponUnSelected(){
 		Mob m = getParentMob();
 		// cancel reloading
-		if(state == WeaponState.cooldownReload){
-			InventoryItem i = new AmmoItem(pos.clone(), AmmoType.values()[clipToReload], reloadAmount);
-			if(m != null && m.skills.shouldKeepAmmoOnCancelReload()) i = m.inventory.addItem(i);
-			if(i != null) GameController.get().dropItem(i, null, false);
+		if(state == WeaponState.reloading){
+			for(AmmoType t : AmmoType.values()){
+				InventoryItem i = new AmmoItem(pos.clone(), t, reloadAmounts[t.ordinal()]);
+				if(m != null && m.skills.shouldKeepAmmoOnCancelReload()) i = m.inventory.addItem(i);
+				if(i != null) GameController.get().dropItem(i, null, false);
+			}
 			setReady();
 		}
 		// do weapon specific stuff
@@ -122,8 +126,6 @@ public abstract class Weapon extends InventoryItem {
 		System.arraycopy(totalStats.clipSize, 0, clips, 0, AMMO_TYPE_COUNT);
 		basicDamageCard = getDefaultDamageCard();
 		totalDamageCard = basicDamageCard.clone();
-		reloadStartSound[AmmoType.plasmaRound.ordinal()] = Resources.getSound("reload_s_pr.wav");
-		reloadEndSound[AmmoType.plasmaRound.ordinal()] = Resources.getSound("reload_e_pr.wav");
 		destroyWhenUsed = false;
 	}
 	
@@ -142,10 +144,9 @@ public abstract class Weapon extends InventoryItem {
 		state = WeaponState.ready;
 		timer = 0;
 		timerStart = 1;
-		clipToReload = -1;
-		reloadAmount = 0;
 		burstShotCount = 0;
-		reloadAll = false;
+		Arrays.fill(reloadAmounts, 0);
+		loadTarget = null;
 	}
 
 	@Override
@@ -218,27 +219,6 @@ public abstract class Weapon extends InventoryItem {
 		return s;
 	}
 	
-	public ArrayList<AmmoItem> unloadToGround(){
-		ArrayList<AmmoItem> list = new ArrayList<>(AMMO_TYPE_COUNT);
-		for(int i=0; i<AMMO_TYPE_COUNT; i++){
-			if(i == AmmoType.energy.ordinal()) continue;
-			if(clips[i] > 0) list.add(new AmmoItem(pos.clone(), AmmoType.values()[i], clips[i]));
-		}
-		return list;
-	}
-
-	public int[] unloadToInventory(Inventory inv){
-		int[] amount = new int[AMMO_TYPE_COUNT];
-		for(AmmoType t : AmmoType.values()){
-			if(t == AmmoType.energy) continue;
-			int i = t.ordinal();
-			amount[i] = Math.min(clips[i], inv.getAmmoRoomLeft(t));
-			clips[i] -= amount[i];
-			inv.addAmmo(t, amount[i]);
-		}
-		return amount;
-	}
-
 	@Override
 	public boolean use(Mob m, boolean fromInventory) {
 		if(fromInventory){
@@ -253,7 +233,7 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public boolean isReloading(){
-		return state == WeaponState.cooldownReload;
+		return state == WeaponState.reloading;
 	}
 	
 	public float getProgress(){
@@ -285,46 +265,78 @@ public abstract class Weapon extends InventoryItem {
 		return (state == WeaponState.ready);
 	}
 	
-	public boolean reload(){
+	public boolean unloadToGround(){
+		return unloadToInventory(null);
+	}
+
+	public boolean unloadToInventory(Inventory inv){
 		if(!isReady()) return false;
-		for(int i=0; i<AMMO_TYPE_COUNT; i++){
-			if(canReload(i)){
-				reloadAll = true;
-				reloadInternal(i);
-				return true;
+		loadTarget = inv;
+		float time = 0;
+		int sum = 0;
+		for(AmmoType t : AmmoType.values()){
+			if(t == AmmoType.energy) continue;
+			int i = t.ordinal();
+			int amount = clips[i];
+			if(loadTarget != null){
+				int room = loadTarget.getAmmoRoomLeft(t);
+				if(amount > room) amount = room;
+			}
+			time += totalStats.reloadTimes[i];
+			sum += amount;
+		}
+		// only start unload if there is room and something to reload
+		if(sum > 0) setState(Math.round(time), WeaponState.unloading, true);
+		return true;
+	}
+	
+	public void stopUnloading(){
+		if(state == WeaponState.unloading) setReady();
+	}
+	
+	private void finishUnloading(){
+		for(AmmoType t : AmmoType.values()){
+			if(t == AmmoType.energy) continue;
+			int i = t.ordinal();
+			if(loadTarget == null){
+				AmmoItem a = new AmmoItem(pos.clone(), t, clips[i]);
+				GameController.get().dropItem(a, null, false);
+				clips[i] = 0;
+			} else {
+				clips[i] = loadTarget.addAmmo(t, clips[i]);
 			}
 		}
-		return false;
+		// TODO: do this via listeners or something more graceful
+		if(loadTarget != null) GameController.get().inventorySubState.populateInventoryList();
+		setReady();
+		if(parentInventory == null) initLabel();
 	}
-	
-	public boolean reload(AmmoType t){
-		if(!isReady()) return false;
-		int i = t.ordinal();
-		if(canReload(i)){
-			reloadInternal(t);
-			return true;
+
+	public boolean reload(){
+		if(!isReady() || !canReload()) return false;
+		float time = 0;
+		for(AmmoType t : AmmoType.values()){
+			if(t == AmmoType.energy) continue;
+			int i = t.ordinal();
+			reloadAmounts[i] = Math.round(Math.min(totalStats.clipSize[i] - clips[i], totalStats.reloadCount[i]));
+			if(!isBionic() && parentInventory != null){
+				reloadAmounts[i] = Math.min(reloadAmounts[i], parentInventory.getAmmoCount(t));
+				parentInventory.removeAmmo(t, reloadAmounts[i]);
+			}
+			time += totalStats.reloadTimes[i];
 		}
-		return false;
+		setState(Math.round(time), WeaponState.reloading, true);
+		if(reloadStartSound != null) GameController.get().playSoundAt(reloadStartSound, pos);
+		return true;
 	}
 	
-	private void reloadInternal(int i){
-		reloadInternalBOTHVALUES(i, AmmoType.values()[i]);
-	}
-	
-	private void reloadInternal(AmmoType t){
-		reloadInternalBOTHVALUES(t.ordinal(), t);
-	}
-	
-	private void reloadInternalBOTHVALUES(int i, AmmoType t){
-		clipToReload = i;
-		reloadAmount = Math.round(Math.min(totalStats.clipSize[i] - clips[i], totalStats.reloadCount[i]));
-		if(!isBionic() && parentInventory != null){
-			reloadAmount = Math.min(reloadAmount, parentInventory.getAmmoCount(t));
-			parentInventory.removeAmmo(AmmoType.values()[i], reloadAmount);
+	private void finishReloading(){
+		for(AmmoType t : AmmoType.values()){
+			int i = t.ordinal();
+			clips[i] += reloadAmounts[i];
 		}
-		setState(Math.round(totalStats.reloadTimes[i]), WeaponState.cooldownReload, true);
-		Sound sound = reloadStartSound[i];
-		if(sound != null) GameController.get().playSoundAt(sound, pos);
+		if(reloadEndSound != null) GameController.get().playSoundAt(reloadEndSound, pos);
+		setReady();
 	}
 	
 	public boolean mustReload(){
@@ -454,7 +466,7 @@ public abstract class Weapon extends InventoryItem {
 		// regenerate ammo
 		for(int i=0; i<AMMO_TYPE_COUNT; i++){
 			float rate = totalStats.ammoRegenerationRates[i];
-			if(rate != 0f && (state != WeaponState.cooldownReload || clipToReload != i)){
+			if(rate != 0f && state != WeaponState.reloading){
 				ammoRegenCounter[i] += rate * time / 1000f;
 				int a = (int)ammoRegenCounter[i];
 				ammoRegenCounter[i] -= a;
@@ -462,7 +474,7 @@ public abstract class Weapon extends InventoryItem {
 				if(clips[i] > totalStats.clipSize[i]) clips[i] = Math.round(totalStats.clipSize[i]);
 			}
 		}
-		if(!isHeld){
+		if(!isHeld && state != WeaponState.unloading){
 			// fancy weapon updates are only done when the weapon is in an inventory or it is a bionic weapon
 			super.update(time, isEquipped, isHeld);
 			return;
@@ -472,26 +484,11 @@ public abstract class Weapon extends InventoryItem {
 		timer -= time;
 		if(timer <= 0){
 			switch(state){
-				case cooldownReload:
-					clips[clipToReload] += reloadAmount;
-					Sound sound = reloadEndSound[clipToReload];
-					if(sound != null) GameController.get().playSoundAt(sound, pos);
-					if(reloadAll){
-						// try to reload other clips as well
-						int t = -1;
-						for(int i=clipToReload+1; i<AMMO_TYPE_COUNT; i++){
-							if(canReload(i)){
-								t = i;
-								break;
-							}
-						}
-						if(t != -1){
-							reloadInternal(t);
-							break;
-						}
-					}
-					// nothing more to reload
-					setReady();
+				case reloading:
+					finishReloading();
+					break;
+				case unloading:
+					finishUnloading();
 					break;
 				case cooldownShot:
 					if(burstShotCount == 0) throw new RuntimeException("we are in the wrong state here!");

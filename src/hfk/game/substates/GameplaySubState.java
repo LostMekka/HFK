@@ -50,6 +50,7 @@ public class GameplaySubState extends GameSubState{
 		inputMap.addKey(Input.KEY_E, InputMap.A_USE_LEVITEM);
 		inputMap.addKey(Input.KEY_G, InputMap.A_GRAB);
 		inputMap.addKey(Input.KEY_R, InputMap.A_RELOAD);
+		inputMap.addKey(Input.KEY_R, InputMap.A_LOOT_UNLOAD);
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_SHOOT);
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_LOOT_GRAB);
 		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_LOOT_USE);
@@ -191,6 +192,12 @@ public class GameplaySubState extends GameSubState{
 					if(selectedLoot.use(player, false)){
 						ctrl.items.remove(selectedLoot);
 						selectedLoot = null;
+					}
+				}
+				if(in.isKeyPressed(InputMap.A_LOOT_UNLOAD)){
+					// unload weapon on ground
+					if(selectedLoot instanceof Weapon){
+						player.unloadWeapon((Weapon)selectedLoot);
 					}
 				}
 			}
