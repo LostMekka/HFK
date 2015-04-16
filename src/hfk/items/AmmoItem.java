@@ -26,6 +26,8 @@ public class AmmoItem extends InventoryItem {
 
 	public AmmoItem(PointF pos, Weapon.AmmoType ammoType, int ammoCount) {
 		super(pos);
+		if(ammoType == Weapon.AmmoType.energy) throw new RuntimeException("trying to create enery ammo item!");
+		if(ammoCount <= 0) throw new RuntimeException("trying to create empty ammo item!");
 		this.ammoType = ammoType;
 		this.ammoCount = ammoCount;
 		switch(ammoType){
