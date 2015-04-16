@@ -15,6 +15,8 @@ import hfk.items.weapons.PlasmaStorm;
 import hfk.items.weapons.PumpActionShotgun;
 import hfk.items.weapons.RocketLauncher;
 import hfk.items.weapons.SniperRifle;
+import hfk.items.weapons.Weapon;
+import java.util.Random;
 
 /**
  *
@@ -22,9 +24,48 @@ import hfk.items.weapons.SniperRifle;
  */
 public class ItemType {
 
+	private static final Random r = new Random();
+	
 	public static final ItemType none = new ItemType("!!no type!!");
 	public static final ItemType equippable = new ItemType("equippable");
 	
+//----- HEALTH PACK ------------------------------------------------------------
+	public static final ItemType healthpack = new ItemType("health pack");
+	public static final ItemType hSmall = new ItemType("small health pack"){
+		@Override InventoryItem create(PointF pos) { return new HealthPack(pos, HealthPack.Type.small); }};
+	public static final ItemType hMedium = new ItemType("medium health pack"){
+		@Override InventoryItem create(PointF pos) { return new HealthPack(pos, HealthPack.Type.medium); }};
+	public static final ItemType hBig = new ItemType("big health pack"){
+		@Override InventoryItem create(PointF pos) { return new HealthPack(pos, HealthPack.Type.big); }};
+	static{
+		hSmall.setParents(new ItemType[]{healthpack});
+		hMedium.setParents(new ItemType[]{healthpack});
+		hBig.setParents(new ItemType[]{healthpack});
+	}
+	
+//----- AMMO -------------------------------------------------------------------
+	public static final ItemType ammo = new ItemType("ammo");
+	public static final ItemType aBullets = new ItemType("bullets"){
+		@Override InventoryItem create(PointF pos) { return new AmmoItem(pos, Weapon.AmmoType.bullet, r.nextInt(91)+10); }};
+	public static final ItemType aShells = new ItemType("shells"){
+		@Override InventoryItem create(PointF pos) { return new AmmoItem(pos, Weapon.AmmoType.shell, r.nextInt(46)+5); }};
+	public static final ItemType aSniperRounds = new ItemType("sniper rounds"){
+		@Override InventoryItem create(PointF pos) { return new AmmoItem(pos, Weapon.AmmoType.sniperRound, r.nextInt(19)+2); }};
+	public static final ItemType aGrenades = new ItemType("grenades"){
+		@Override InventoryItem create(PointF pos) { return new AmmoItem(pos, Weapon.AmmoType.grenade, r.nextInt(36)+5); }};
+	public static final ItemType aRockets = new ItemType("rockets"){
+		@Override InventoryItem create(PointF pos) { return new AmmoItem(pos, Weapon.AmmoType.rocket, r.nextInt(4)+2); }};
+	public static final ItemType aPlasmaRounds = new ItemType("plasma rounds"){
+		@Override InventoryItem create(PointF pos) { return new AmmoItem(pos, Weapon.AmmoType.plasmaRound, r.nextInt(181)+20); }};
+	static{
+		aBullets.setParents(new ItemType[]{ammo});
+		aShells.setParents(new ItemType[]{ammo});
+		aSniperRounds.setParents(new ItemType[]{ammo});
+		aGrenades.setParents(new ItemType[]{ammo});
+		aRockets.setParents(new ItemType[]{ammo});
+		aPlasmaRounds.setParents(new ItemType[]{ammo});
+	}
+
 //----- WEAPONS ----------------------------------------------------------------
 	// generic types
 	public static final ItemType weapon = new ItemType("weapon");
