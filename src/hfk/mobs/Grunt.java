@@ -87,7 +87,7 @@ public class Grunt extends Mob {
 		};
 		w.shotSound = Resources.getSound("w_sg_s.wav");
 		setBionicWeapon(w);
-		inventory.addAmmo(Weapon.AmmoType.grenade, GameController.random.nextInt(36) + 5);
+		inventory.addAmmo(Weapon.AmmoType.grenade, GameController.random.nextInt(7) + 4);
 		xp = 1000000;
 		Skill spider = skills.getSkill("spider senses");
 		spider.levelUp();

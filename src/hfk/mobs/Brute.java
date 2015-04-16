@@ -6,16 +6,13 @@
 package hfk.mobs;
 
 import hfk.PointF;
-import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.Resources;
 import hfk.items.weapons.PlasmaStorm;
 import hfk.items.weapons.Weapon;
 import hfk.skills.Skill;
 import hfk.stats.Damage;
-import hfk.stats.DamageCard;
 import hfk.stats.MobStatsCard;
-import hfk.stats.WeaponStatsCard;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.SpriteSheet;
 
@@ -37,7 +34,7 @@ public class Brute extends Mob {
 		barrageTimeOnLost = 1500;
 		Weapon w = new PlasmaStorm(0f, pos.clone());
 		setBionicWeapon(w);
-		inventory.addAmmo(Weapon.AmmoType.plasmaRound, GameController.random.nextInt(151));
+		inventory.addAmmo(Weapon.AmmoType.plasmaRound, GameController.random.nextInt(31) + 10);
 		xp = 1000000;
 		Skill spider = skills.getSkill("spider senses");
 		spider.levelUp();

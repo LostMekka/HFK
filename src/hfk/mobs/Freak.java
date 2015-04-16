@@ -43,27 +43,27 @@ public class Freak extends Mob {
 				barrageTimeOnHit = 2000;
 				barrageTimeOnLost = 1000;
 				inventory.equipWeaponFromGround(new Pistol(0f, pos.clone()));
-				inventory.addAmmo(Weapon.AmmoType.bullet, GameController.random.nextInt(200) + 100);
+				inventory.addAmmo(Weapon.AmmoType.bullet, GameController.random.nextInt(41) + 30);
 				break;
 			case shotgun:
 				barrageTimeOnLost = 500;
 				moveWhileShooting = true;
 				moveWhilePlayerVisible = true;
 				inventory.equipWeaponFromGround(new DoubleBarrelShotgun(0f, pos.clone()));
-				inventory.addAmmo(Weapon.AmmoType.shell, GameController.random.nextInt(100) + 50);
+				inventory.addAmmo(Weapon.AmmoType.shell, GameController.random.nextInt(21) + 10);
 				break;
 			case energypistol:
 				barrageTimeOnHit = 2000;
 				barrageTimeOnLost = 1000;
 				inventory.equipWeaponFromGround(new EnergyPistol(0f, pos.clone()));
-				inventory.addAmmo(Weapon.AmmoType.bullet, GameController.random.nextInt(200) + 100);
+				inventory.addAmmo(Weapon.AmmoType.bullet, GameController.random.nextInt(41) + 30);
 				break;
 			case plasmaminigun:
 				barrageTimeOnHit = 4000;
 				barrageTimeOnLost = 1000;
 				barrageTimeOnNotify = 4000;
 				inventory.equipWeaponFromGround(new PlasmaMachinegun(0f, pos.clone()));
-				inventory.addAmmo(Weapon.AmmoType.plasmaRound, GameController.random.nextInt(300) + 300);
+				inventory.addAmmo(Weapon.AmmoType.plasmaRound, GameController.random.nextInt(101) + 50);
 				break;
 			default: throw new RuntimeException("loadout type not recognized");
 		}
