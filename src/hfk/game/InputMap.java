@@ -161,7 +161,6 @@ public class InputMap implements MouseListener {
 		}
 	}
 	
-	// TODO: merge isKeyDown and isMouseDown. it is a pain in the ass to separate these in the code
 	public boolean isKeyDown(String action){
 		for(Data d : getData(action, keys)){
 			if(d.isDown) return true;
@@ -201,6 +200,34 @@ public class InputMap implements MouseListener {
 	
 	public boolean isMousePressed(String action){
 		for(Data d : getData(action, mouse)){
+			if(d.isPressed) return true;
+		}
+		return false;
+	}
+	
+	public boolean isActionDown(String action){
+		LinkedList<Data> l = getData(action, keys);
+		l.addAll(getData(action, mouse));
+		for(Data d : l){
+			if(d.isDown) return true;
+		}
+		return false;
+	}
+	
+	public float getActionDownTime(String action){
+		float ans = 0f;
+		LinkedList<Data> l = getData(action, keys);
+		l.addAll(getData(action, mouse));
+		for(Data d : l){
+			if(d.isDown && d.downTime > ans) ans = d.downTime;
+		}
+		return ans;
+	}
+	
+	public boolean isActionPressed(String action){
+		LinkedList<Data> l = getData(action, keys);
+		l.addAll(getData(action, mouse));
+		for(Data d : l){
 			if(d.isPressed) return true;
 		}
 		return false;
