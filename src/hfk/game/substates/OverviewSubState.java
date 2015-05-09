@@ -42,7 +42,6 @@ public class OverviewSubState extends GameSubState {
 	@Override
 	public void update(GameController ctrl, GameContainer gc,
 			StateBasedGame sbg, int time) throws SlickException {
-		getInputMap().update(time);
 		updateCamera(time);
 		updateScreenPos(ctrl, gc);
 		updateSubState(ctrl);
