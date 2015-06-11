@@ -312,7 +312,7 @@ public abstract class Weapon extends InventoryItem {
 		// TODO: do this via listeners or something more graceful
 		if(loadTarget != null) GameController.get().inventorySubState.populateInventoryList();
 		setReady();
-		if(parentInventory == null) initLabel();
+		initLabel();
 	}
 
 	public boolean reload(){
@@ -424,7 +424,8 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public void shootInternal(){
-		if(getParentMob() == GameController.get().player){
+		Mob parent = getParentMob();
+		if(parent == GameController.get().player){
 			GameController.get().cameraShake(getScreenShakeAmount());
 			GameController.get().cameraRecoil(angle + (float)Math.PI, getScreenRecoilAmount());
 		}
@@ -435,13 +436,12 @@ public abstract class Weapon extends InventoryItem {
 			Shot s = new Shot(this, null, null, 0.1f);
 			s = initShot(s);
 			s.dmg = totalDamageCard.createDamage();
-			s.team = shotTeam;
+			s.team = parent == null ? Shot.Team.dontcare : shotTeam;
 			s.isGrenade = type.isSubTypeOf(ItemType.wGrenadeLauncher);
 			s.bounceCount = totalStats.shotBounces;
 			s.bounceProbability = totalStats.bounceProbability;
 			s.parent = this;
-			Mob m = getParentMob();
-			if(m != null) s = m.skills.modifyShot(s, this, m);
+			if(parent != null) s = parent.skills.modifyShot(s, this, parent);
 			GameController.get().shots.add(s);
 		}
 		if(burstShotCount > 0){
@@ -462,6 +462,7 @@ public abstract class Weapon extends InventoryItem {
 	
 	@Override
 	public void update(int time, boolean isEquipped, boolean isHeld){
+		if(!isHeld) super.update(time, isEquipped, isHeld);
 		// accuracy cooldown
 		currentScatter -= time / 1000f * totalStats.scatterCoolRate;
 		if(currentScatter < totalStats.minScatter) currentScatter = totalStats.minScatter;
@@ -476,11 +477,6 @@ public abstract class Weapon extends InventoryItem {
 				clips[i] += a;
 				if(clips[i] > totalStats.clipSize[i]) clips[i] = Math.round(totalStats.clipSize[i]);
 			}
-		}
-		if(!isHeld && state != WeaponState.unloading){
-			// fancy weapon updates are only done when the weapon is in an inventory or it is a bionic weapon
-			super.update(time, isEquipped, isHeld);
-			return;
 		}
 		// from here on: cooldown stuff, only when not ready!
 		if(state == WeaponState.ready) return;
