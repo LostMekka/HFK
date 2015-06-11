@@ -288,7 +288,8 @@ public abstract class Weapon extends InventoryItem {
 			sum += amount;
 		}
 		// only start unload if there is room and something to reload
-		if(sum > 0) setState(Math.round(time), WeaponState.unloading, true);
+		if(sum <= 0) return false;
+		setState(Math.round(time), WeaponState.unloading, true);
 		return true;
 	}
 	
