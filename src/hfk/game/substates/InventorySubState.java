@@ -66,6 +66,7 @@ public class InventorySubState extends GameSubState{
 	}
 	
 	public void populateInventoryList(){
+		if(inventory == null) return;
 		int sel = invList.getSelectedIndex();
 		invList.clearList();
 		for(InventoryItem i : inventory.getList()){
