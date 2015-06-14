@@ -104,7 +104,7 @@ public class InputMap implements MouseListener {
 	private Input in;
 	private final HashMap<Integer, Data> keys = new HashMap<>();
 	private final HashMap<Integer, Data> mouse = new HashMap<>();
-	private int lastMW = 0;
+	private int lastMW = 0, mouseWheel = 0;
 
 	public InputMap(Input in) {
 		this.in = in;
@@ -122,10 +122,11 @@ public class InputMap implements MouseListener {
 	}
 	
 	public int getMouseWheelMove(){
-		return lastMW;
+		return mouseWheel;
 	}
 	
 	public void update(float time){
+		mouseWheel = lastMW;
 		lastMW = 0;
 		for(Integer key : keys.keySet()){
 			Data d = keys.get(key);
