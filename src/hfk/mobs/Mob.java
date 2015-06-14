@@ -330,7 +330,7 @@ public abstract class Mob implements StatsModifier {
 				if(autoUseWeapon) tryToShoot();
 			}
 		} else {
-			float sr = totalStats.getBasicSenseRange();
+			float sr = Math.max(totalStats.getBasicSenseRange(), (ctrl.player.size + size) / 2f);
 			if(ctrl.player.pos.squaredDistanceTo(pos) <= sr*sr){
 				// can sense player! update path but dont set barrage
 				lastPlayerPos = ctrl.player.pos.clone();
