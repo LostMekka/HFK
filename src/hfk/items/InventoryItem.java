@@ -112,7 +112,6 @@ public abstract class InventoryItem implements StatsModifier {
 		labelSizeInPixels.y = 2 * LABEL_BORDER + GameController.get().renderer.getStringHeight(label);
 		labelSize.x = GameController.get().transformScreenToTiles(labelSizeInPixels.x);
 		labelSize.y = GameController.get().transformScreenToTiles(labelSizeInPixels.y);
-		calcLabelPosOnScreen();
 	}
 	
 	public PointF getTopLeftLabelPos(){
@@ -120,9 +119,6 @@ public abstract class InventoryItem implements StatsModifier {
 		p.x -= labelSize.x / 2f;
 		p.y -= labelSize.y / 2f;
 		return p;
-	}
-	
-	private void calcLabelPosOnScreen(){
 	}
 	
 	public boolean isOnLabel(PointF p){
@@ -175,7 +171,6 @@ public abstract class InventoryItem implements StatsModifier {
 		pos.y += vel.y * t;
 		angle += vAngle * t;
 		// label position
-		calcLabelPosOnScreen();
 		labelPos.x += LABEL_VEL * t * (pos.x + LABEL_OFFSET.x - labelPos.x);
 		labelPos.y += LABEL_VEL * t * (pos.y + LABEL_OFFSET.y - labelPos.y);
 	}
