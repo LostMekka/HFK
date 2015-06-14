@@ -13,6 +13,7 @@ import hfk.items.EmptyItem;
 import hfk.items.HealthPack;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
+import hfk.items.InventoryListener;
 import hfk.items.weapons.Weapon;
 import hfk.menu.MenuBox;
 import hfk.menu.MenuItemList;
@@ -30,7 +31,7 @@ import org.newdawn.slick.state.StateBasedGame;
  *
  * @author LostMekka
  */
-public class InventorySubState extends GameSubState{
+public class InventorySubState extends GameSubState implements InventoryListener {
 
 	public static final int INV_LINE_HEIGHT = 30;
 	public static final int GEAR_HEADLINE_HEIGHT = 25;
@@ -60,12 +61,25 @@ public class InventorySubState extends GameSubState{
 	}
 
 	public void init(Inventory i){
+		if(inventory != null) inventory.removeInventoryListener(this);
+		i.addInventoryListener(this);
 		inventory = i;
 		invList.unselect();
 		populateInventoryList();
 	}
+
+	@Override
+	public void inventoryChanged(Inventory inventory) {
+		populateInventoryList();
+	}
+
+	@Override
+	public void inventoryGearChanged(Inventory inventory) {}
+
+	@Override
+	public void inventoryQuickslotChanged(Inventory inventory) {}
 	
-	public void populateInventoryList(){
+	private void populateInventoryList(){
 		if(inventory == null) return;
 		int sel = invList.getSelectedIndex();
 		invList.clearList();

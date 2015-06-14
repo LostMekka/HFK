@@ -308,8 +308,7 @@ public abstract class Weapon extends InventoryItem {
 				clips[i] = loadTarget.addAmmo(t, clips[i]);
 			}
 		}
-		// TODO: do this via listeners or something more graceful
-		if(loadTarget != null) GameController.get().inventorySubState.populateInventoryList();
+		if(parentInventory != null) parentInventory.triggerInventoryChanged();
 		setReady();
 		initLabel();
 	}
