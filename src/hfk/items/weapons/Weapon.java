@@ -222,7 +222,7 @@ public abstract class Weapon extends InventoryItem {
 	
 	@Override
 	public InventoryItem use(Mob m) {
-		return m.inventory.equipWeapon(this);
+		return m.inventory.equipWeapon(this, true, true);
 	}
 
 	public boolean isBionic(){
