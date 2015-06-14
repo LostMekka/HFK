@@ -33,7 +33,7 @@ public class Hunter extends Mob {
 		moveWhilePlayerVisible = true;
 		moveWhileShooting = true;
 		canOpenDoors = false;
-		inventory.equipWeaponFromGround(new DamagedHuntingGun(0f, pos.clone()));
+		inventory.equipWeapon(new DamagedHuntingGun(0f, pos.clone()));
 		inventory.addAmmo(Weapon.AmmoType.shell, GameController.random.nextInt(11) + 5);
 	}
 

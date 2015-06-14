@@ -82,8 +82,9 @@ public class AmmoItem extends InventoryItem {
 	}
 
 	@Override
-	public boolean use(Mob m, boolean fromInventory) {
-		return false;
+	public InventoryItem use(Mob m) {
+		// cannot use ammo directly!
+		return this;
 	}
 
 	@Override

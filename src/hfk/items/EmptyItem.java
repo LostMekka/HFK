@@ -36,8 +36,8 @@ public class EmptyItem extends InventoryItem {
 	}
 
 	@Override
-	public boolean use(Mob m, boolean fromInventory) {
-		return false;
+	public InventoryItem use(Mob m) {
+		throw new RuntimeException("used empty item!");
 	}
 
 }

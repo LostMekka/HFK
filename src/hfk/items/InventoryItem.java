@@ -55,12 +55,22 @@ public abstract class InventoryItem implements StatsModifier {
 	public PointF labelSize = new PointF();
 	public PointF labelSizeInPixels = new PointF();
 	public String label = null;
-	public boolean destroyWhenUsed = true;
 	
 	public abstract String getDisplayName();
 	public abstract long getRarityScore();
 	public abstract Color getDisplayColor();
-	public abstract boolean use(Mob m, boolean fromInventory);
+	
+	/**
+	 * Tries to use the item in the given context. Returns what is left of the
+	 * item after it is used. This is {@code null} when the item is
+	 * consumed, or the item itself if it cannot be used. The return value will
+	 * usually be put at the place where the item was before it was used.
+	 * @param m the {@code Mob} that wants to use the item.
+	 * in its {@code Inventory} upon using it.
+	 * @return the {@code InventoryItem} that is left after it was used or the
+	 * item itself if usage was not allowed or wanted.
+	 */
+	public abstract InventoryItem use(Mob m);
 
 	public static InventoryItem create(PointF pos, int maxRarity){
 		Random r = GameController.random;

@@ -189,9 +189,15 @@ public class GameplaySubState extends GameSubState{
 				}
 				if(in.isActionPressed(InputMap.A_LOOT_USE)){
 					// use item directly
-					if(selectedLoot.use(player, false)){
+					InventoryItem newItem = selectedLoot.use(player);
+					if(newItem != selectedLoot){
 						ctrl.items.remove(selectedLoot);
-						selectedLoot = null;
+						if(newItem != null){
+							newItem.pos = selectedLoot.pos.clone();
+							newItem.vel = selectedLoot.vel.clone();
+							ctrl.addItem(newItem);
+						}
+						selectedLoot = newItem;
 					}
 				}
 				if(in.isActionPressed(InputMap.A_LOOT_UNLOAD)){

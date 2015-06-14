@@ -36,7 +36,7 @@ public class Armor extends InventoryItem{
 	}
 
 	@Override
-	public boolean use(Mob m, boolean fromInventory) {
+	public InventoryItem use(Mob m) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 	

@@ -270,7 +270,7 @@ public class GameController {
 		player = new Player(pp);
 		//printBalanceInfo();
 		Weapon weapon = new hfk.items.weapons.Pistol(0, pp);
-		player.inventory.equipWeaponFromGround(weapon);
+		player.inventory.equipWeapon(weapon);
 		switch(difficultyLevel){
 			case 0:
 				player.inventory.addAmmoClips(weapon, 10);

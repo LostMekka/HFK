@@ -50,8 +50,8 @@ public class HealthPack extends InventoryItem {
 	}
 
 	@Override
-	public boolean use(Mob m, boolean fromInventory) {
-		return m.heal(hp);
+	public InventoryItem use(Mob m) {
+		return m.heal(hp) ? null : this;
 	}
 
 	@Override

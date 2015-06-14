@@ -128,7 +128,6 @@ public abstract class Weapon extends InventoryItem {
 		System.arraycopy(totalStats.clipSize, 0, clips, 0, AMMO_TYPE_COUNT);
 		basicDamageCard = getDefaultDamageCard();
 		totalDamageCard = basicDamageCard.clone();
-		destroyWhenUsed = false;
 	}
 	
 	public void setImg(String ref){
@@ -222,12 +221,8 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	@Override
-	public boolean use(Mob m, boolean fromInventory) {
-		if(fromInventory){
-			return m.inventory.equipWeaponFromInventory(this);
-		} else {
-			return m.inventory.equipWeaponFromGround(this);
-		}
+	public InventoryItem use(Mob m) {
+		return m.inventory.equipWeapon(this);
 	}
 
 	public boolean isBionic(){
@@ -264,7 +259,11 @@ public abstract class Weapon extends InventoryItem {
 	}
 	
 	public boolean isReady(){
-		return (state == WeaponState.ready);
+		return state == WeaponState.ready;
+	}
+	
+	public boolean isShooting(){
+		return state == WeaponState.cooldownShot || state == WeaponState.cooldownBurst;
 	}
 	
 	public boolean unloadToGround(){

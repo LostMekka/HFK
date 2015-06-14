@@ -156,33 +156,43 @@ public class ExchangeSubState extends GameSubState{
 						source.addAmmo(t, back);
 						populateInventoryLists();
 					}
-				} else if(source.removeItem(selectedItem)){
-					selectedItem = target.addItem(selectedItem);
-					// add remaining item back to source inventory
-					// (this could be remaining ammo or the whole item when target inv is full)
-					if(selectedItem != null) source.addItem(selectedItem);
-					populateInventoryLists();
+				} else{
+					InventoryItem removed = source.removeItem(selectedItem);
+					if(removed != null){
+						InventoryItem leftover = target.addItem(removed);
+						// add remaining item back to source inventory
+						if(leftover != null){
+							InventoryItem i = source.addItem(leftover);
+							if(i != null) exchangeError("exchange", i);
+						}
+						populateInventoryLists();
+					}
 				}
 			} else if(in.isActionPressed(InputMap.A_EXCHANGE_USE)){
 				// use item if possible
-				if(selectedItem.use(invLeft.getParent(), source == invLeft)){
-					if(selectedItem.destroyWhenUsed) source.removeItem(selectedItem);
-					populateInventoryLists();
-				}
+				source.useItemFromInventory(selectedItem, invLeft.getParent());
+				populateInventoryLists();
 			} else if(in.isActionPressed(InputMap.A_EXCHANGE_DROP)){
 				// drop item
-				if(source.removeItem(selectedItem)){
-					ctrl.dropItem(selectedItem, invLeft.getParent(), true);
-					populateInventoryLists();
-				}
+				InventoryItem removed = source.removeItem(selectedItem);
+				if(removed != null) ctrl.dropItem(selectedItem, invLeft.getParent(), false);
+				populateInventoryLists();
 			} else if(in.isActionPressed(InputMap.A_EXCHANGE_UNLOAD)){
 				// unload weapon. put ammo in left inventory
 				if(selectedItem instanceof Weapon && invLeft.getParent() != null){
 					invLeft.getParent().unloadWeapon((Weapon)selectedItem);
-					populateInventoryLists();
 				}
 			}
 		}
+	}
+	
+	private void exchangeError(String action, InventoryItem i){
+		// this should never happen if inventories work
+		// as intended. just in case they dot't: drop
+		// leftover item instead of just feeding it to
+		// the garbage collector.
+		System.out.format("WARNING: %s has gone wrong! Neither inventory wants to accept leftover item! (%s) Dropping it instead...\n", action, i.getClass().getName());
+		GameController.get().dropItem(i, invLeft.getParent(), false);
 	}
 
 	@Override

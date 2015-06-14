@@ -131,13 +131,13 @@ public class InventorySubState extends GameSubState{
 		if(selectedInvItem != null){
 			// use or drop selected item
 			if(in.isActionPressed(InputMap.A_INV_USE) && selectedInvItem != null){
-				inventory.useItem(selectedInvItem);
+				inventory.useItemFromInventory(selectedInvItem);
 				populateInventoryList();
 			}
 			if(in.isActionPressed(InputMap.A_INV_DROP) && selectedInvItem != null){
-				boolean dropped = inventory.removeItem(selectedInvItem);
-				if(dropped){
-					ctrl.dropItem(selectedInvItem, inventory.getParent(), true);
+				InventoryItem dropped = inventory.removeItem(selectedInvItem);
+				if(dropped != null){
+					ctrl.dropItem(dropped, inventory.getParent(), true);
 					populateInventoryList();
 				}
 			}
@@ -159,12 +159,13 @@ public class InventorySubState extends GameSubState{
 			int i = (my - 2*GEAR_HEADLINE_HEIGHT) / INV_LINE_HEIGHT;
 			if(i < inventory.getQuickSlotCount()) selectedGear = inventory.getQuickslot(i);
 			if(selectedGear != null){
-				if(in.isActionPressed(InputMap.A_INV_EQUIP)){
+				if(in.isActionPressed(InputMap.A_INV_USE)){
 					inventory.unequipWeapon(i);
 					populateInventoryList();
 				}
 				if(in.isActionPressed(InputMap.A_INV_DROP)){
-					if(inventory.dropItem(selectedGear)) ctrl.dropItem(selectedGear, inventory.getParent(), true);
+					InventoryItem dropped = inventory.removeEquippedItem(selectedGear);
+					if(dropped != null) ctrl.dropItem(dropped, inventory.getParent(), true);
 				}
 			}
 		}
