@@ -6,11 +6,13 @@
 
 package hfk.mobs;
 
+import hfk.ExpRandom;
 import hfk.PointF;
 import hfk.PointI;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
+import hfk.items.ExperienceOrb;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
@@ -116,7 +118,15 @@ public abstract class Mob implements StatsModifier {
 		float r = p * GameController.random.nextFloat();
 		for(Mob m : l){
 			p = getP(m);
-			if(p > r) return m;
+			if(p > r){
+				if(GameController.random.nextFloat() < 0.1f){
+					ExpRandom ran = new ExpRandom(0.6);
+					float f = ran.getNextFloat();
+					int x = (int)(f*m.getDifficultyScore()*2f);
+					if(x >= 5) m.inventory.addItem(new ExperienceOrb(pos.clone(), x));
+				}
+				return m;
+			}
 			r -= p;
 		}
 		System.out.println("WARNING: createMob should not end up here!");
