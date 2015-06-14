@@ -9,6 +9,7 @@ import hfk.PointF;
 import hfk.Shot;
 import hfk.game.GameController;
 import hfk.items.weapons.Weapon;
+import hfk.level.Chest;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
 import hfk.stats.DamageCard;
@@ -32,6 +33,7 @@ public final class Inventory implements StatsModifier {
 	private Weapon[] quickSlots;
 	private MobStatsCard msc = null;
 	private Mob parent = null;
+	private Chest parentChest = null;
 	private LinkedList<InventoryItem> list = new LinkedList<>();
 	private LinkedList<InventoryListener> listeners = new LinkedList<>();
 	private boolean invChanged = false, gearChanged = false, slotsChanged = false;
@@ -42,10 +44,12 @@ public final class Inventory implements StatsModifier {
 	}
 	
 	/***
-	 * creates an inventory without parent.
+	 * creates an inventory with a {@code Chest} as a parent.
+	 * @param chest the chest that is the parent of this inventory
 	 * @param statsCard the stats to use for inventory size and ammo stack size
 	 */
-	public Inventory(MobStatsCard statsCard) {
+	public Inventory(Chest chest, MobStatsCard statsCard) {
+		parentChest = chest;
 		updateMSC(statsCard);
 	}
 	

@@ -28,7 +28,7 @@ public class Chest extends UsableLevelItem {
 		MobStatsCard card = MobStatsCard.createNormal();
 		card.setInventorySize(20);
 		for(int i=0; i<Weapon.AMMO_TYPE_COUNT; i++) card.setAmmoSlotSize(i, 1000);
-		inv = new Inventory(card);
+		inv = new Inventory(this, card);
 		InventoryItem i = InventoryItem.create(new PointF(), maxRarity);
 		while(i != null){
 			inv.addItem(i);
