@@ -33,6 +33,8 @@ public final class Inventory implements StatsModifier {
 	private MobStatsCard msc = null;
 	private Mob parent = null;
 	private LinkedList<InventoryItem> list = new LinkedList<>();
+	private LinkedList<InventoryListener> listeners = new LinkedList<>();
+	private boolean invChanged = false, gearChanged = false, slotsChanged = false;
 
 	public Inventory(Mob m) {
 		parent = m;
@@ -45,6 +47,26 @@ public final class Inventory implements StatsModifier {
 	 */
 	public Inventory(MobStatsCard statsCard) {
 		updateMSC(statsCard);
+	}
+	
+	public void addInventoryListener(InventoryListener l){
+		if(!listeners.contains(l)) listeners.add(l);
+	}
+	
+	public void removeInventoryListener(InventoryListener l){
+		listeners.remove(l);
+	}
+	
+	public void triggerInventoryChanged(){
+		invChanged = true;
+	}
+	
+	public void triggerInventoryGearChanged(){
+		gearChanged = true;
+	}
+	
+	public void triggerInventoryQuickslotChanged(){
+		slotsChanged = true;
 	}
 	
 	public int size(){
@@ -64,23 +86,28 @@ public final class Inventory implements StatsModifier {
 	}
 	
 	public boolean setActiveQuickSlot(int slot){
-		if(slot < 0 || slot >= quickSlots.length) return false;
+		if(slot < 0 || slot >= quickSlots.length || slot == activeQuickSlot) return false;
 		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponUnSelected();
 		activeQuickSlot = slot;
 		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponSelected();
+		triggerInventoryQuickslotChanged();
 		return true;
 	}
 	
 	public void nextQuickSlot(){
+		if(quickSlots.length <= 1) return;
 		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponUnSelected();
 		activeQuickSlot = (activeQuickSlot + 1) % quickSlots.length;
 		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponSelected();
+		triggerInventoryQuickslotChanged();
 	}
 	
 	public void previousQuickSlot(){
+		if(quickSlots.length <= 1) return;
 		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponUnSelected();
 		activeQuickSlot = (activeQuickSlot - 1 + quickSlots.length) % quickSlots.length;
 		if(quickSlots[activeQuickSlot] != null) quickSlots[activeQuickSlot].weaponSelected();
+		triggerInventoryQuickslotChanged();
 	}
 	
 	public int getQuickSlotCount(){
@@ -173,7 +200,10 @@ public final class Inventory implements StatsModifier {
 		int max = ss * (int)Math.ceil((float)ammo[ammoType] / (float)ss + (float)freeSlots) - ammo[ammoType];
 		int rn = Math.min(n, max);
 		ammo[ammoType] += rn;
-		if(rn > 0) generateList();
+		if(rn > 0){
+			generateList();
+			triggerInventoryChanged();
+		}
 		return n - rn;
 	}
 	
@@ -181,6 +211,7 @@ public final class Inventory implements StatsModifier {
 		if(ammo[t.ordinal()] >= n){
 			ammo[t.ordinal()] -= n;
 			generateList();
+			triggerInventoryChanged();
 			return true;
 		}
 		return false;
@@ -271,8 +302,9 @@ public final class Inventory implements StatsModifier {
 			i.parentInventory = null;
 		}
 		// keep state consistent
-		for(InventoryItem i : removed) i.parentInventory = null;
 		if(parent != null) parent.recalculateCards();
+		generateList();
+		triggerInventoryGearChanged();
 		return removed;
 	}
 	
@@ -377,6 +409,7 @@ public final class Inventory implements StatsModifier {
 		w.weaponSelected();
 		// keep state consistent
 		generateList();
+		triggerInventoryGearChanged();
 		parent.recalculateCards();
 		return true;
 	}
@@ -441,6 +474,7 @@ public final class Inventory implements StatsModifier {
 		w.weaponSelected();
 		// keep state consistent
 		parent.recalculateCards();
+		triggerInventoryGearChanged();
 		return previous;
 	}
 	
@@ -486,6 +520,7 @@ public final class Inventory implements StatsModifier {
 		quickSlots[index] = null;
 		insertSorted(w, weapons);
 		generateList();
+		triggerInventoryGearChanged();
 		parent.recalculateCards();
 		return true;
 	}
@@ -529,6 +564,7 @@ public final class Inventory implements StatsModifier {
 		w.parentInventory = null;
 		w.shotTeam = Shot.Team.dontcare;
 		w.initLabel();
+		triggerInventoryGearChanged();
 		parent.recalculateCards();
 		return w;
 	}
@@ -544,6 +580,13 @@ public final class Inventory implements StatsModifier {
 			i.update(time, true, i == getActiveWeapon());
 		}
 		for(InventoryItem i : list) i.update(time, false, false);
+		// notify listeners once per update
+		if(invChanged) for(InventoryListener l : listeners) l.inventoryChanged(this);
+		if(gearChanged) for(InventoryListener l : listeners) l.inventoryGearChanged(this);
+		if(slotsChanged) for(InventoryListener l : listeners) l.inventoryQuickslotChanged(this);
+		invChanged = false;
+		gearChanged = false;
+		slotsChanged = false;
 	}
 	
 	public void recalculateStats(){
@@ -601,6 +644,7 @@ public final class Inventory implements StatsModifier {
 		}
 		freeSlots = msc.getInventorySize() - list.size();
 		for(int i=0; i<freeSlots; i++) list.add(new EmptyItem(new PointF()));
+		triggerInventoryChanged();
 	}
 
 	private void insertSorted(InventoryItem i, LinkedList<InventoryItem> l){
