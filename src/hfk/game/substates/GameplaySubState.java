@@ -193,8 +193,8 @@ public class GameplaySubState extends GameSubState{
 					if(newItem != selectedLoot){
 						ctrl.items.remove(selectedLoot);
 						if(newItem != null){
-							newItem.pos = selectedLoot.pos.clone();
-							newItem.vel = selectedLoot.vel.clone();
+							newItem.pos.set(selectedLoot.pos);
+							newItem.vel.set(selectedLoot.vel);
 							ctrl.addItem(newItem);
 						}
 						selectedLoot = newItem;
