@@ -235,7 +235,9 @@ public abstract class Weapon extends InventoryItem {
 	
 	public float getProgress(){
 		if(state == WeaponState.ready) return 0f;
-		return (float)(timerStart - timer) / (float) timerStart;
+		float f = (float)(timerStart - timer) / (float) timerStart;
+		if(state == WeaponState.unloading) return 1f - f;
+		return f;
 	}
 	
 	public int getAmmoCount(AmmoType t){
