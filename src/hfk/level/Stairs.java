@@ -7,6 +7,7 @@ package hfk.level;
 
 import hfk.PointI;
 import hfk.game.GameController;
+import hfk.game.GameRenderer;
 import hfk.game.Resources;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
@@ -57,6 +58,11 @@ public class Stairs extends UsableLevelItem {
 	public boolean useInternal(Mob m) {
 		GameController.get().nextLevel();
 		return true;
+	}
+
+	@Override
+	public void draw() {
+		GameController.get().renderer.drawImage(img, pos.toFloat(), true, GameRenderer.LayerType.floor3);
 	}
 	
 }
