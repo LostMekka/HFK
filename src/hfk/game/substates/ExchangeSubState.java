@@ -14,6 +14,7 @@ import hfk.items.EmptyItem;
 import hfk.items.HealthPack;
 import hfk.items.Inventory;
 import hfk.items.InventoryItem;
+import hfk.items.InventoryListener;
 import hfk.items.weapons.Weapon;
 import hfk.menu.MenuItemList;
 import hfk.menu.SimpleMenuBox;
@@ -28,7 +29,7 @@ import org.newdawn.slick.state.StateBasedGame;
  *
  * @author LostMekka
  */
-public class ExchangeSubState extends GameSubState{
+public class ExchangeSubState extends GameSubState implements InventoryListener {
 
 	private Inventory invLeft = null, invRight = null;
 	private InventoryItem selectedItem = null;
@@ -58,12 +59,27 @@ public class ExchangeSubState extends GameSubState{
 	}
 
 	public void init(Inventory il, Inventory ir){
+		if(invLeft != null) invLeft.removeInventoryListener(this);
+		if(invRight != null) invRight.removeInventoryListener(this);
 		invLeft = il;
 		invRight = ir;
+		invLeft.addInventoryListener(this);
+		invRight.addInventoryListener(this);
 		listLeft.unselect();
 		listRight.unselect();
 		populateInventoryLists();
 	}
+
+	@Override
+	public void inventoryChanged(Inventory inventory) {
+		populateInventoryLists();
+	}
+
+	@Override
+	public void inventoryGearChanged(Inventory inventory) {}
+
+	@Override
+	public void inventoryQuickslotChanged(Inventory inventory) {}
 	
 	private void populateInventoryLists(){
 		// left
