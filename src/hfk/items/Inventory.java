@@ -53,6 +53,11 @@ public final class Inventory implements StatsModifier {
 		updateMSC(statsCard);
 	}
 	
+	public PointF getPosition(){
+		if(parent != null) return parent.pos.clone();
+		return parentChest.pos.toFloat();
+	}
+	
 	public void addInventoryListener(InventoryListener l){
 		if(!listeners.contains(l)) listeners.add(l);
 	}
