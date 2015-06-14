@@ -48,12 +48,12 @@ public class GameplaySubState extends GameSubState{
 		inputMap.addKey(Input.KEY_A, InputMap.A_MOVE_LEFT);
 		inputMap.addKey(Input.KEY_D, InputMap.A_MOVE_RIGHT);
 		inputMap.addKey(Input.KEY_E, InputMap.A_USE_LEVITEM);
+		inputMap.addKey(Input.KEY_E, InputMap.A_LOOT_USE);
 		inputMap.addKey(Input.KEY_G, InputMap.A_GRAB);
 		inputMap.addKey(Input.KEY_R, InputMap.A_RELOAD);
 		inputMap.addKey(Input.KEY_R, InputMap.A_LOOT_UNLOAD);
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_SHOOT);
 		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_LOOT_GRAB);
-		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_LOOT_USE);
 		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_SHOOT_ALTERNATIVE);
 		for(int i=0; i<10; i++) inputMap.addKey(Input.KEY_1 + i, InputMap.A_QUICKSLOTS[i]);
 	}

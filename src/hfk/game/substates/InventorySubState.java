@@ -51,8 +51,8 @@ public class InventorySubState extends GameSubState{
 		inputMap.addKey(Input.KEY_DOWN, InputMap.A_INV_DOWN);
 		inputMap.addKey(Input.KEY_Q, InputMap.A_INV_DROP);
 		inputMap.addKey(Input.KEY_R, InputMap.A_INV_UNLOAD);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_INV_EQUIP);
-		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_INV_USE);
+		inputMap.addKey(Input.KEY_E, InputMap.A_INV_USE);
+		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_INV_USE);
 	}
 
 	public Inventory getInventory() {
@@ -132,10 +132,6 @@ public class InventorySubState extends GameSubState{
 			// use or drop selected item
 			if(in.isActionPressed(InputMap.A_INV_USE) && selectedInvItem != null){
 				inventory.useItem(selectedInvItem);
-				populateInventoryList();
-			}
-			if(in.isActionPressed(InputMap.A_INV_EQUIP) && selectedInvItem instanceof Weapon){
-				inventory.equipItem(selectedInvItem);
 				populateInventoryList();
 			}
 			if(in.isActionPressed(InputMap.A_INV_DROP) && selectedInvItem != null){
