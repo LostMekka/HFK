@@ -293,7 +293,7 @@ public abstract class Mob implements StatsModifier {
 		}
 		Weapon w = getActiveWeapon();
 		if(w != null){
-			w.pos = pos;
+			w.pos.set(pos);
 			// reload if: clip empty or not quite empty but feeling safe
 			if(autoReloadWeapon && (w.mustReload() || (safetyTimer >= timeToFeelSafe && w.canReload()))) w.reload();
 		}
@@ -493,7 +493,10 @@ public abstract class Mob implements StatsModifier {
 		GameController ctrl = GameController.get();
 		ctrl.renderer.drawImage(animation.getCurrentFrame(), pos, ctrl.shouldDrawMobOutsideVisionRange(this), GameRenderer.LayerType.mob1);
 		Weapon w = getActiveWeapon();
-		if(w != null && w != bionicWeapon) w.render();
+		if(w != null && w != bionicWeapon){
+			w.pos.set(pos);
+			w.render();
+		}
 	}
 	
 	public void drawStatus(){

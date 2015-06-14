@@ -587,8 +587,12 @@ public final class Inventory implements StatsModifier {
 	public void update(int time){
 		for(InventoryItem i : getEquippedItems()){
 			i.update(time, true, i == getActiveWeapon());
+			i.pos.set(getPosition());
 		}
-		for(InventoryItem i : list) i.update(time, false, false);
+		for(InventoryItem i : list){
+			i.update(time, false, false);
+			i.pos.set(getPosition());
+		}
 		// notify listeners once per update
 		if(invChanged) for(InventoryListener l : listeners) l.inventoryChanged(this);
 		if(gearChanged) for(InventoryListener l : listeners) l.inventoryGearChanged(this);
