@@ -231,6 +231,7 @@ public final class Inventory implements StatsModifier {
 			System.out.println("WARNING! inventory got an empty item! it consumed it.");
 			return null;
 		}
+		if(i.useOnPickup && parent != null) return i.use(parent);
 		// addAmmo already generates the inventory list. for all others: re-generate the item list!!!
 		if(i instanceof AmmoItem){
 			AmmoItem ai = (AmmoItem)i;

@@ -22,6 +22,7 @@ public class ExperienceOrb extends InventoryItem {
 
 	public ExperienceOrb(PointF pos, int amount) {
 		super(pos);
+		useOnPickup = true;
 		xp = amount;
 		size = 0.3f;
 		image = Resources.getImage("xporb.png");

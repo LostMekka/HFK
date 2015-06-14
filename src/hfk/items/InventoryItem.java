@@ -55,6 +55,7 @@ public abstract class InventoryItem implements StatsModifier {
 	public PointF labelSize = new PointF();
 	public PointF labelSizeInPixels = new PointF();
 	public String label = null;
+	public boolean useOnPickup = false;
 	
 	public abstract String getDisplayName();
 	public abstract long getRarityScore();
