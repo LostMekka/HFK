@@ -469,6 +469,7 @@ public class GameController {
 	
 	public void addItem(InventoryItem i){
 		i.parentInventory = null;
+		i.initLabel();
 		i.labelPos = i.pos.clone();
 		items.add(i);
 	}
