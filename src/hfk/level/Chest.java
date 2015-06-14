@@ -38,6 +38,11 @@ public class Chest extends UsableLevelItem {
 	}
 
 	@Override
+	public void update(int time) {
+		inv.update(time);
+	}
+
+	@Override
 	public boolean damage(int dmg) {
 		if(!super.damage(dmg)) return false;
 		for(InventoryItem i : inv.removeAll()){
