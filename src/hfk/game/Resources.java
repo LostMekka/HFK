@@ -68,6 +68,7 @@ public class Resources {
 		"s_grenade.png",
 		"s_rocket.png",
 		"ex_002.png",
+		"xporb.png",
 	};
 	private static final String[] soundNames = {
 		"s_grenade_hit.wav",
