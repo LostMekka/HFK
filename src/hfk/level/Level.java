@@ -266,8 +266,9 @@ public class Level implements Serializable{
 		Tile tile = tiles[pos.x][pos.y];
 		// TODO: also allow floor tiles to get damaged
 		Image i = tile.getImage();
+		PointF tileSize = tile.getSize().clone();
 		boolean tileChanged = tile.damage(dmg);
-		PointF tileSize = tile.getSize();
+		if(tileChanged) GameController.get().recalcVisibleTiles = true;
 		// if the tile has no size (prly floor), dont spawn debris
 		if(tileSize.x == 0f || tileSize.y == 0f) return;
 		int bx = Math.round(16f * (1f - tileSize.x));
@@ -281,7 +282,6 @@ public class Level implements Serializable{
 				}
 			}
 			GameController.get().createDebris(pos.toFloat(), i, bx, by, 0.5f);
-			GameController.get().recalcVisibleTiles = true;
 		} else {
 			addDebrisFromDamage(pos, shotPos, dmg, bx, by, tiles[pos.x][pos.y].getImage());
 		}

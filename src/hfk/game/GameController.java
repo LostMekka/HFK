@@ -311,6 +311,7 @@ public class GameController {
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
 		currSubState.onNextLevel();
+		recalcVisibleTiles = true;
 	}
 	
 	public void printBalanceInfo(){
