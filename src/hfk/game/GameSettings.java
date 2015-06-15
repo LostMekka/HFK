@@ -12,6 +12,6 @@ package hfk.game;
  */
 public class GameSettings {
 	
-	public float sfxVolume = 1f, musicVolume = 0.7f;
+	public float sfxVolume = 0.6f, musicVolume = 0.45f;
 	
 }
