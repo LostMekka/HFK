@@ -119,11 +119,11 @@ public abstract class Mob implements StatsModifier {
 		for(Mob m : l){
 			p = getP(m);
 			if(p > r){
-				if(GameController.random.nextFloat() < 0.1f){
+				if(GameController.random.nextFloat() < 0.12f){
 					ExpRandom ran = new ExpRandom(0.6);
 					float f = ran.getNextFloat();
 					int x = (int)(f*m.getDifficultyScore()*2f);
-					if(x >= 5) m.inventory.addItem(new ExperienceOrb(pos.clone(), x));
+					if(x >= 5) m.inventory.addItem(new ExperienceOrb(pos.clone(), x), true);
 				}
 				return m;
 			}
