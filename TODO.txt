@@ -1,46 +1,80 @@
-bugs
- - items are rendered behind stairs
+feature-bugs
 
+
+bugs
+ - mob stats bar still not drawn over loot labels
+ - cannot unload weapon in chest when too far away
+ --> unload should stop when exchange view is closed if wpn is in a chest
 
 changes
- - add mouse wheel events to InputMap
- - remove exchange screen exchange flag? feels very un-intuitive...
+ - make experience orbs drop on death instead of being in the mobs inventory
+ - mob stat: exp orb chance
 
 
 features
+ - probability of destroying items in explosions? hp of items?
+ - add onDestroy(cause) to item -> rocket ammo may also want to explode on cause=fire/expl
+ - equippable items that deal damage over time to wearer
  - variable max single instance rarity/difficulty depending on diff. setting
  - time between shots of enemies depend on difficulty
- - dedicated map screen with custom waypoint markers
+ - dedicated map screen with custom markers
  - emp weapons that remove some or all energy from enemies weapons and armor
  - energy armor!
  - armor !!!!
  - land mines
+ - flame thrower
 
 
 internal
 
 
----- DONE 0.1.6 ---------------------------------------------------
+---- DONE ?.?.? ---------------------------------------------------
+
+features
+
+
+changes
+
 
 bugs
 
 
+internal
+
+
+
+---- DONE 0.1.6 ---------------------------------------------------
+
+features
+ - first pass main menu
+ - hp + skill track UI
+ - destructable chests, one per level
+ - exchange menu for chests
+ - xp orbs
+ - unload weapons
+
+
 changes
- - display xp above tracked skills list instead of at the xp
+ - input rework: q-drop e-use r-reload/unload lmb-dependent
+ - mobs sense player when they touch
+ - mobs carry less ammo
+ - weapons dropped while still firing complete their last burst when lying around
+ - lowered default volume of music and sounds
  - whishlist is now called tracked skills
  - rebalanced difficulty and item spawning for new random generator
  - less crates in room areas
 
 
-features
- - hp + skill track UI
- - destructable chests, one per level
- - exchange menu for chests
+bugs
+ - items are no longer rendered behind stairs
+ - field of view not updating on destroy tile
+ - fixed invisible <EMPTY> items polluting the game
 
 
 internal
  - scrollable menu boxes
- - random generator for final exponential-like distribution
+ - random number generator for final exponential-like distribution
  - overview screen for debugging
  - item type definitions for spawn selection
+ - input map uses actions to abstact away from the difference between mouse and keyboard input
 
