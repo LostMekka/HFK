@@ -106,16 +106,16 @@ public class InventorySubState extends GameSubState implements InventoryListener
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
-		if(in.isPressed(Action.A_QUICK_SLOT_0)) ctrl.player.inventory.setActiveQuickSlot(0);
-		if(in.isPressed(Action.A_QUICK_SLOT_1)) ctrl.player.inventory.setActiveQuickSlot(1);
-		if(in.isPressed(Action.A_QUICK_SLOT_2)) ctrl.player.inventory.setActiveQuickSlot(2);
-		if(in.isPressed(Action.A_QUICK_SLOT_3)) ctrl.player.inventory.setActiveQuickSlot(3);
-		if(in.isPressed(Action.A_QUICK_SLOT_4)) ctrl.player.inventory.setActiveQuickSlot(4);
-		if(in.isPressed(Action.A_QUICK_SLOT_5)) ctrl.player.inventory.setActiveQuickSlot(5);
-		if(in.isPressed(Action.A_QUICK_SLOT_6)) ctrl.player.inventory.setActiveQuickSlot(6);
-		if(in.isPressed(Action.A_QUICK_SLOT_7)) ctrl.player.inventory.setActiveQuickSlot(7);
-		if(in.isPressed(Action.A_QUICK_SLOT_8)) ctrl.player.inventory.setActiveQuickSlot(8);
-		if(in.isPressed(Action.A_QUICK_SLOT_9)) ctrl.player.inventory.setActiveQuickSlot(9);
+		if(in.isPressed(Action.A_QUICK_SLOT_1)) ctrl.player.inventory.setActiveQuickSlot(0);
+		if(in.isPressed(Action.A_QUICK_SLOT_2)) ctrl.player.inventory.setActiveQuickSlot(1);
+		if(in.isPressed(Action.A_QUICK_SLOT_3)) ctrl.player.inventory.setActiveQuickSlot(2);
+		if(in.isPressed(Action.A_QUICK_SLOT_4)) ctrl.player.inventory.setActiveQuickSlot(3);
+		if(in.isPressed(Action.A_QUICK_SLOT_5)) ctrl.player.inventory.setActiveQuickSlot(4);
+		if(in.isPressed(Action.A_QUICK_SLOT_6)) ctrl.player.inventory.setActiveQuickSlot(5);
+		if(in.isPressed(Action.A_QUICK_SLOT_7)) ctrl.player.inventory.setActiveQuickSlot(6);
+		if(in.isPressed(Action.A_QUICK_SLOT_8)) ctrl.player.inventory.setActiveQuickSlot(7);
+		if(in.isPressed(Action.A_QUICK_SLOT_9)) ctrl.player.inventory.setActiveQuickSlot(8);
+		if(in.isPressed(Action.A_QUICK_SLOT_0)) ctrl.player.inventory.setActiveQuickSlot(9);
 		Input input = gc.getInput();
 		int mx = input.getMouseX();
 		int my = input.getMouseY();
