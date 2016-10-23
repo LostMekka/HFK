@@ -31,7 +31,7 @@ features
 internal
 
 
----- DONE 0.1.7 ---------------------------------------------------
+---- DONE ?.?.? ---------------------------------------------------
 
 features
  - key map configuration file
@@ -47,6 +47,16 @@ internal
 
 
 ---- DONE 0.1.6 ---------------------------------------------------
+
+bugs
+
+
+changes
+ - display xp above tracked skills list instead of at the xp
+ - whishlist is now called tracked skills
+ - rebalanced difficulty and item spawning for new random generator
+ - less crates in room areas
+
 
 features
  - first pass main menu
