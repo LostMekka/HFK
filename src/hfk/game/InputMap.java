@@ -115,7 +115,6 @@ public class InputMap implements MouseListener {
 		A_RELOAD(key(Input.KEY_R)),
 		A_GRAB(key(Input.KEY_G)),
 		A_INTERACT(key(Input.KEY_E)),
-		A_QUICK_SLOT_0(key(Input.KEY_0)),
 		A_QUICK_SLOT_1(key(Input.KEY_1)),
 		A_QUICK_SLOT_2(key(Input.KEY_2)),
 		A_QUICK_SLOT_3(key(Input.KEY_3)),
@@ -125,6 +124,7 @@ public class InputMap implements MouseListener {
 		A_QUICK_SLOT_7(key(Input.KEY_7)),
 		A_QUICK_SLOT_8(key(Input.KEY_8)),
 		A_QUICK_SLOT_9(key(Input.KEY_9)),
+		A_QUICK_SLOT_0(key(Input.KEY_0)),
 		A_SHOW_MAP(key(Input.KEY_TAB)),
 		A_PAUSE_MENU(key(Input.KEY_ESCAPE)),
 		// loot mode

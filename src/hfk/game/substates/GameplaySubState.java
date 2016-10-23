@@ -85,16 +85,16 @@ public class GameplaySubState extends GameSubState{
 			return;
 		}
 		lootMode = in.isDown(Action.A_LOOT_MODE);
-		if(in.isPressed(Action.A_QUICK_SLOT_0)) ctrl.player.inventory.setActiveQuickSlot(0);
-		if(in.isPressed(Action.A_QUICK_SLOT_1)) ctrl.player.inventory.setActiveQuickSlot(1);
-		if(in.isPressed(Action.A_QUICK_SLOT_2)) ctrl.player.inventory.setActiveQuickSlot(2);
-		if(in.isPressed(Action.A_QUICK_SLOT_3)) ctrl.player.inventory.setActiveQuickSlot(3);
-		if(in.isPressed(Action.A_QUICK_SLOT_4)) ctrl.player.inventory.setActiveQuickSlot(4);
-		if(in.isPressed(Action.A_QUICK_SLOT_5)) ctrl.player.inventory.setActiveQuickSlot(5);
-		if(in.isPressed(Action.A_QUICK_SLOT_6)) ctrl.player.inventory.setActiveQuickSlot(6);
-		if(in.isPressed(Action.A_QUICK_SLOT_7)) ctrl.player.inventory.setActiveQuickSlot(7);
-		if(in.isPressed(Action.A_QUICK_SLOT_8)) ctrl.player.inventory.setActiveQuickSlot(8);
-		if(in.isPressed(Action.A_QUICK_SLOT_9)) ctrl.player.inventory.setActiveQuickSlot(9);
+		if(in.isPressed(Action.A_QUICK_SLOT_1)) ctrl.player.inventory.setActiveQuickSlot(0);
+		if(in.isPressed(Action.A_QUICK_SLOT_2)) ctrl.player.inventory.setActiveQuickSlot(1);
+		if(in.isPressed(Action.A_QUICK_SLOT_3)) ctrl.player.inventory.setActiveQuickSlot(2);
+		if(in.isPressed(Action.A_QUICK_SLOT_4)) ctrl.player.inventory.setActiveQuickSlot(3);
+		if(in.isPressed(Action.A_QUICK_SLOT_5)) ctrl.player.inventory.setActiveQuickSlot(4);
+		if(in.isPressed(Action.A_QUICK_SLOT_6)) ctrl.player.inventory.setActiveQuickSlot(5);
+		if(in.isPressed(Action.A_QUICK_SLOT_7)) ctrl.player.inventory.setActiveQuickSlot(6);
+		if(in.isPressed(Action.A_QUICK_SLOT_8)) ctrl.player.inventory.setActiveQuickSlot(7);
+		if(in.isPressed(Action.A_QUICK_SLOT_9)) ctrl.player.inventory.setActiveQuickSlot(8);
+		if(in.isPressed(Action.A_QUICK_SLOT_0)) ctrl.player.inventory.setActiveQuickSlot(9);
 		int vx = 0, vy = 0;
 		if(in.getMouseWheelMove() > 0) ctrl.player.inventory.previousQuickSlot();
 		if(in.getMouseWheelMove() < 0) ctrl.player.inventory.nextQuickSlot();
