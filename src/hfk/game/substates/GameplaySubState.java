@@ -11,6 +11,7 @@ import hfk.PointI;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
+import hfk.game.InputMap.Action;
 import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
 import hfk.level.UsableLevelItem;
@@ -22,7 +23,6 @@ import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -38,24 +38,6 @@ public class GameplaySubState extends GameSubState{
 	
 	public GameplaySubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_F1, InputMap.A_CHEAT_OVERVIEW);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_PAUSE);
-		inputMap.addKey(Input.KEY_I, InputMap.A_OPEN_INVENTORY);
-		inputMap.addKey(Input.KEY_K, InputMap.A_OPEN_SKILLS);
-		inputMap.addKey(Input.KEY_LCONTROL, InputMap.A_LOOT);
-		inputMap.addKey(Input.KEY_W, InputMap.A_MOVE_UP);
-		inputMap.addKey(Input.KEY_S, InputMap.A_MOVE_DOWN);
-		inputMap.addKey(Input.KEY_A, InputMap.A_MOVE_LEFT);
-		inputMap.addKey(Input.KEY_D, InputMap.A_MOVE_RIGHT);
-		inputMap.addKey(Input.KEY_E, InputMap.A_USE_LEVITEM);
-		inputMap.addKey(Input.KEY_E, InputMap.A_LOOT_USE);
-		inputMap.addKey(Input.KEY_G, InputMap.A_GRAB);
-		inputMap.addKey(Input.KEY_R, InputMap.A_RELOAD);
-		inputMap.addKey(Input.KEY_R, InputMap.A_LOOT_UNLOAD);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_SHOOT);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_LOOT_GRAB);
-		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_SHOOT_ALTERNATIVE);
-		for(int i=0; i<10; i++) inputMap.addKey(Input.KEY_1 + i, InputMap.A_QUICKSLOTS[i]);
 	}
 
 	private static final int MAX_HEALTH_TIMER = 300;
@@ -81,37 +63,45 @@ public class GameplaySubState extends GameSubState{
 		skillsColor.r = 0.2f + 0.4f * sc;
 		skillsColor.g = 0.6f + 0.2f * sc;
 		skillsColor.b = 0.2f + 0.4f * sc;
-		
+
 		InputMap in = getInputMap();
-		Input input = gc.getInput();
-		drawMap = input.isKeyDown(Input.KEY_TAB);
-		if(in.isActionPressed(InputMap.A_PAUSE)){
+		drawMap = in.isDown(Action.A_SHOW_MAP);
+		if(in.isPressed(Action.A_PAUSE_MENU)){
 			ctrl.setCurrSubState(ctrl.pauseSubState);
 			return;
 		}
-		if(in.isActionPressed(InputMap.A_OPEN_INVENTORY)){
+		if(in.isPressed(Action.A_INVENTORY_OPEN)){
 			ctrl.viewInventory(ctrl.player.inventory);
 			lootMode = false;
 			return;
 		}
-		if(in.isActionPressed(InputMap.A_OPEN_SKILLS)){
+		if(in.isPressed(Action.A_SKILLS_OPEN)){
 			ctrl.viewSkills(ctrl.player.skills);
 			lootMode = false;
 			return;
 		}
-		if(in.isActionPressed(InputMap.A_CHEAT_OVERVIEW)){
+		if(in.isPressed(Action.A_CHEAT_OVERVIEW_OPEN)){
 			ctrl.cheatOverview();
 			return;
 		}
-		lootMode = in.isActionDown(InputMap.A_LOOT);
-		for(int i=0; i<10; i++) if(in.isActionPressed(InputMap.A_QUICKSLOTS[i])) ctrl.player.inventory.setActiveQuickSlot(i);
+		lootMode = in.isDown(Action.A_LOOT_MODE);
+		if(in.isPressed(Action.A_QUICK_SLOT_0)) ctrl.player.inventory.setActiveQuickSlot(0);
+		if(in.isPressed(Action.A_QUICK_SLOT_1)) ctrl.player.inventory.setActiveQuickSlot(1);
+		if(in.isPressed(Action.A_QUICK_SLOT_2)) ctrl.player.inventory.setActiveQuickSlot(2);
+		if(in.isPressed(Action.A_QUICK_SLOT_3)) ctrl.player.inventory.setActiveQuickSlot(3);
+		if(in.isPressed(Action.A_QUICK_SLOT_4)) ctrl.player.inventory.setActiveQuickSlot(4);
+		if(in.isPressed(Action.A_QUICK_SLOT_5)) ctrl.player.inventory.setActiveQuickSlot(5);
+		if(in.isPressed(Action.A_QUICK_SLOT_6)) ctrl.player.inventory.setActiveQuickSlot(6);
+		if(in.isPressed(Action.A_QUICK_SLOT_7)) ctrl.player.inventory.setActiveQuickSlot(7);
+		if(in.isPressed(Action.A_QUICK_SLOT_8)) ctrl.player.inventory.setActiveQuickSlot(8);
+		if(in.isPressed(Action.A_QUICK_SLOT_9)) ctrl.player.inventory.setActiveQuickSlot(9);
 		int vx = 0, vy = 0;
 		if(in.getMouseWheelMove() > 0) ctrl.player.inventory.previousQuickSlot();
 		if(in.getMouseWheelMove() < 0) ctrl.player.inventory.nextQuickSlot();
-		if(in.isActionDown(InputMap.A_MOVE_RIGHT)) vx++;
-		if(in.isActionDown(InputMap.A_MOVE_LEFT)) vx--;
-		if(in.isActionDown(InputMap.A_MOVE_DOWN)) vy++;
-		if(in.isActionDown(InputMap.A_MOVE_UP)) vy--;
+		if(in.isDown(Action.A_MOVE_RIGHT)) vx++;
+		if(in.isDown(Action.A_MOVE_LEFT)) vx--;
+		if(in.isDown(Action.A_MOVE_DOWN)) vy++;
+		if(in.isDown(Action.A_MOVE_UP)) vy--;
 		float s = player.totalStats.getMaxSpeed();
 		if(vx != 0 && vy != 0) s /= GameController.SQRT2;
 		PointF oldPlayerPos = ctrl.player.pos.clone();
@@ -161,7 +151,7 @@ public class GameplaySubState extends GameSubState{
 		ctrl.mousePosInTiles = ctrl.transformScreenToTiles(ctrl.mousePosInPixels.toFloat());
 		player.lookAt(ctrl.mousePosInTiles);
 		// shoot and reload or looting
-		if(in.isActionPressed(InputMap.A_GRAB)){
+		if(in.isPressed(Action.A_GRAB)){
 			// grab nearest item
 			InventoryItem i = ctrl.getNearestItem(player);
 			if(i != null && player.inventory.addItem(i) == null) ctrl.items.remove(i);
@@ -180,14 +170,14 @@ public class GameplaySubState extends GameSubState{
 				}
 			}
 			if(selectedLoot != null){
-				if(in.isActionPressed(InputMap.A_LOOT_GRAB)){
+				if(in.isPressed(Action.A_LOOT_GRAB)){
 					// take item into inventory
 					if(player.inventory.addItem(selectedLoot) == null){
 						ctrl.items.remove(selectedLoot);
 						selectedLoot = null;
 					}
 				}
-				if(in.isActionPressed(InputMap.A_LOOT_USE)){
+				if(in.isPressed(Action.A_LOOT_USE)){
 					// use item directly
 					InventoryItem newItem = selectedLoot.use(player);
 					if(newItem != selectedLoot){
@@ -200,7 +190,7 @@ public class GameplaySubState extends GameSubState{
 						selectedLoot = newItem;
 					}
 				}
-				if(in.isActionPressed(InputMap.A_LOOT_UNLOAD)){
+				if(in.isPressed(Action.A_LOOT_UNLOAD)){
 					// unload weapon on ground
 					if(selectedLoot instanceof Weapon){
 						player.unloadWeapon((Weapon)selectedLoot);
@@ -209,17 +199,17 @@ public class GameplaySubState extends GameSubState{
 			}
 		} else {
 			selectedLevelItem = ctrl.level.getUsableItemOnLine(
-					ctrl.player.pos, ctrl.mousePosInTiles, 
+					ctrl.player.pos, ctrl.mousePosInTiles,
 					ctrl.player.totalStats.getMaxPickupRange(), lootMode);
 			if(selectedLevelItem != null && !selectedLevelItem.isInRangeToUse(player)) selectedLevelItem = null;
-			if(selectedLevelItem != null && in.isActionPressed(InputMap.A_USE_LEVITEM)) selectedLevelItem.use(player);
+			if(selectedLevelItem != null && in.isPressed(Action.A_INTERACT)) selectedLevelItem.use(player);
 			selectedLoot = null;
 			Weapon w = player.getActiveWeapon();
 			if(w != null){
-				boolean pr = in.isActionPressed(InputMap.A_SHOOT);
-				boolean dn = in.isActionDown(InputMap.A_SHOOT);
-				boolean apr = in.isActionPressed(InputMap.A_SHOOT_ALTERNATIVE);
-				boolean adn = in.isActionDown(InputMap.A_SHOOT_ALTERNATIVE);
+				boolean pr = in.isPressed(Action.A_SHOOT);
+				boolean dn = in.isDown(Action.A_SHOOT);
+				boolean apr = in.isPressed(Action.A_SHOOT_ALTERNATIVE);
+				boolean adn = in.isDown(Action.A_SHOOT_ALTERNATIVE);
 				boolean a = w.totalStats.isAutomatic;
 				if((a && dn) || (!a && pr)){
 					w.pullTrigger();
@@ -227,7 +217,7 @@ public class GameplaySubState extends GameSubState{
 				if((a && adn) || (!a && apr)){
 					w.pullAlternativeTrigger();
 				}
-				if(in.isActionPressed(InputMap.A_RELOAD)){
+				if(in.isPressed(Action.A_RELOAD)){
 					if(w.reload()){
 						PointF p = player.pos.clone();
 						p.y -= 0.8f;

@@ -11,11 +11,11 @@ import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.HFKGame;
 import hfk.game.InputMap;
+import hfk.game.InputMap.Action;
 import hfk.menu.MenuBox;
 import hfk.menu.SimpleMenuBox;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -26,12 +26,9 @@ import org.newdawn.slick.state.StateBasedGame;
 public class GameOverSubState extends GameSubState {
 
 	private MenuBox mb = null;
-	
+
 	public GameOverSubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_SPACE, InputMap.A_NEWGAME);
-		inputMap.addKey(Input.KEY_Q, InputMap.A_QUIT);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_MAINMENU);
 	}
 
 	@Override
@@ -41,9 +38,9 @@ public class GameOverSubState extends GameSubState {
 	
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
-		if(getInputMap().isActionPressed(InputMap.A_NEWGAME)) GameController.get().newGame();
-		if(getInputMap().isActionPressed(InputMap.A_MAINMENU)) sbg.enterState(HFKGame.STATEID_MENU);
-		if(getInputMap().isActionPressed(InputMap.A_QUIT)) gc.exit();
+		if(getInputMap().isPressed(Action.A_NEW_GAME)) GameController.get().newGame();
+		if(getInputMap().isPressed(Action.A_MAIN_MENU)) sbg.enterState(HFKGame.STATEID_MENU);
+		if(getInputMap().isPressed(Action.A_QUIT)) gc.exit();
 	}
 
 	@Override

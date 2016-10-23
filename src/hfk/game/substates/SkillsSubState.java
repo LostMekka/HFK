@@ -9,6 +9,7 @@ package hfk.game.substates;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
+import hfk.game.InputMap.Action;
 import hfk.menu.MenuBox;
 import hfk.menu.MenuItemList;
 import hfk.menu.SimpleMenuBox;
@@ -31,8 +32,7 @@ import org.newdawn.slick.state.StateBasedGame;
 public class SkillsSubState extends GameSubState {
 
 	private static final int DESC_LINE_HEIGHT = GameRenderer.MIN_TEXT_HEIGHT;
-	public static final int SKILLS_LINE_HEIGHT = 30;
-	
+
 	private MenuBox mb, mbDescr;
 	private SimpleMenuBox mbSkills;
 	private MenuItemList<Skill> skillsList;
@@ -43,10 +43,6 @@ public class SkillsSubState extends GameSubState {
 	
 	public SkillsSubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_CLOSE_SKILLS);
-		inputMap.addKey(Input.KEY_K, InputMap.A_CLOSE_SKILLS);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_SELECTSKILL);
-		inputMap.addMouseButton(Input.MOUSE_RIGHT_BUTTON, InputMap.A_TRACKSKILL);
 	}
 
 	public SkillSet getSkillSet() {
@@ -82,28 +78,28 @@ public class SkillsSubState extends GameSubState {
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
 		Input input = gc.getInput();
-		if(in.isActionPressed(InputMap.A_OPEN_INVENTORY)){
+		if(in.isPressed(Action.A_INVENTORY_OPEN)){
 			ctrl.viewInventory(ctrl.player.inventory);
 			return;
 		}
-		if(in.isActionPressed(InputMap.A_CLOSE_SKILLS)){
+		if(in.isPressed(Action.A_SKILLS_CLOSE)){
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
 		int mx = input.getMouseX();
 		int my = input.getMouseY();
 		
-		if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) skillsList.scroll(-1);
-		if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) skillsList.scroll(1);
+		if(in.isPressed(Action.A_INVENTORY_UP) || in.getMouseWheelMove() > 0) skillsList.scroll(-1);
+		if(in.isPressed(Action.A_INVENTORY_DOWN) || in.getMouseWheelMove() < 0) skillsList.scroll(1);
 		skillsList.updateSelection(mx, my);
 		selectedSkill = skillsList.getSelectedObject();
 		if(selectedSkill != null){
-			if(in.isActionPressed(InputMap.A_SELECTSKILL) && selectedSkill.canLevelUp()){
+			if(in.isPressed(Action.A_SKILLS_LEARN) && selectedSkill.canLevelUp()){
 				selectedSkill.levelUp();
 				// colors of all skills may change -> repopulate the list
 				populateList();
 			}
-			if(in.isActionPressed(InputMap.A_TRACKSKILL) && player != null
+			if(in.isPressed(Action.A_SKILLS_TRACK) && player != null
 					&& !selectedSkill.isMaxed()){
 				player.toggleTrackSkill(selectedSkill);
 				skillsList.setItemFlag(selectedSkill, 0, player != null && player.isTrackedSkill(selectedSkill));

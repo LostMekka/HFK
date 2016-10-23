@@ -11,11 +11,11 @@ import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.HFKGame;
 import hfk.game.InputMap;
+import hfk.game.InputMap.Action;
 import hfk.menu.MenuBox;
 import hfk.menu.SimpleMenuBox;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -29,9 +29,6 @@ public class PauseSubState extends GameSubState{
 	
 	public PauseSubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_R, InputMap.A_RESTARTGAME);
-		inputMap.addKey(Input.KEY_Q, InputMap.A_QUIT);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_RESUMEGAME);
 	}
 
 	@Override
@@ -41,9 +38,9 @@ public class PauseSubState extends GameSubState{
 
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
-		if(getInputMap().isActionPressed(InputMap.A_RESTARTGAME)) ctrl.newGame();
-		if(getInputMap().isActionPressed(InputMap.A_QUIT)) sbg.enterState(HFKGame.STATEID_MENU);
-		if(getInputMap().isActionPressed(InputMap.A_RESUMEGAME)){
+		if(getInputMap().isPressed(Action.A_RESTART_GAME)) ctrl.newGame();
+		if(getInputMap().isPressed(Action.A_QUIT)) sbg.enterState(HFKGame.STATEID_MENU);
+		if(getInputMap().isPressed(Action.A_RESUME_GAME)){
 			GameController.get().setCurrSubState(GameController.get().gameplaySubState);
 		}
 	}

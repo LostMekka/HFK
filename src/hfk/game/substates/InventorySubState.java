@@ -9,6 +9,7 @@ package hfk.game.substates;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
+import hfk.game.InputMap.Action;
 import hfk.items.EmptyItem;
 import hfk.items.HealthPack;
 import hfk.items.Inventory;
@@ -33,10 +34,10 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class InventorySubState extends GameSubState implements InventoryListener {
 
-	public static final int INV_LINE_HEIGHT = 30;
-	public static final int GEAR_HEADLINE_HEIGHT = 25;
-	public static final int GEAR_TAB = 30;
-	public static final int DESCR_LINE_HEIGHT = GameRenderer.MIN_TEXT_HEIGHT;
+	private static final int INV_LINE_HEIGHT = 30;
+	private static final int GEAR_HEADLINE_HEIGHT = 25;
+	private static final int GEAR_TAB = 30;
+	private static final int DESCR_LINE_HEIGHT = GameRenderer.MIN_TEXT_HEIGHT;
 
 	private Inventory inventory = null;
 	private InventoryItem selectedInvItem = null, selectedGear = null;
@@ -46,14 +47,6 @@ public class InventorySubState extends GameSubState implements InventoryListener
 	
 	public InventorySubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_CLOSE_INVENTORY);
-		inputMap.addKey(Input.KEY_I, InputMap.A_CLOSE_INVENTORY);
-		inputMap.addKey(Input.KEY_UP, InputMap.A_INV_UP);
-		inputMap.addKey(Input.KEY_DOWN, InputMap.A_INV_DOWN);
-		inputMap.addKey(Input.KEY_Q, InputMap.A_INV_DROP);
-		inputMap.addKey(Input.KEY_R, InputMap.A_INV_UNLOAD);
-		inputMap.addKey(Input.KEY_E, InputMap.A_INV_USE);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_INV_USE);
 	}
 
 	public Inventory getInventory() {
@@ -98,22 +91,31 @@ public class InventorySubState extends GameSubState implements InventoryListener
 		float s = SplitMenuBox.getSplitRatioFromSecondSize(gc.getHeight(), descLineCount*DESCR_LINE_HEIGHT);
 		SplitMenuBox smb2 = new SplitMenuBox(smb1, SplitMenuBox.Location.topLeft, s, 1f);
 		mbInv = new SimpleMenuBox(smb2, SplitMenuBox.Location.topLeft);
-		invList = new MenuItemList(mbInv, true);
+		invList = new MenuItemList<>(mbInv, true);
 		mbDescr = new SimpleMenuBox(smb2, SplitMenuBox.Location.bottomLeft);
 	}
 	
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
-		if(in.isActionPressed(InputMap.A_OPEN_SKILLS)){
+		if(in.isPressed(Action.A_SKILLS_OPEN)){
 			ctrl.viewSkills(ctrl.player.skills);
 			return;
 		}
-		if(in.isActionPressed(InputMap.A_CLOSE_INVENTORY)){
+		if(in.isPressed(Action.A_INVENTORY_CLOSE)){
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
-		for(int i=0; i<10; i++) if(in.isActionPressed(InputMap.A_QUICKSLOTS[i])) ctrl.player.inventory.setActiveQuickSlot(i);
+		if(in.isPressed(Action.A_QUICK_SLOT_0)) ctrl.player.inventory.setActiveQuickSlot(0);
+		if(in.isPressed(Action.A_QUICK_SLOT_1)) ctrl.player.inventory.setActiveQuickSlot(1);
+		if(in.isPressed(Action.A_QUICK_SLOT_2)) ctrl.player.inventory.setActiveQuickSlot(2);
+		if(in.isPressed(Action.A_QUICK_SLOT_3)) ctrl.player.inventory.setActiveQuickSlot(3);
+		if(in.isPressed(Action.A_QUICK_SLOT_4)) ctrl.player.inventory.setActiveQuickSlot(4);
+		if(in.isPressed(Action.A_QUICK_SLOT_5)) ctrl.player.inventory.setActiveQuickSlot(5);
+		if(in.isPressed(Action.A_QUICK_SLOT_6)) ctrl.player.inventory.setActiveQuickSlot(6);
+		if(in.isPressed(Action.A_QUICK_SLOT_7)) ctrl.player.inventory.setActiveQuickSlot(7);
+		if(in.isPressed(Action.A_QUICK_SLOT_8)) ctrl.player.inventory.setActiveQuickSlot(8);
+		if(in.isPressed(Action.A_QUICK_SLOT_9)) ctrl.player.inventory.setActiveQuickSlot(9);
 		Input input = gc.getInput();
 		int mx = input.getMouseX();
 		int my = input.getMouseY();
@@ -121,8 +123,8 @@ public class InventorySubState extends GameSubState implements InventoryListener
 		updateInventoryWindow(mx, my, in, ctrl);
 		// gear sub window
 		if(mbGear.isMouseInsideBox(mx, my)){
-			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) inventory.previousQuickSlot();
-			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) inventory.nextQuickSlot();
+			if(in.isPressed(Action.A_INVENTORY_UP) || in.getMouseWheelMove() > 0) inventory.previousQuickSlot();
+			if(in.isPressed(Action.A_INVENTORY_DOWN) || in.getMouseWheelMove() < 0) inventory.nextQuickSlot();
 		}
 		if(mbGear.isMouseInsideUsable(mx, my)){
 			updateGearWindow(mbGear.getUsableRelativeMouseX(mx), mbGear.getUsableRelativeMouseY(my), in, ctrl);
@@ -133,8 +135,8 @@ public class InventorySubState extends GameSubState implements InventoryListener
 	
 	private void updateInventoryWindow(int mx, int my, InputMap in, GameController ctrl){
 		if(mbInv.isMouseInsideBox(mx, my)){
-			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) invList.scroll(-1);
-			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) invList.scroll(1);
+			if(in.isPressed(Action.A_INVENTORY_UP) || in.getMouseWheelMove() > 0) invList.scroll(-1);
+			if(in.isPressed(Action.A_INVENTORY_DOWN) || in.getMouseWheelMove() < 0) invList.scroll(1);
 		}
 		invList.updateSelection(mx, my);
 		selectedInvItem = invList.getSelectedObject();
@@ -144,18 +146,18 @@ public class InventorySubState extends GameSubState implements InventoryListener
 		}
 		if(selectedInvItem != null){
 			// use or drop selected item
-			if(in.isActionPressed(InputMap.A_INV_USE) && selectedInvItem != null){
+			if(in.isPressed(Action.A_INVENTORY_USE) && selectedInvItem != null){
 				inventory.useItemFromInventory(selectedInvItem);
 				populateInventoryList();
 			}
-			if(in.isActionPressed(InputMap.A_INV_DROP) && selectedInvItem != null){
+			if(in.isPressed(Action.A_INVENTORY_DROP) && selectedInvItem != null){
 				InventoryItem dropped = inventory.removeItem(selectedInvItem);
 				if(dropped != null){
 					ctrl.dropItem(dropped, inventory.getParent(), true);
 					populateInventoryList();
 				}
 			}
-			if(in.isActionPressed(InputMap.A_INV_UNLOAD) && selectedInvItem instanceof Weapon){
+			if(in.isPressed(Action.A_INVENTORY_UNLOAD) && selectedInvItem instanceof Weapon){
 				Mob p = inventory.getParent();
 				if(p == null){
 					((Weapon)selectedInvItem).unloadToGround();
@@ -173,11 +175,11 @@ public class InventorySubState extends GameSubState implements InventoryListener
 			int i = (my - 2*GEAR_HEADLINE_HEIGHT) / INV_LINE_HEIGHT;
 			if(i < inventory.getQuickSlotCount()) selectedGear = inventory.getQuickslot(i);
 			if(selectedGear != null){
-				if(in.isActionPressed(InputMap.A_INV_USE)){
+				if(in.isPressed(Action.A_INVENTORY_USE)){
 					inventory.unequipWeapon(i);
 					populateInventoryList();
 				}
-				if(in.isActionPressed(InputMap.A_INV_DROP)){
+				if(in.isPressed(Action.A_INVENTORY_DROP)){
 					InventoryItem dropped = inventory.removeEquippedItem(selectedGear);
 					if(dropped != null) ctrl.dropItem(dropped, inventory.getParent(), true);
 				}

@@ -5,8 +5,8 @@ import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
 
+import hfk.game.InputMap.Action;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -14,18 +14,21 @@ public class OverviewSubState extends GameSubState {
 	
 	public OverviewSubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_W, InputMap.A_MOVE_UP);
-		inputMap.addKey(Input.KEY_S, InputMap.A_MOVE_DOWN);
-		inputMap.addKey(Input.KEY_A, InputMap.A_MOVE_LEFT);
-		inputMap.addKey(Input.KEY_D, InputMap.A_MOVE_RIGHT);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_CHEAT_CLOSE);
 	}
 
-	PointF cameraPos;
-	float cameraSpeed = 10f;
+	private PointF cameraPos;
+	private float cameraSpeed = 10f;
 	
-	float originalZoom;
-	
+	private float originalZoom;
+
+	public float getCameraSpeed() {
+		return cameraSpeed;
+	}
+
+	public void setCameraSpeed(float cameraSpeed) {
+		this.cameraSpeed = cameraSpeed;
+	}
+
 	@Override
 	public void onNextLevel() {
 		onActivate();
@@ -55,7 +58,7 @@ public class OverviewSubState extends GameSubState {
 	
 	private void updateSubState(GameController ctrl) {
 		InputMap in = getInputMap();
-		if(in.isActionPressed(InputMap.A_CHEAT_CLOSE)){
+		if(in.isPressed(Action.A_CHEAT_OVERVIEW_CLOSE)){
 			GameController.CHEAT_VISIBLE = false;
 			ctrl.setZoom(originalZoom);
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
@@ -74,10 +77,10 @@ public class OverviewSubState extends GameSubState {
 	private void updateCamera(int time) {
 		float vx = 0, vy = 0;
 		InputMap in = getInputMap();
-		if(in.isActionDown(InputMap.A_MOVE_RIGHT)) vx++;
-		if(in.isActionDown(InputMap.A_MOVE_LEFT)) vx--;
-		if(in.isActionDown(InputMap.A_MOVE_DOWN)) vy++;
-		if(in.isActionDown(InputMap.A_MOVE_UP)) vy--;
+		if(in.isDown(Action.A_MOVE_RIGHT)) vx++;
+		if(in.isDown(Action.A_MOVE_LEFT)) vx--;
+		if(in.isDown(Action.A_MOVE_DOWN)) vy++;
+		if(in.isDown(Action.A_MOVE_UP)) vy--;
 		cameraPos.x += vx * cameraSpeed * time / 1000f;
 		cameraPos.y += vy * cameraSpeed * time / 1000f;
 	}

@@ -14,12 +14,12 @@ import hfk.Shot;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
+import hfk.game.InputMap.Action;
 import hfk.items.InventoryItem;
 import hfk.level.Level;
 import hfk.mobs.Mob;
 import java.util.ListIterator;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -33,13 +33,12 @@ public class OmniSubState extends GameSubState {
 	
 	public OmniSubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_M, InputMap.A_TOGGLEMUSIC);
 	}
 
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		ctrl.reduceScreenShake(time);
-		if(getInputMap().isActionPressed(InputMap.A_TOGGLEMUSIC)) ctrl.toggleMusic();
+		if(getInputMap().isPressed(Action.A_TOGGLE_MUSIC)) ctrl.toggleMusic();
 		// updates
 		ctrl.level.update(time);
 		for(InventoryItem i1 : ctrl.items){

@@ -9,6 +9,7 @@ package hfk.game.substates;
 import hfk.game.GameController;
 import hfk.game.GameRenderer;
 import hfk.game.InputMap;
+import hfk.game.InputMap.Action;
 import hfk.items.AmmoItem;
 import hfk.items.EmptyItem;
 import hfk.items.HealthPack;
@@ -21,7 +22,6 @@ import hfk.menu.SimpleMenuBox;
 import hfk.menu.SplitMenuBox;
 import hfk.stats.Damage;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -33,21 +33,12 @@ public class ExchangeSubState extends GameSubState implements InventoryListener 
 
 	private Inventory invLeft = null, invRight = null;
 	private InventoryItem selectedItem = null;
-	private boolean selectedIsLeft, markedIsLeft;
 	private SplitMenuBox mb;
 	private SimpleMenuBox mbLeft, mbRight, mbDescr;
 	private MenuItemList<InventoryItem> listLeft, listRight;
 	
 	public ExchangeSubState(InputMap inputMap) {
 		super(inputMap);
-		inputMap.addKey(Input.KEY_ESCAPE, InputMap.A_EXCHANGE_CLOSE);
-		inputMap.addKey(Input.KEY_UP, InputMap.A_EXCHANGE_UP);
-		inputMap.addKey(Input.KEY_DOWN, InputMap.A_EXCHANGE_DOWN);
-		inputMap.addKey(Input.KEY_E, InputMap.A_EXCHANGE_USE);
-		inputMap.addKey(Input.KEY_Q, InputMap.A_EXCHANGE_DROP);
-		inputMap.addKey(Input.KEY_R, InputMap.A_EXCHANGE_UNLOAD);
-		inputMap.addKey(Input.KEY_LSHIFT, InputMap.A_EXCHANGE_ALTERNATIVE);
-		inputMap.addMouseButton(Input.MOUSE_LEFT_BUTTON, InputMap.A_EXCHANGE_MOVE);
 	}
 
 	public Inventory getLeftInventory() {
@@ -103,26 +94,26 @@ public class ExchangeSubState extends GameSubState implements InventoryListener 
 		int descLineCount = 1 + Math.max(Damage.DAMAGE_TYPE_COUNT, Weapon.AMMO_TYPE_COUNT);
 		mb = new SplitMenuBox(gc, 1f, 0.5f);
 		mbRight = new SimpleMenuBox(mb, SplitMenuBox.Location.topRight);
-		listRight = new MenuItemList(mbRight, true);
+		listRight = new MenuItemList<>(mbRight, true);
 		float s = SplitMenuBox.getSplitRatioFromSecondSize(gc.getHeight(), descLineCount*GameRenderer.MIN_TEXT_HEIGHT);
 		SplitMenuBox smb2 = new SplitMenuBox(mb, SplitMenuBox.Location.topLeft, s, 1f);
 		mbLeft = new SimpleMenuBox(smb2, SplitMenuBox.Location.topLeft);
-		listLeft = new MenuItemList(mbLeft, true);
+		listLeft = new MenuItemList<>(mbLeft, true);
 		mbDescr = new SimpleMenuBox(smb2, SplitMenuBox.Location.bottomLeft);
 	}
 	
 	@Override
 	public void update(GameController ctrl, GameContainer gc, StateBasedGame sbg, int time) throws SlickException {
 		InputMap in = getInputMap();
-		if(in.isActionPressed(InputMap.A_OPEN_INVENTORY)){
+		if(in.isPressed(Action.A_INVENTORY_OPEN)){
 			ctrl.viewInventory(ctrl.player.inventory);
 			return;
 		}
-		if(in.isActionPressed(InputMap.A_OPEN_SKILLS)){
+		if(in.isPressed(Action.A_SKILLS_OPEN)){
 			ctrl.viewSkills(ctrl.player.skills);
 			return;
 		}
-		if(in.isActionPressed(InputMap.A_EXCHANGE_CLOSE)){
+		if(in.isPressed(Action.A_EXCHANGE_CLOSE)){
 			ctrl.setCurrSubState(ctrl.gameplaySubState);
 			return;
 		}
@@ -130,18 +121,18 @@ public class ExchangeSubState extends GameSubState implements InventoryListener 
 		int my = gc.getInput().getMouseY();
 		// handle scrolling
 		if(mbLeft.isMouseInsideBox(mx, my)){
-			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) listLeft.scroll(-1);
-			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) listLeft.scroll(1);
+			if(in.isPressed(Action.A_INVENTORY_UP) || in.getMouseWheelMove() > 0) listLeft.scroll(-1);
+			if(in.isPressed(Action.A_INVENTORY_DOWN) || in.getMouseWheelMove() < 0) listLeft.scroll(1);
 		}
 		if(mbRight.isMouseInsideBox(mx, my)){
-			if(in.isActionPressed(InputMap.A_INV_UP) || in.getMouseWheelMove() > 0) listRight.scroll(-1);
-			if(in.isActionPressed(InputMap.A_INV_DOWN) || in.getMouseWheelMove() < 0) listRight.scroll(1);
+			if(in.isPressed(Action.A_INVENTORY_UP) || in.getMouseWheelMove() > 0) listRight.scroll(-1);
+			if(in.isPressed(Action.A_INVENTORY_DOWN) || in.getMouseWheelMove() < 0) listRight.scroll(1);
 		}
 		// handle selection
 		listLeft.updateSelection(mx, my);
 		listRight.updateSelection(mx, my);
 		selectedItem = listLeft.getSelectedObject();
-		selectedIsLeft = true;
+		boolean selectedIsLeft = true;
 		if(selectedItem == null){
 			selectedItem = listRight.getSelectedObject();
 			selectedIsLeft = false;
@@ -154,7 +145,7 @@ public class ExchangeSubState extends GameSubState implements InventoryListener 
 		if(selectedItem != null){
 			Inventory source = selectedIsLeft ? invLeft : invRight;
 			Inventory target = selectedIsLeft ? invRight : invLeft;
-			if(in.isActionPressed(InputMap.A_EXCHANGE_MOVE)){
+			if(in.isPressed(Action.A_EXCHANGE_MOVE)){
 				// move item. ammo items are handled differently
 				if(selectedItem instanceof AmmoItem){
 					// TODO: make ammo item a stackable item and check for stackable instead here
@@ -163,7 +154,7 @@ public class ExchangeSubState extends GameSubState implements InventoryListener 
 					int tTotal = target.getAmmoCount(t);
 					int tStack = target.getMaxAmmoStackSize(t);
 					int tLast = tTotal % tStack;
-					int amount = in.isActionDown(InputMap.A_EXCHANGE_ALTERNATIVE)
+					int amount = in.isDown(Action.A_EXCHANGE_ALTERNATIVE)
 							? Math.min(tTotal, tStack*target.getFreeSlots() + tStack - tLast)
 							: Math.min(ai.getAmmoCount(), tStack - tLast);
 					if(amount > 0){
@@ -184,16 +175,16 @@ public class ExchangeSubState extends GameSubState implements InventoryListener 
 						populateInventoryLists();
 					}
 				}
-			} else if(in.isActionPressed(InputMap.A_EXCHANGE_USE)){
+			} else if(in.isPressed(Action.A_EXCHANGE_USE)){
 				// use item if possible
 				source.useItemFromInventory(selectedItem, invLeft.getParent());
 				populateInventoryLists();
-			} else if(in.isActionPressed(InputMap.A_EXCHANGE_DROP)){
+			} else if(in.isPressed(Action.A_EXCHANGE_DROP)){
 				// drop item
 				InventoryItem removed = source.removeItem(selectedItem);
 				if(removed != null) ctrl.dropItem(selectedItem, invLeft.getParent(), false);
 				populateInventoryLists();
-			} else if(in.isActionPressed(InputMap.A_EXCHANGE_UNLOAD)){
+			} else if(in.isPressed(Action.A_EXCHANGE_UNLOAD)){
 				// unload weapon. put ammo in left inventory
 				if(selectedItem instanceof Weapon && invLeft.getParent() != null){
 					invLeft.getParent().unloadWeapon((Weapon)selectedItem);

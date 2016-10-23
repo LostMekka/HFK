@@ -47,8 +47,8 @@ public class CaveAreaFactory extends LevelFactory{
 		RandomTemplateGenerator caveWallsB = new RandomTemplateGenerator(this);
 		TileLayer fal = TileLayer.createPrimitiveLayer(true, 2, new int[]{2}, true, -1, false, true);
 		TileLayer fbl = TileLayer.createPrimitiveLayer(true, 3, new int[]{3}, true, -1, false, true);
-		TileLayer wal = TileLayer.createPrimitiveLayer(false, 2, new int[]{2,3}, true, 200, true, false);
-		TileLayer wbl = TileLayer.createPrimitiveLayer(false, 3, new int[]{2,3}, true, 200, true, false);
+		TileLayer wal = TileLayer.createPrimitiveLayer(false, 2, new int[]{2}, true, 200, true, false);
+		TileLayer wbl = TileLayer.createPrimitiveLayer(false, 2, new int[]{2}, true, 200, true, false);
 		caveFloorA.addTileTemplate(new TileTemplate(fal), 1f);
 		caveFloorB.addTileTemplate(new TileTemplate(fbl), 1f);
 		caveWallsA.addTileTemplate(new TileTemplate(wal), 1f);

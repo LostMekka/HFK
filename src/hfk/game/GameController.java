@@ -8,6 +8,7 @@ package hfk.game;
 
 import hfk.ExpRandom;
 import hfk.Explosion;
+import hfk.config.HFKConfiguration;
 import hfk.game.substates.GameSubState;
 import hfk.IngameText;
 import hfk.Particle;
@@ -28,6 +29,7 @@ import hfk.items.InventoryItem;
 import hfk.items.weapons.Weapon;
 import hfk.level.Level;
 import hfk.level.factory.LevelFactory;
+import hfk.level.factory.concreteFactories.CaveAreaFactory;
 import hfk.level.factory.concreteFactories.RoomsFactory;
 import hfk.mobs.Mob;
 import hfk.mobs.Player;
@@ -137,6 +139,8 @@ public class GameController {
 	public GameController(GameContainer gc, GameSettings s) {
 		settings = s;
 		inputMap = new InputMap(gc.getInput());
+		HFKConfiguration config = HFKConfiguration.fromFile();
+		config.fillInputMap(inputMap);
 		gameOverState = new GameOverSubState(inputMap);
 		gameplaySubState = new GameplaySubState(inputMap);
 		exchangeSubState = new ExchangeSubState(inputMap);
@@ -307,6 +311,7 @@ public class GameController {
 		int d = getLevelDifficultyLimit(levelCount, true);
 		int r = getLevelRarityLimit(levelCount, true);
 		LevelFactory f = new RoomsFactory(s, s);
+//		LevelFactory f = new CaveAreaFactory(s, s);
 		level = f.create(d, r);
 		//level.print();
 		player.pos = level.getNextFreeSpawnPoint().toFloat();
@@ -452,7 +457,7 @@ public class GameController {
 		playerIsAlive = false;
 		player.hp = 0;
 		currSubState = gameOverState;
-		((GameplaySubState)gameplaySubState).lootMode = false;
+		gameplaySubState.lootMode = false;
 	}
 	
 	public void dropItem(InventoryItem i, Mob m, boolean useLookAngle){

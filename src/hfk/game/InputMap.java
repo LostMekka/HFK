@@ -6,8 +6,11 @@
 
 package hfk.game;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.stream.Stream;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.MouseListener;
 
@@ -17,57 +20,163 @@ import org.newdawn.slick.MouseListener;
  */
 public class InputMap implements MouseListener {
 
-	public static final String A_MOVE_UP = "move_up";
-	public static final String A_MOVE_DOWN = "move_down";
-	public static final String A_MOVE_LEFT = "move_left";
-	public static final String A_MOVE_RIGHT = "move_right";
-	public static final String A_LOOT = "loot";
-	public static final String A_LOOT_USE = "loot_use";
-	public static final String A_LOOT_GRAB = "loot_grab";
-	public static final String A_LOOT_UNLOAD = "loot_unload";
-	public static final String A_SHOOT = "shoot";
-	public static final String A_SHOOT_ALTERNATIVE = "shoot_alternative";
-	public static final String A_RELOAD = "reload";
-	public static final String A_GRAB = "grab";
-	public static final String A_USE_LEVITEM = "use_levitem";
-	
-	public static final String A_INV_UP = "inventory_up";
-	public static final String A_INV_DOWN = "inventory_down";
-	public static final String A_INV_USE = "inventory_use";
-	public static final String A_INV_EQUIP = "inventory_equip";
-	public static final String A_INV_DROP = "inventory_drop";
-	public static final String A_INV_UNLOAD = "inventory_unload";
-	public static final String A_OPEN_INVENTORY = "inventory_open";
-	public static final String A_CLOSE_INVENTORY = "inventory_close";
-	
-	public static final String A_EXCHANGE_UP = "exchange_up";
-	public static final String A_EXCHANGE_DOWN = "exchange_down";
-	public static final String A_EXCHANGE_USE = "exchange_use";
-	public static final String A_EXCHANGE_MOVE = "exchange_move";
-	public static final String A_EXCHANGE_DROP = "exchange_drop";
-	public static final String A_EXCHANGE_UNLOAD = "exchange_unload";
-	public static final String A_EXCHANGE_ALTERNATIVE = "exchange_alt";
-	public static final String A_EXCHANGE_CLOSE = "exchange_close";
-	
-	public static final String A_NEWGAME = "newgame";
-	public static final String A_QUIT = "quit";
-	public static final String A_MAINMENU = "mainmenu";
-	public static final String A_TOGGLEMUSIC = "togglemusic";
-	public static final String A_PAUSE = "pausegame";
-	public static final String A_RESUMEGAME = "resumegame";
-	public static final String A_RESTARTGAME = "restartgame";
-	
-	public static final String A_CHEAT_OVERVIEW = "cheat_overview";
-	public static final String A_CHEAT_CLOSE    = "cheat_close";
-	
-	public static final String A_SELECTSKILL = "selectskill";
-	public static final String A_TRACKSKILL = "trackskill";
-	public static final String A_OPEN_SKILLS = "open_skills";
-	public static final String A_CLOSE_SKILLS = "close_skills";
-	
-	public static final String[] A_QUICKSLOTS = new String[10];
-	static { for(int i=0; i<10; i++) A_QUICKSLOTS[i] = "quickslot" + i; }
-	
+	public static final class InputSource {
+		private static final HashMap<String, InputSource> nameToObject = new HashMap<>();
+		private static final HashMap<InputSource, String> objectToName = new HashMap<>();
+		static {
+			try {
+				final int targetModifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
+				for (Field field : Input.class.getDeclaredFields()) {
+					if (field.getModifiers() != targetModifiers || !field.getType().equals(int.class)) continue;
+					final String name = field.getName();
+					if (name.startsWith("KEY_")) {
+						put(name, key(field.getInt(null)));
+					} else if (name.startsWith("MOUSE_")) {
+						put(name, mouse(field.getInt(null)));
+					}
+				}
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException("Could not reflect upon Slick engine's Input class to get member names.", e);
+			}
+		}
+		private static void put(String name, InputSource object) {
+			nameToObject.put(name, object);
+			objectToName.put(object, name);
+		}
+
+		public static Stream<String> getAvailableSlickInputFieldNames() {
+			return nameToObject.keySet().stream();
+		}
+
+		public static Stream<String> getAvailableActionNames() {
+			return Stream.of(Action.values()).map(Action::name);
+		}
+
+		public static InputSource forFieldName(String fieldName) {
+			InputSource ans = nameToObject.get(fieldName);
+			if (ans == null) throw new IllegalArgumentException(String.format(
+					"Input source for name \"%s\" not found!",
+					fieldName
+			));
+			return ans;
+		}
+
+		public final boolean isMouse;
+		public final int code;
+
+		private InputSource(boolean isMouse, int code) {
+			this.isMouse = isMouse;
+			this.code = code;
+		}
+
+		public String getSlickInputFieldName() {
+			return objectToName.get(this);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			InputSource that = (InputSource) o;
+
+			return isMouse == that.isMouse && code == that.code;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = (isMouse ? 1 : 0);
+			result = 31 * result + code;
+			return result;
+		}
+	}
+
+	private static InputSource mouse(int code) {
+		return new InputSource(true, code);
+	}
+
+	private static InputSource key(int code) {
+		return new InputSource(false, code);
+	}
+
+	public enum Action {
+		// main menu
+		A_MAIN_MENU_QUIT(key(Input.KEY_ESCAPE)),
+		A_MAIN_MENU_CLICK(mouse(Input.MOUSE_LEFT_BUTTON)), // TODO: add option to constructor to always use defaults and never write to config file
+		// controls for omni state
+		A_TOGGLE_MUSIC(key(Input.KEY_M)),
+		// standard
+		A_MOVE_UP(key(Input.KEY_W)),
+		A_MOVE_DOWN(key(Input.KEY_S)),
+		A_MOVE_LEFT(key(Input.KEY_A)),
+		A_MOVE_RIGHT(key(Input.KEY_D)),
+		A_SHOOT(mouse(Input.MOUSE_LEFT_BUTTON)),
+		A_SHOOT_ALTERNATIVE(mouse(Input.MOUSE_RIGHT_BUTTON)),
+		A_RELOAD(key(Input.KEY_R)),
+		A_GRAB(key(Input.KEY_G)),
+		A_INTERACT(key(Input.KEY_E)),
+		A_QUICK_SLOT_0(key(Input.KEY_0)),
+		A_QUICK_SLOT_1(key(Input.KEY_1)),
+		A_QUICK_SLOT_2(key(Input.KEY_2)),
+		A_QUICK_SLOT_3(key(Input.KEY_3)),
+		A_QUICK_SLOT_4(key(Input.KEY_4)),
+		A_QUICK_SLOT_5(key(Input.KEY_5)),
+		A_QUICK_SLOT_6(key(Input.KEY_6)),
+		A_QUICK_SLOT_7(key(Input.KEY_7)),
+		A_QUICK_SLOT_8(key(Input.KEY_8)),
+		A_QUICK_SLOT_9(key(Input.KEY_9)),
+		A_SHOW_MAP(key(Input.KEY_TAB)),
+		A_PAUSE_MENU(key(Input.KEY_ESCAPE)),
+		// loot mode
+		A_LOOT_MODE(key(Input.KEY_LCONTROL)),
+		A_LOOT_USE(key(Input.KEY_E)),
+		A_LOOT_GRAB(mouse(Input.MOUSE_LEFT_BUTTON)),
+		A_LOOT_UNLOAD(key(Input.KEY_R)),
+		// inventory screen
+		A_INVENTORY_UP(key(Input.KEY_UP)),
+		A_INVENTORY_DOWN(key(Input.KEY_DOWN)),
+		A_INVENTORY_USE(key(Input.KEY_E), mouse(Input.MOUSE_LEFT_BUTTON)),
+		A_INVENTORY_DROP(key(Input.KEY_Q)),
+		A_INVENTORY_UNLOAD(key(Input.KEY_R)),
+		A_INVENTORY_OPEN(key(Input.KEY_I)),
+		A_INVENTORY_CLOSE(key(Input.KEY_ESCAPE), key(Input.KEY_I)),
+		// skills screen
+		A_SKILLS_LEARN(mouse(Input.MOUSE_LEFT_BUTTON)),
+		A_SKILLS_TRACK(mouse(Input.MOUSE_RIGHT_BUTTON)),
+		A_SKILLS_OPEN(key(Input.KEY_K)),
+		A_SKILLS_CLOSE(key(Input.KEY_ESCAPE), key(Input.KEY_K)),
+		// exchange screen
+		A_EXCHANGE_UP(key(Input.KEY_UP)),
+		A_EXCHANGE_DOWN(key(Input.KEY_DOWN)),
+		A_EXCHANGE_USE(key(Input.KEY_E)),
+		A_EXCHANGE_MOVE(mouse(Input.MOUSE_LEFT_BUTTON)),
+		A_EXCHANGE_DROP(key(Input.KEY_Q)),
+		A_EXCHANGE_UNLOAD(key(Input.KEY_R)),
+		A_EXCHANGE_ALTERNATIVE(key(Input.KEY_LSHIFT)),
+		A_EXCHANGE_CLOSE(key(Input.KEY_ESCAPE)),
+		// pause screen
+		A_RESUME_GAME(key(Input.KEY_ESCAPE)),
+		A_RESTART_GAME(key(Input.KEY_R)),
+		// game over screen
+		A_NEW_GAME(key(Input.KEY_SPACE)),
+		A_MAIN_MENU(key(Input.KEY_ESCAPE)),
+		// both pause and game over screen
+		A_QUIT(key(Input.KEY_Q)),
+		// cheats
+		A_CHEAT_OVERVIEW_OPEN(key(Input.KEY_F1)),
+		A_CHEAT_OVERVIEW_CLOSE(key(Input.KEY_ESCAPE)),
+		;
+		private final InputSource[] defaults;
+
+		public Stream<InputSource> defaultsStream() {
+			return Stream.of(defaults);
+		}
+
+		Action(InputSource... defaults) {
+			this.defaults = defaults;
+		}
+	}
+
 	@Override
 	public void mouseWheelMoved(int i) {
 		lastMW = i;
@@ -92,11 +201,10 @@ public class InputMap implements MouseListener {
 	public void inputStarted() {}
 	
 	private class Data{
-		public boolean isPressed = false, isDown = false;
-		public float downTime = 0f;
-		public LinkedList<String> actions = new LinkedList<>();
-		public Data(){}
-		public Data(String action){
+		boolean isPressed = false, isDown = false;
+		float downTime = 0f;
+		LinkedList<String> actions = new LinkedList<>();
+		Data(String action){
 			actions.add(action);
 		}
 	}
@@ -115,10 +223,9 @@ public class InputMap implements MouseListener {
 		this.in = in;
 	}
 	
-	private LinkedList<Data> getData(String action, HashMap<Integer, Data> map){
-		LinkedList<Data> ans = new LinkedList<>();
-		for(Data d : map.values()) if(d.actions.contains(action)) ans.add(d);
-		return ans;
+	private Stream<Data> getDataStream(Action action){
+		return Stream.concat(keys.values().stream(), mouse.values().stream())
+				.filter(d -> d.actions.contains(action.name()));
 	}
 	
 	public int getMouseWheelMove(){
@@ -144,94 +251,37 @@ public class InputMap implements MouseListener {
 		}
 	}
 	
-	public void addKey(int key, String action){
-		if(keys.containsKey(key)){
-			Data d = keys.get(key);
-			if(!d.actions.contains(action)) d.actions.add(action);
+	public void addInput(String inputName, Action action){
+		addInput(InputSource.forFieldName(inputName), action);
+	}
+
+	public void addInput(InputSource input, Action action){
+		addInput(input.isMouse ? mouse : keys, input.code, action);
+	}
+
+	private void addInput(HashMap<Integer, Data> map, int key, Action action){
+		if(map.containsKey(key)){
+			Data d = map.get(key);
+			if(!d.actions.contains(action.name())) d.actions.add(action.name());
 		} else {
-			keys.put(key, new Data(action));
+			map.put(key, new Data(action.name()));
 		}
 	}
-	
-	public void addMouseButton(int key, String action){
-		if(mouse.containsKey(key)){
-			Data d = mouse.get(key);
-			if(!d.actions.contains(action)) d.actions.add(action);
-		} else {
-			mouse.put(key, new Data(action));
-		}
+
+	public boolean isDown(Action action){
+		return getDataStream(action).anyMatch(data -> data.isDown);
 	}
 	
-	public boolean isKeyDown(String action){
-		for(Data d : getData(action, keys)){
-			if(d.isDown) return true;
-		}
-		return false;
+	public float getDownTime(Action action){
+		return (float) getDataStream(action)
+				.filter(data -> data.isDown)
+				.mapToDouble(data -> data.downTime)
+				.max()
+				.orElse(0);
 	}
 	
-	public float getKeyDownTime(String action){
-		float ans = 0f;
-		for(Data d : getData(action, keys)){
-			if(d.isDown && d.downTime > ans) ans = d.downTime;
-		}
-		return ans;
-	}
-	
-	public boolean isKeyPressed(String action){
-		for(Data d : getData(action, keys)){
-			if(d.isPressed) return true;
-		}
-		return false;
-	}
-	
-	public boolean isMouseDown(String action){
-		for(Data d : getData(action, mouse)){
-			if(d.isDown) return true;
-		}
-		return false;
-	}
-	
-	public float getMouseDownTime(String action){
-		float ans = 0f;
-		for(Data d : getData(action, mouse)){
-			if(d.isDown && d.downTime > ans) ans = d.downTime;
-		}
-		return ans;
-	}
-	
-	public boolean isMousePressed(String action){
-		for(Data d : getData(action, mouse)){
-			if(d.isPressed) return true;
-		}
-		return false;
-	}
-	
-	public boolean isActionDown(String action){
-		LinkedList<Data> l = getData(action, keys);
-		l.addAll(getData(action, mouse));
-		for(Data d : l){
-			if(d.isDown) return true;
-		}
-		return false;
-	}
-	
-	public float getActionDownTime(String action){
-		float ans = 0f;
-		LinkedList<Data> l = getData(action, keys);
-		l.addAll(getData(action, mouse));
-		for(Data d : l){
-			if(d.isDown && d.downTime > ans) ans = d.downTime;
-		}
-		return ans;
-	}
-	
-	public boolean isActionPressed(String action){
-		LinkedList<Data> l = getData(action, keys);
-		l.addAll(getData(action, mouse));
-		for(Data d : l){
-			if(d.isPressed) return true;
-		}
-		return false;
+	public boolean isPressed(Action action){
+		return getDataStream(action).anyMatch(data -> data.isPressed);
 	}
 	
 }
