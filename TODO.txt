@@ -1,20 +1,4 @@
 features
-
-
-feature-bugs
-
-
-bugs
- - mob stats bar still not drawn over loot labels
- - cannot unload weapon in chest when too far away
- --> unload should stop when exchange view is closed if wpn is in a chest
-
-changes
- - make experience orbs drop on death instead of being in the mobs inventory
- - mob stat: exp orb chance
-
-
-features
  - probability of destroying items in explosions? hp of items?
  - add onDestroy(cause) to item -> rocket ammo may also want to explode on cause=fire/expl
  - equippable items that deal damage over time to wearer
@@ -27,6 +11,16 @@ features
  - land mines
  - flame thrower
 
+feature-bugs
+
+changes
+ - make experience orbs drop on death instead of being in the mobs inventory
+ - mob stat: exp orb chance
+
+bugs
+ - mob stats bar still not drawn over loot labels
+ - cannot unload weapon in chest when too far away
+ --> unload should stop when exchange view is closed if wpn is in a chest
 
 internal
 
@@ -34,29 +28,42 @@ internal
 ---- DONE ?.?.? ---------------------------------------------------
 
 features
+
+changes
+
+fixes
+
+internal
+
+
+---- DONE 0.1.7a ---------------------------------------------------
+
+features
+
+changes
+
+fixes
+ - key 1 maps to 2nd weapon quick slot
+
+internal
+
+
+---- DONE 0.1.7 ---------------------------------------------------
+
+features
  - key map configuration file
 
 changes
  - now requires java 1.8
 
-bugs
-
+fixes
 
 internal
-
 
 
 ---- DONE 0.1.6 ---------------------------------------------------
 
 bugs
-
-
-changes
- - display xp above tracked skills list instead of at the xp
- - whishlist is now called tracked skills
- - rebalanced difficulty and item spawning for new random generator
- - less crates in room areas
-
 
 features
  - first pass main menu
@@ -65,7 +72,6 @@ features
  - exchange menu for chests
  - xp orbs
  - unload weapons
-
 
 changes
  - input rework: q-drop e-use r-reload/unload lmb-dependent
@@ -77,12 +83,10 @@ changes
  - rebalanced difficulty and item spawning for new random generator
  - less crates in room areas
 
-
-bugs
+fixes
  - items are no longer rendered behind stairs
  - field of view not updating on destroy tile
  - fixed invisible <EMPTY> items polluting the game
-
 
 internal
  - scrollable menu boxes
