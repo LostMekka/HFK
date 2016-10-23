@@ -1,3 +1,6 @@
+features
+
+
 feature-bugs
 
 
@@ -28,13 +31,13 @@ features
 internal
 
 
----- DONE ?.?.? ---------------------------------------------------
+---- DONE 0.1.7 ---------------------------------------------------
 
 features
-
+ - key map configuration file
 
 changes
-
+ - now requires java 1.8
 
 bugs
 
